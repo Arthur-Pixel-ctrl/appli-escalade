@@ -61,16 +61,41 @@ export async function enregistrerSeance(
     modifieLe: maintenant.toISOString(),
     date: jourLocal(maintenant),
   }
-  await base.seancesRealisees.add(seance)
+  await avecReprise(() => base.seancesRealisees.add(seance))
   return seance.id
 }
 
+/**
+ * Lance une opération sur la base, et la retente une fois si elle échoue.
+ * Sur iPhone, quand l'app revient après des heures en arrière-plan, Safari perd parfois
+ * la connexion à la base : il suffit alors de la fermer et de la rouvrir.
+ */
+export async function avecReprise<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation()
+  } catch {
+    base.close()
+    await base.open()
+    return await operation()
+  }
+}
+
+/** Réessaie la base quand l'app revient au premier plan, pour la retrouver prête. */
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !base.isOpen()) void base.open().catch(() => {})
+})
+
 export async function lireProfil(): Promise<Profil | null> {
-  return (await base.reglages.get('profil')) ?? null
+  return (await avecReprise(() => base.reglages.get('profil'))) ?? null
 }
 
 export async function enregistrerProfil(profil: Profil): Promise<void> {
-  await base.reglages.put({ ...profil, id: 'profil', modifieLe: new Date().toISOString() })
+  await avecReprise(() => base.reglages.put({ ...profil, id: 'profil', modifieLe: new Date().toISOString() }))
+}
+
+/** Toutes les séances enregistrées. */
+export function lireSeances(): Promise<SeanceRealisee[]> {
+  return avecReprise(() => base.seancesRealisees.toArray())
 }
 
 // Sauvegarde : toutes les données dans un seul fichier, à garder ou à transférer sur un autre appareil.

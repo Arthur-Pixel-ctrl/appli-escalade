@@ -2,10 +2,13 @@ import '@fontsource-variable/geist'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
+import { FiletDeSecurite } from './FiletDeSecurite.tsx'
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <FiletDeSecurite>
+      <App />
+    </FiletDeSecurite>
   </StrictMode>,
 )

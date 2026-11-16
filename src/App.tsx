@@ -9,6 +9,7 @@ import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
 import { Bienvenue } from './ecrans/Bienvenue.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
 import { EnConstruction } from './ecrans/EnConstruction.tsx'
+import { Chargement, Erreur } from './ecrans/Erreur.tsx'
 import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
 import { Profil } from './ecrans/Profil.tsx'
@@ -35,7 +36,12 @@ export default function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'onglets' })
   // undefined = lecture en cours ; null = pas encore de profil (premier lancement)
   const [profil, setProfil] = useState<TypeProfil | null | undefined>(undefined)
-  useEffect(() => { void lireProfil().then(setProfil) }, [])
+  const [erreurDemarrage, setErreurDemarrage] = useState<string | null>(null)
+  useEffect(() => {
+    lireProfil()
+      .then(setProfil)
+      .catch((e: unknown) => setErreurDemarrage(e instanceof Error ? `${e.name} : ${e.message}` : String(e)))
+  }, [])
   const [majPrete, setMajPrete] = useState(false)
   useEffect(() => surMiseAJourDisponible(() => setMajPrete(true)), [])
   const accueil = () => setVue({ nom: 'onglets' })
@@ -43,7 +49,8 @@ export default function App() {
     if (window.confirm('Quitter la séance ? Elle ne sera pas enregistrée.')) accueil()
   }
 
-  if (profil === undefined) return <div className="app" aria-busy="true" />
+  if (erreurDemarrage) return <Erreur message={erreurDemarrage} />
+  if (profil === undefined) return <Chargement />
 
   // Premier lancement : le profil, puis les mises en garde, une seule fois.
   if (profil === null) {
@@ -112,7 +119,13 @@ export default function App() {
         <Questions
           contexte={`${brouillon.nom} · ${brouillon.mode === 'groupe' ? 'en groupe' : 'seul'}`}
           onValider={async (reponses) => {
-            const seanceId = await enregistrerSeance(brouillon, reponses)
+            let seanceId: string
+            try {
+              seanceId = await enregistrerSeance(brouillon, reponses)
+            } catch {
+              window.alert('La séance n’a pas pu être enregistrée. Ferme complètement l’app, rouvre-la, puis réessaie.')
+              return
+            }
             // En cas de douleur, on montre d'abord les repères, puis le débrief.
             setVue(reponses.douleur ? { nom: 'mises_en_garde', puisDebrief: seanceId } : { nom: 'debrief', seanceId })
           }}
@@ -153,7 +166,7 @@ export default function App() {
           profil={profil}
           onEnregistrer={async (p) => { await enregistrerProfil(p); setProfil(p) }}
           onMisesEnGarde={() => setVue({ nom: 'mises_en_garde' })}
-          onDonneesImportees={() => void lireProfil().then((p) => p && setProfil(p))}
+          onDonneesImportees={() => void lireProfil().then((p) => p && setProfil(p)).catch(() => {})}
         />
       )}
       <nav className="onglets" aria-label="Navigation principale">

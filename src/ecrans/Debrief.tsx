@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { base, type SeanceRealisee } from '../donnees/base.ts'
+import { lireSeances, type SeanceRealisee } from '../donnees/base.ts'
 import { chargeSeance, chiffresBlocs, parCouleur, precedente, prochaineSeanceDurePossible, resume, seancesDeLaSemaine } from '../donnees/debrief.ts'
 import type { Salle } from '../donnees/salles.ts'
 
@@ -14,7 +14,18 @@ function duree(min: number) {
 // Fin de séance, second temps : le débrief complet. Tout est calculé à partir des séances enregistrées.
 export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle: Salle; onFermer: () => void }) {
   const [toutes, setToutes] = useState<SeanceRealisee[] | null>(null)
-  useEffect(() => { void base.seancesRealisees.toArray().then(setToutes) }, [seanceId])
+  const [echec, setEchec] = useState(false)
+  useEffect(() => { lireSeances().then(setToutes).catch(() => setEchec(true)) }, [seanceId])
+
+  if (echec) {
+    return (
+      <main className="ecran">
+        <h1 className="titre moyen">Débrief indisponible</h1>
+        <p className="texte-2">Les séances n’ont pas pu être lues. Ferme complètement l’app puis rouvre-la.</p>
+        <button className="bouton principal centre" onClick={onFermer}><strong>Retour</strong></button>
+      </main>
+    )
+  }
 
   if (!toutes) return <main className="ecran" aria-busy="true" />
   const s = toutes.find((x) => x.id === seanceId)

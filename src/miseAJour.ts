@@ -27,6 +27,11 @@ export function surMiseAJourDisponible(rappel: () => void) {
   if (disponible) rappel()
 }
 
+/** Vrai si une nouvelle version attend d'être installée. */
+export function miseAJourEnAttente() {
+  return disponible
+}
+
 /** Installe la nouvelle version et recharge l'app. */
 export function appliquerMiseAJour() {
   let recharge = false
