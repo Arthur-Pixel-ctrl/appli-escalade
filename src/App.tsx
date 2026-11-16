@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
 import { EnConstruction } from './ecrans/EnConstruction.tsx'
+import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
 import { SeanceSolo, type StatutEtape } from './ecrans/SeanceSolo.tsx'
 
 // Les quatre onglets de la barre du bas.
@@ -12,6 +13,7 @@ type Onglet = (typeof ONGLETS)[number]
 type Vue =
   | { nom: 'onglets' }
   | { nom: 'seance_solo' }
+  | { nom: 'mises_en_garde' }
   | { nom: 'fin'; faites: number; total: number; dureeMin: number }
 
 export default function App() {
@@ -35,6 +37,10 @@ export default function App() {
     )
   }
 
+  if (vue.nom === 'mises_en_garde') {
+    return <div className="app"><MisesEnGarde onFermer={() => setVue({ nom: 'onglets' })} /></div>
+  }
+
   // Résumé provisoire : les trois questions et le débrief arrivent au lot 3.5.
   if (vue.nom === 'fin') {
     return (
@@ -55,7 +61,7 @@ export default function App() {
     <div className="app">
       {onglet === 'Aujourd’hui'
         ? <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} />
-        : <EnConstruction titre={onglet} />}
+        : <EnConstruction titre={onglet} onMisesEnGarde={onglet === 'Profil' ? () => setVue({ nom: 'mises_en_garde' }) : undefined} />}
       <nav className="onglets" aria-label="Navigation principale">
         {ONGLETS.map((nom) => (
           <button

@@ -5,9 +5,9 @@ import type { ConfigChrono } from '../chrono/sequence.ts'
 // - liste  : une routine à cocher (échauffement, antagonistes, mobilité)
 // - essais : de la grimpe à essais comptés, avec un repos conseillé entre deux essais
 export type Etape = { id: string; titre: string; resume: string; consigne: string } & (
-  | { forme: 'chrono'; config: ConfigChrono; mot: string; detail: string; preuve: Preuve; signauxArret: string[] }
+  | { forme: 'chrono'; config: ConfigChrono; mot: string; detail: string; preuve: Preuve }
   | { forme: 'liste'; elements: string[] }
-  | { forme: 'essais'; reposS: number; preuve: Preuve; signauxArret: string[] }
+  | { forme: 'essais'; reposS: number; preuve: Preuve }
 )
 
 // D'où vient le protocole : une étude, l'avis d'un entraîneur, ou une synthèse maison.
@@ -18,13 +18,6 @@ export interface SeanceGuidee {
   dureeMin: number
   etapes: Etape[]
 }
-
-const SIGNAUX_DOIGTS = [
-  'Douleur à la base d’un doigt',
-  'Sensation de claquement',
-  'Épaules qui ne restent plus engagées',
-  'Glissade non contrôlée',
-]
 
 // Séance d'exemple, en attendant le programme généré à partir du profil (lot 4).
 // Valeurs prudentes pour quelqu'un qui débute la poutre ; à recontrôler avant de figer la bibliothèque.
@@ -45,19 +38,19 @@ export const SEANCE_EXEMPLE: SeanceGuidee = {
     {
       id: 'pieds', forme: 'chrono', titre: 'Pieds silencieux', resume: '10 min',
       consigne: 'Sur des blocs faciles, pose chaque pied sans bruit et sans le replacer.',
-      mot: 'GRIMPE', detail: 'Blocs faciles · technique', preuve: 'Avis de coach', signauxArret: [],
+      mot: 'GRIMPE', detail: 'Blocs faciles · technique', preuve: 'Avis de coach',
       config: { gabarit: 'repetition_unique', effortS: 600, series: 1, reposSeriesS: 0 },
     },
     {
       id: 'echelles', forme: 'chrono', titre: 'Échelles 3-6-9 à la poutre', resume: '3 échelles',
       consigne: 'Suspensions de 3, 6 puis 9 secondes, loin de l’échec. Poids du corps, épaules engagées.',
-      mot: 'SUSPENDS-TOI', detail: 'Semi-arqué 20 mm · poids du corps', preuve: 'Avis de coach', signauxArret: SIGNAUX_DOIGTS,
+      mot: 'SUSPENDS-TOI', detail: 'Semi-arqué 20 mm · poids du corps', preuve: 'Avis de coach',
       config: { gabarit: 'echelle', dureesS: [3, 6, 9], creneauS: 45, series: 3, reposSeriesS: 120 },
     },
     {
       id: 'bloc-limite', forme: 'essais', titre: 'Bloc limite, blocs à réglettes', resume: '40 min',
       consigne: 'Des blocs à ta limite, peu d’essais mais de vrais essais. Arrête quand la qualité baisse.',
-      reposS: 240, preuve: 'Avis de coach', signauxArret: SIGNAUX_DOIGTS,
+      reposS: 240, preuve: 'Avis de coach',
     },
     {
       id: 'antagonistes', forme: 'liste', titre: 'Antagonistes', resume: '12 min',

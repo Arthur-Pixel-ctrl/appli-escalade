@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Etape, SeanceGuidee } from '../donnees/seanceExemple.ts'
 import { garderEcranAllume, preparerSon, signal } from '../chrono/signaux.ts'
 import { Chrono } from './Chrono.tsx'
+import { MisesEnGarde } from './MisesEnGarde.tsx'
 
 export type StatutEtape = 'a_faire' | 'faite' | 'passee'
 
@@ -20,7 +21,7 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
   const [statuts, setStatuts] = useState<StatutEtape[]>(() => seance.etapes.map(() => 'a_faire'))
   const [debutMs] = useState(() => Date.now())
   const [chronoOuvert, setChronoOuvert] = useState(false)
-  const [signauxVisibles, setSignauxVisibles] = useState(false)
+  const [gardeOuverte, setGardeOuverte] = useState(false)
   const [, rafraichir] = useState(0)
 
   // Met à jour la durée affichée une fois par minute.
@@ -33,9 +34,10 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
   const etape: Etape | undefined = seance.etapes[enCours]
   const marquer = (statut: StatutEtape) => {
     setStatuts((avant) => avant.map((s, i) => (i === enCours ? statut : s)))
-    setSignauxVisibles(false)
   }
   const terminer = () => onTerminer(statuts, minutesDepuis(debutMs))
+
+  if (gardeOuverte) return <MisesEnGarde apresDouleur onFermer={() => setGardeOuverte(false)} />
 
   if (chronoOuvert && etape?.forme === 'chrono') {
     return (
@@ -44,10 +46,10 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
         detail={etape.detail}
         mot={etape.mot}
         config={etape.config}
-        signauxArret={etape.signauxArret}
         onQuitter={(raison) => {
           setChronoOuvert(false)
           if (raison === 'termine') marquer('faite')
+          if (raison === 'douleur') setGardeOuverte(true)
         }}
       />
     )
@@ -92,14 +94,6 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
                 <button className="bouton principal centre" onClick={() => marquer('faite')}><strong>C’est fait</strong></button>
               )}
 
-              {'signauxArret' in e && e.signauxArret.length > 0 && (
-                <>
-                  <button className="bouton-texte" aria-expanded={signauxVisibles} onClick={() => setSignauxVisibles((v) => !v)}>
-                    Quand s’arrêter : {signauxVisibles ? 'masquer' : 'voir les signaux'}
-                  </button>
-                  {signauxVisibles && <ul className="liste-simple">{e.signauxArret.map((s) => <li key={s}>{s}</li>)}</ul>}
-                </>
-              )}
             </li>
           ) : (
             <li key={e.id} className={statuts[i] === 'a_faire' ? 'etape' : 'etape traitee'}>

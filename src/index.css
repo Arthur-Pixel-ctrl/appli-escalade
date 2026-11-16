@@ -124,3 +124,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .essais { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .essais .bouton-second { grid-column: 1 / -1; }
 .grand-chiffre { font-size: 30px; font-weight: 700; line-height: 1.1; }
+.chrono-nombre.long { font-size: min(34vw, 150px); }      /* « 9:56 » */
+.chrono-nombre.tres-long { font-size: min(27vw, 120px); } /* « 10:00 » */
+.sous-titre { font-size: 18px; font-weight: 600; }
+.texte-3 { font-size: 14px; color: var(--texte-3); }

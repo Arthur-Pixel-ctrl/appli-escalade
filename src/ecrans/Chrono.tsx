@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { ConfigChrono } from '../chrono/sequence.ts'
 import { useChrono } from '../chrono/useChrono.ts'
 
@@ -6,7 +7,6 @@ interface Props {
   detail: string // "Semi-arqué 20 mm · poids du corps"
   mot: string // consigne affichée pendant l'effort : "SUSPENDS-TOI", "GRIMPE"
   config: ConfigChrono
-  signauxArret: string[]
   onQuitter: (raison: 'termine' | 'abandon' | 'douleur') => void
 }
 
@@ -16,11 +16,19 @@ function duree(s: number) {
 }
 
 // Écran de chrono plein écran : fond accent pendant l'effort, sombre le reste du temps.
-export function Chrono({ titre, detail, mot, config, signauxArret, onQuitter }: Props) {
+export function Chrono({ titre, detail, mot, config, onQuitter }: Props) {
   const CONSIGNE = { preparation: 'PRÊT', effort: mot, repos: 'REPOS' }
   const chrono = useChrono(config)
   const { etat, marche } = chrono
   const phase = etat.phase
+  const enEffort = phase?.type === 'effort' && marche === 'en_cours'
+
+  // La barre du haut du téléphone prend la couleur de l'écran (jaune pendant l'effort).
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]')
+    meta?.setAttribute('content', enEffort ? '#E9F55B' : '#0C0D0E')
+    return () => meta?.setAttribute('content', '#0C0D0E')
+  }, [enEffort])
 
   if (marche === 'pret') {
     return (
@@ -29,14 +37,6 @@ export function Chrono({ titre, detail, mot, config, signauxArret, onQuitter }: 
           <p className="surtitre">{detail}</p>
           <h1 className="titre">{titre}</h1>
         </div>
-        {signauxArret.length > 0 && (
-          <div className="pile">
-            <p className="surtitre">Arrête-toi si</p>
-            <ul className="liste-simple">
-              {signauxArret.map((s) => <li key={s}>{s}</li>)}
-            </ul>
-          </div>
-        )}
         <div className="pile bas">
           <button className="bouton principal centre" onClick={chrono.demarrer}><strong>Démarrer</strong></button>
           <button className="bouton-texte" onClick={() => onQuitter('abandon')}>Retour</button>
@@ -60,7 +60,9 @@ export function Chrono({ titre, detail, mot, config, signauxArret, onQuitter }: 
     )
   }
 
-  const enEffort = phase.type === 'effort' && marche === 'en_cours'
+  // Au-delà d'une minute on affiche « 9:56 » : le texte est plus long, donc écrit plus petit.
+  const texteReste = etat.resteS >= 60 ? `${Math.floor(etat.resteS / 60)}:${String(etat.resteS % 60).padStart(2, '0')}` : String(etat.resteS)
+  const taille = texteReste.length >= 5 ? 'tres-long' : texteReste.length >= 3 ? 'long' : ''
   return (
     <main className={enEffort ? 'chrono effort' : 'chrono'}>
       <div className="chrono-tete">
@@ -70,7 +72,7 @@ export function Chrono({ titre, detail, mot, config, signauxArret, onQuitter }: 
 
       <div className="chrono-centre" aria-live="off">
         <p className="chrono-consigne">{marche === 'en_pause' ? 'EN PAUSE' : CONSIGNE[phase.type]}</p>
-        <p className="chrono-nombre chiffres">{etat.resteS >= 60 ? `${Math.floor(etat.resteS / 60)}:${String(etat.resteS % 60).padStart(2, '0')}` : etat.resteS}</p>
+        <p className={`chrono-nombre chiffres ${taille}`}>{texteReste}</p>
         <p className="chrono-sous">
           {phase.totalRepetitions > 1 ? `Répétition ${phase.repetition} sur ${phase.totalRepetitions}` : detail}
         </p>
