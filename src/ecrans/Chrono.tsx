@@ -4,19 +4,20 @@ import { useChrono } from '../chrono/useChrono.ts'
 interface Props {
   titre: string // "Échelles 3-6-9"
   detail: string // "Semi-arqué 20 mm · poids du corps"
+  mot: string // consigne affichée pendant l'effort : "SUSPENDS-TOI", "GRIMPE"
   config: ConfigChrono
   signauxArret: string[]
   onQuitter: (raison: 'termine' | 'abandon' | 'douleur') => void
 }
 
-const CONSIGNE = { preparation: 'PRÊT', effort: 'SUSPENDS-TOI', repos: 'REPOS' } as const
 
 function duree(s: number) {
   return s >= 60 ? `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')}` : `${s} s`
 }
 
 // Écran de chrono plein écran : fond accent pendant l'effort, sombre le reste du temps.
-export function Chrono({ titre, detail, config, signauxArret, onQuitter }: Props) {
+export function Chrono({ titre, detail, mot, config, signauxArret, onQuitter }: Props) {
+  const CONSIGNE = { preparation: 'PRÊT', effort: mot, repos: 'REPOS' }
   const chrono = useChrono(config)
   const { etat, marche } = chrono
   const phase = etat.phase
@@ -28,12 +29,14 @@ export function Chrono({ titre, detail, config, signauxArret, onQuitter }: Props
           <p className="surtitre">{detail}</p>
           <h1 className="titre">{titre}</h1>
         </div>
-        <div className="pile">
-          <p className="surtitre">Arrête-toi si</p>
-          <ul className="liste-simple">
-            {signauxArret.map((s) => <li key={s}>{s}</li>)}
-          </ul>
-        </div>
+        {signauxArret.length > 0 && (
+          <div className="pile">
+            <p className="surtitre">Arrête-toi si</p>
+            <ul className="liste-simple">
+              {signauxArret.map((s) => <li key={s}>{s}</li>)}
+            </ul>
+          </div>
+        )}
         <div className="pile bas">
           <button className="bouton principal centre" onClick={chrono.demarrer}><strong>Démarrer</strong></button>
           <button className="bouton-texte" onClick={() => onQuitter('abandon')}>Retour</button>

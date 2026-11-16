@@ -13,7 +13,7 @@ const EXEMPLE = {
   ],
 }
 
-export function Aujourdhui({ onEssayerChrono }: { onEssayerChrono: () => void }) {
+export function Aujourdhui({ onSeanceSolo }: { onSeanceSolo: () => void }) {
   return (
     <main className="ecran">
       <div className="pile">
@@ -23,7 +23,7 @@ export function Aujourdhui({ onEssayerChrono }: { onEssayerChrono: () => void })
       </div>
 
       <div className="pile">
-        <button className="bouton principal">
+        <button className="bouton principal" onClick={onSeanceSolo}>
           <strong>Je grimpe seul</strong>
           <span>Séance guidée, 1 h 45</span>
         </button>
@@ -36,8 +36,6 @@ export function Aujourdhui({ onEssayerChrono }: { onEssayerChrono: () => void })
       <div>
         <button className="ligne"><span>Forme du jour</span><span>À renseigner</span></button>
         <button className="ligne"><span>Assiette du jour</span><span>Plus de féculents</span></button>
-        {/* Ligne provisoire pour tester le chrono, retirée quand la séance guidée existera. */}
-        <button className="ligne" onClick={onEssayerChrono}><span>Essayer le chrono</span><span>Échelles 3-6-9</span></button>
       </div>
 
       <div className="pile">
