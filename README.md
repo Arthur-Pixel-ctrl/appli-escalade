@@ -11,11 +11,18 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | Lot | Contenu | État |
 |---|---|---|
 | 3.1 | Squelette de l'app, thème, navigation | Fait |
+| 3.1 bis | Mise en ligne automatique (GitHub Pages) | Fait |
 | 3.2 | Moteur de chrono | À faire |
 | 3.3 | Séance guidée (solo) | À faire |
 | 3.4 | Séance en groupe, saisie des blocs | À faire |
 | 3.5 | Trois questions et débrief | À faire |
 | 3.6 | Profil et premier lancement | À faire |
+
+## Ouvrir l'app
+
+Adresse : https://arthur-pixel-ctrl.github.io/appli-escalade/
+
+À chaque enregistrement sur la branche `main`, l'app est testée, construite et mise en ligne automatiquement (onglet « Actions » du dépôt). Sur téléphone, ouvrir l'adresse puis « Ajouter à l'écran d'accueil » pour l'installer.
 
 ## Lancer l'app sur son ordinateur
 
