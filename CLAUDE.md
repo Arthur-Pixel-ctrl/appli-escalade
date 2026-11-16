@@ -8,3 +8,5 @@
 - Données : suivre `docs/modele-donnees.md`. Rien de calculable n'est stocké.
 - Sécurité de l'entraînement : avertir sans bloquer ; afficher les signaux d'arrêt ; valeurs par défaut prudentes.
 - Avant de livrer : `npm run build` et `npm run test` doivent passer.
+- Modèles : la conversation de pilotage tourne sur Opus 5.5 (réglé par le propriétaire). Agents en Opus par défaut ; Fable seulement pour les tâches les plus difficiles ou pour auditer un travail terminé.
+- Agents : réservés aux travaux indépendants (recherche, contenus). Les tâches qui touchent les mêmes fichiers se font l'une après l'autre.
