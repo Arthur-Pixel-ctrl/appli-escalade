@@ -13,7 +13,7 @@ const EXEMPLE = {
   ],
 }
 
-export function Aujourdhui({ onSeanceSolo }: { onSeanceSolo: () => void }) {
+export function Aujourdhui({ onSeanceSolo, onSeanceGroupe }: { onSeanceSolo: () => void; onSeanceGroupe: () => void }) {
   return (
     <main className="ecran">
       <div className="pile">
@@ -27,7 +27,7 @@ export function Aujourdhui({ onSeanceSolo }: { onSeanceSolo: () => void }) {
           <strong>Je grimpe seul</strong>
           <span>Séance guidée, 1 h 45</span>
         </button>
-        <button className="bouton">
+        <button className="bouton" onClick={onSeanceGroupe}>
           <strong>Je grimpe en groupe</strong>
           <span>2 objectifs, 1 h 30</span>
         </button>

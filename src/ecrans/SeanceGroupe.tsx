@@ -1,0 +1,110 @@
+import { useEffect, useState } from 'react'
+import { useRepos } from '../chrono/useRepos.ts'
+import type { Salle } from '../donnees/salles.ts'
+import { avancement, type BlocGrimpe, type SeanceGroupe as Seance } from '../donnees/seanceGroupeExemple.ts'
+
+interface Props {
+  seance: Seance
+  salle: Salle
+  onTerminer: (blocs: BlocGrimpe[], dureeMin: number) => void
+  onQuitter: () => void
+}
+
+// Séance en groupe : un objectif à la fois, et la saisie d'un bloc en trois gestes
+// (couleur, essais, résultat). On peut noter au fil de l'eau ou tout à la fin.
+export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
+  const [blocs, setBlocs] = useState<BlocGrimpe[]>([])
+  const [position, setPosition] = useState(0) // objectif affiché
+  const [couleur, setCouleur] = useState(seance.objectifs[0].couleurConseillee ?? salle.couleurs[0].nom)
+  const [essais, setEssais] = useState(1)
+  const [debutMs] = useState(() => Date.now())
+  const [, rafraichir] = useState(0)
+  const repos = useRepos(seance.reposConseilleS)
+
+  useEffect(() => {
+    const minuteur = setInterval(() => rafraichir((n) => n + 1), 30000)
+    return () => clearInterval(minuteur)
+  }, [])
+  const minutes = Math.max(0, Math.round((Date.now() - debutMs) / 60000))
+
+  const objectif = seance.objectifs[position]
+  const fait = avancement(objectif, position, blocs)
+
+  const changerObjectif = (p: number) => {
+    setPosition(p)
+    setCouleur(seance.objectifs[p].couleurConseillee ?? couleur)
+    setEssais(1)
+  }
+  const noter = (enchaine: boolean) => {
+    const resultat = !enchaine ? 'non_enchaine' : essais === 1 ? 'flash' : 'enchaine'
+    setBlocs((avant) => [...avant, { couleur, essais, resultat, objectif: position }])
+    setEssais(1)
+  }
+
+  return (
+    <main className="ecran serre">
+      <div className="entete">
+        <button className="bouton-discret" onClick={onQuitter}>Quitter</button>
+        <span className="surtitre chiffres">{minutes} min · {blocs.length} {blocs.length > 1 ? 'blocs notés' : 'bloc noté'}</span>
+      </div>
+
+      <div className="pile">
+        <p className="surtitre">Objectif {position + 1} sur {seance.objectifs.length}</p>
+        <h1 className="titre moyen">{objectif.libelle}</h1>
+        <div className="jauge" role="img" aria-label={`${Math.min(fait, objectif.cible)} sur ${objectif.cible}`}>
+          {Array.from({ length: objectif.cible }, (_, i) => <span key={i} className={i < fait ? 'actif' : ''} />)}
+        </div>
+      </div>
+
+      <section className="carte pile-large">
+        <h2 className="sous-titre">Noter un bloc</h2>
+
+        <div className="pile">
+          <p className="surtitre">Couleur</p>
+          <div className="couleurs">
+            {salle.couleurs.map((c) => (
+              <button key={c.nom} className="pastille" aria-pressed={c.nom === couleur} onClick={() => setCouleur(c.nom)}>
+                <span aria-hidden="true" style={{ background: c.hex }} />{c.nom}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="entete">
+          <p className="libelle">Essais</p>
+          <div className="compteur">
+            <button aria-label="Un essai de moins" disabled={essais <= 1} onClick={() => setEssais((n) => Math.max(1, n - 1))}>−</button>
+            <p className="chiffres" aria-live="polite">{essais}</p>
+            <button aria-label="Un essai de plus" onClick={() => setEssais((n) => n + 1)}>+</button>
+          </div>
+        </div>
+
+        <div className="pile">
+          <button className="bouton principal centre" onClick={() => noter(true)}><strong>{essais === 1 ? 'Flashé' : 'Enchaîné'}</strong></button>
+          <button className="bouton-second" onClick={() => noter(false)}>Pas encore</button>
+        </div>
+      </section>
+
+      <div>
+        <button className="ligne" onClick={repos.enCours ? repos.arreter : repos.lancer}>
+          <span>{repos.enCours ? 'Repos en cours, toucher pour arrêter' : 'Lancer un repos'}</span>
+          <span className="chiffres">{repos.texte}</span>
+        </button>
+        {seance.objectifs.map((o, p) => p !== position && (
+          <button key={o.libelle} className="ligne" onClick={() => changerObjectif(p)}>
+            <span>Objectif {p + 1} : {o.libelle}</span>
+            <span className="chiffres">{Math.min(avancement(o, p, blocs), o.cible)} sur {o.cible}</span>
+          </button>
+        ))}
+        {blocs.length > 0 && (
+          <button className="ligne" onClick={() => setBlocs((avant) => avant.slice(0, -1))}>
+            <span>Annuler le dernier bloc</span>
+            <span>{blocs[blocs.length - 1].couleur}, {blocs[blocs.length - 1].essais} {blocs[blocs.length - 1].essais > 1 ? 'essais' : 'essai'}</span>
+          </button>
+        )}
+      </div>
+
+      <button className="bouton-texte bas" onClick={() => onTerminer(blocs, minutes)}>Terminer la séance</button>
+    </main>
+  )
+}

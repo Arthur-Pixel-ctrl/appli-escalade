@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Etape, SeanceGuidee } from '../donnees/seanceExemple.ts'
-import { garderEcranAllume, preparerSon, signal } from '../chrono/signaux.ts'
+import { useRepos } from '../chrono/useRepos.ts'
 import { Chrono } from './Chrono.tsx'
 import { MisesEnGarde } from './MisesEnGarde.tsx'
 
@@ -117,27 +117,7 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
 // Compteur d'essais avec repos conseillé entre deux essais.
 function Essais({ reposS }: { reposS: number }) {
   const [essais, setEssais] = useState(0)
-  const [finReposMs, setFinReposMs] = useState<number | null>(null)
-  const [maintenant, setMaintenant] = useState(() => Date.now())
-
-  useEffect(() => {
-    if (finReposMs === null) return
-    const relacherEcran = garderEcranAllume()
-    const minuteur = setInterval(() => setMaintenant(Date.now()), 250)
-    return () => { clearInterval(minuteur); relacherEcran() }
-  }, [finReposMs])
-
-  const resteS = finReposMs === null ? 0 : Math.max(0, Math.ceil((finReposMs - maintenant) / 1000))
-  useEffect(() => {
-    if (finReposMs !== null && resteS === 0) { signal.fin(); setFinReposMs(null) }
-  }, [finReposMs, resteS])
-
-  const essaiFait = () => {
-    preparerSon()
-    setEssais((n) => n + 1)
-    setMaintenant(Date.now())
-    setFinReposMs(Date.now() + reposS * 1000)
-  }
+  const repos = useRepos(reposS)
 
   return (
     <div className="essais">
@@ -146,12 +126,10 @@ function Essais({ reposS }: { reposS: number }) {
         <p className="grand-chiffre chiffres">{essais}</p>
       </div>
       <div>
-        <p className="surtitre">{finReposMs === null ? 'Repos conseillé' : 'Repos restant'}</p>
-        <p className="grand-chiffre chiffres">
-          {finReposMs === null ? `${reposS / 60} min` : `${Math.floor(resteS / 60)}:${String(resteS % 60).padStart(2, '0')}`}
-        </p>
+        <p className="surtitre">{repos.enCours ? 'Repos restant' : 'Repos conseillé'}</p>
+        <p className="grand-chiffre chiffres">{repos.texte}</p>
       </div>
-      <button className="bouton-second" onClick={essaiFait}>Essai fait, lancer le repos</button>
+      <button className="bouton-second" onClick={() => { setEssais((n) => n + 1); repos.lancer() }}>Essai fait, lancer le repos</button>
     </div>
   )
 }

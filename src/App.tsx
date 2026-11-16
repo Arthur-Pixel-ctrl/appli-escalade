@@ -1,8 +1,11 @@
 import { useState } from 'react'
+import { MROC } from './donnees/salles.ts'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
+import { SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
 import { EnConstruction } from './ecrans/EnConstruction.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
+import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
 import { SeanceSolo, type StatutEtape } from './ecrans/SeanceSolo.tsx'
 
 // Les quatre onglets de la barre du bas.
@@ -14,7 +17,8 @@ type Vue =
   | { nom: 'onglets' }
   | { nom: 'seance_solo' }
   | { nom: 'mises_en_garde' }
-  | { nom: 'fin'; faites: number; total: number; dureeMin: number }
+  | { nom: 'seance_groupe' }
+  | { nom: 'fin'; resume: string }
 
 export default function App() {
   const [onglet, setOnglet] = useState<Onglet>('Aujourd’hui')
@@ -30,8 +34,27 @@ export default function App() {
             if (window.confirm('Quitter la séance ? Ce qui a été fait ne sera pas gardé.')) setVue({ nom: 'onglets' })
           }}
           onTerminer={(statuts: StatutEtape[], dureeMin) =>
-            setVue({ nom: 'fin', faites: statuts.filter((s) => s === 'faite').length, total: statuts.length, dureeMin })
+            setVue({ nom: 'fin', resume: `${statuts.filter((s) => s === 'faite').length} étapes faites sur ${statuts.length}, en ${dureeMin} min.` })
           }
+        />
+      </div>
+    )
+  }
+
+  if (vue.nom === 'seance_groupe') {
+    return (
+      <div className="app">
+        <SeanceGroupe
+          seance={SEANCE_GROUPE_EXEMPLE}
+          salle={MROC}
+          onQuitter={() => {
+            if (window.confirm('Quitter la séance ? Ce qui a été noté ne sera pas gardé.')) setVue({ nom: 'onglets' })
+          }}
+          onTerminer={(blocs, dureeMin) => {
+            const enchaines = blocs.filter((b) => b.resultat !== 'non_enchaine').length
+            const essais = blocs.reduce((total, b) => total + b.essais, 0)
+            setVue({ nom: 'fin', resume: `${enchaines} blocs enchaînés sur ${blocs.length}, ${essais} essais, en ${dureeMin} min.` })
+          }}
         />
       </div>
     )
@@ -49,7 +72,7 @@ export default function App() {
           <div className="pile">
             <p className="surtitre">{SEANCE_EXEMPLE.nom}</p>
             <h1 className="titre">Séance terminée</h1>
-            <p className="texte-2 chiffres">{vue.faites} étapes faites sur {vue.total}, en {vue.dureeMin} min.</p>
+            <p className="texte-2 chiffres">{vue.resume}</p>
           </div>
           <button className="bouton principal centre" onClick={() => setVue({ nom: 'onglets' })}><strong>Retour à l’accueil</strong></button>
         </main>
@@ -60,7 +83,7 @@ export default function App() {
   return (
     <div className="app">
       {onglet === 'Aujourd’hui'
-        ? <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} />
+        ? <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
         : <EnConstruction titre={onglet} onMisesEnGarde={onglet === 'Profil' ? () => setVue({ nom: 'mises_en_garde' }) : undefined} />}
       <nav className="onglets" aria-label="Navigation principale">
         {ONGLETS.map((nom) => (

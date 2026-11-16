@@ -128,3 +128,18 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .chrono-nombre.tres-long { font-size: min(27vw, 120px); } /* « 10:00 » */
 .sous-titre { font-size: 18px; font-weight: 600; }
 .texte-3 { font-size: 14px; color: var(--texte-3); }
+
+/* Séance en groupe */
+.carte { padding: 16px; border-radius: var(--rayon-carte); background: var(--surface); }
+.pile-large { display: flex; flex-direction: column; gap: 16px; }
+.libelle { font-size: 15px; font-weight: 500; }
+.couleurs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pastille { min-height: 48px; padding: 0 10px; border-radius: var(--rayon-controle); border: 2px solid transparent; background: var(--surface-haute); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+.pastille span { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--texte-3); flex: none; }
+.pastille[aria-pressed='true'] { border-color: var(--texte); font-weight: 700; }
+.compteur { display: flex; align-items: center; gap: 14px; }
+.compteur button { width: 52px; height: 52px; border-radius: var(--rayon-controle); background: var(--surface-haute); font-size: 26px; font-weight: 500; }
+.compteur button:disabled { opacity: 0.4; }
+.compteur p { min-width: 28px; text-align: center; font-size: 30px; font-weight: 700; }
+.ligne span:first-child { text-align: left; }
+.ligne span:last-child { text-align: right; flex: none; }
