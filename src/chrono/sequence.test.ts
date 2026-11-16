@@ -26,6 +26,13 @@ describe('construireSequence', () => {
     expect(resume(c)).toBe('e3 r42 e6 r39 e9 r120 e3 r42 e6 r39 e9')
   })
 
+  it('échelle façon Bechtel : toute l’échelle tient dans le créneau de 45 s', () => {
+    const c: ConfigChrono = { gabarit: 'echelle', dureesS: [3, 6, 9], creneauS: 45, reposEntrePaliersS: 6, series: 3, reposSeriesS: 0 }
+    // 3 + 6 + 6 + 6 + 9 = 30 s occupées, puis 15 s de repos jusqu'à la fin du créneau
+    expect(resume(c)).toBe('e3 r6 e6 r6 e9 r15 e3 r6 e6 r6 e9 r15 e3 r6 e6 r6 e9')
+    expect(dureeTotaleS(construireSequence(c, 0))).toBe(3 * 45 - 15)
+  })
+
   it('ajoute une préparation et numérote séries et répétitions', () => {
     const c: ConfigChrono = { gabarit: 'echelle', dureesS: [3, 6, 9], creneauS: 45, series: 2, reposSeriesS: 120 }
     const phases = construireSequence(c)

@@ -8,7 +8,7 @@ import type { Protocole } from './types.ts'
 const BARROWS = 'https://www.trainingbeta.com/wp-content/uploads/2015/05/1.-Alex-Barrows-Training-Doc-V2-for-training-beta.pdf'
 const BECHTEL_LACTIQUE = 'https://www.climbstrong.com/resource-posts/second-gear-the-anaerobic-lactic-energy-system'
 const LATTICE_UKC = 'https://www.ukclimbing.com/articles/page.php?id=11352'
-const BARROWS_A_VERIFIER = 'Chiffres du document de Barrows, extraits automatiquement d’un PDF : à recontrôler sur l’original.'
+// Chiffres de Barrows relus sur le PDF original le 16/11/2026 : confirmés.
 
 export const RESISTANCE: Protocole[] = [
   {
@@ -47,7 +47,7 @@ export const RESISTANCE: Protocole[] = [
     marqueurs: [],
     maxParSemaine: 2,
     progression: 'Environ 3 semaines, puis retour à un travail moins intense. Bechtel déconseille d’en faire la base.',
-    aVerifier: `Repos : 1 à 3 min chez Barrows, 3 à 4 min chez Bechtel ; nous posons 4 min. ${BARROWS_A_VERIFIER}`,
+    aVerifier: 'Repos : 1 à 3 min chez Barrows, 3 à 4 min chez Bechtel ; nous retenons 4 min, la valeur la plus prudente.',
   },
   {
     id: 'resistance-a-la-minute',
@@ -67,7 +67,7 @@ export const RESISTANCE: Protocole[] = [
     marqueurs: [],
     maxParSemaine: 2,
     progression: 'Durcis le bloc quand les 8 départs passent.',
-    aVerifier: `Le nombre de séries n’est pas donné : nous posons une seule série. ${BARROWS_A_VERIFIER}`,
+    aVerifier: 'Barrows donne 8 départs par série sans fixer le nombre de séries : nous posons une seule série.',
   },
   {
     id: 'resistance-capacite-anaerobie',
@@ -87,7 +87,7 @@ export const RESISTANCE: Protocole[] = [
     marqueurs: [],
     maxParSemaine: 2,
     progression: 'Allonge ou durcis le bloc plutôt que de raccourcir les repos.',
-    aVerifier: `Effort posé à 40 s (plage 30 à 50 s), repos à 3 fois l’effort (plage 2 à 4), 10 min entre séries (plage 10 à 20). ${BARROWS_A_VERIFIER}`,
+    aVerifier: 'Plages de Barrows confirmées ; valeurs du chrono choisies par nous dans ces plages : effort 40 s (son tableau dit 30 à 40 s, son texte 30 à 50 s), repos 3 fois l’effort (2 à 4), 10 min entre séries (10 à 20).',
   },
   {
     id: 'resistance-enchainement-deux-blocs',
@@ -152,7 +152,7 @@ export const RESISTANCE: Protocole[] = [
     nom: 'Voies doublées',
     qualite: 'resistance',
     resume: '2 × 5',
-    consigne: 'Grimpe le double de la longueur d’une voie ou d’un circuit, une à deux cotations sous ton niveau à vue. 1 min entre répétitions, 10 min entre séries. Les échecs sont attendus.',
+    consigne: 'Grimpe le double de la longueur d’une voie ou d’un circuit, deux cotations sous ton niveau à vue. 5 séries de 2 répétitions : 1 min entre les deux répétitions, 10 min entre séries. Les échecs sont attendus.',
     forme: 'essais',
     reposS: 60,
     dureeMin: 80,
@@ -163,6 +163,6 @@ export const RESISTANCE: Protocole[] = [
     marqueurs: [],
     maxParSemaine: 2,
     progression: 'Facile à surdoser : surtout pour un grimpeur de voie, environ 2 séances par semaine avant un objectif.',
-    aVerifier: 'Volume noté « 2 × 5 » (répétitions × séries) à la source, à recontrôler. Le repos de 10 min entre séries n’est pas géré par le chrono.',
+    aVerifier: 'Volume confirmé (5 séries de 2). Le repos de 10 min entre séries n’est pas encore géré par l’écran : il est rappelé dans la consigne.',
   },
 ]

@@ -59,7 +59,7 @@ export const TRACTION_GAINAGE: Protocole[] = [
     marqueurs: ['maximale'],
     maxParSemaine: 2,
     progression: 'Commence avec moins de séries, monte à 5, puis augmente la charge à effort constant. Utile tant que tu restes sous le repère de Lattice (environ 145 à 165 % du poids du corps sur 2 répétitions).',
-    aVerifier: 'Repos non donné par la source : nous posons 3 min. Les pourcentages de Lattice désignent sans doute la charge totale (corps plus lest) : à confirmer.',
+    aVerifier: 'Repos de 3 min : c’est celui du test de Lattice, appliqué ici à l’entraînement par nous. Les repères de Lattice (145 % du poids du corps vers 7A-7A+, par exemple) désignent la charge totale, corps plus lest, sur 2 répétitions maximales : confirmé.',
   },
   {
     id: 'traction-lestee-5x5-horst',

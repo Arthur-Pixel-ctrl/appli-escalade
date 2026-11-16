@@ -31,7 +31,7 @@ export const SEANCE_EXEMPLE: SeanceGuidee = {
       elements: [
         '5 min pour faire monter le cardio',
         'Mobilité dynamique : épaules, poignets, hanches',
-        'Blocs faciles, puis de plus en plus durs',
+        '8 à 12 blocs, du plus facile au plus dur',
         'Quelques suspensions courtes sur de grosses prises',
       ],
     },
@@ -42,10 +42,10 @@ export const SEANCE_EXEMPLE: SeanceGuidee = {
       config: { gabarit: 'repetition_unique', effortS: 600, series: 1, reposSeriesS: 0 },
     },
     {
-      id: 'echelles', forme: 'chrono', titre: 'Échelles 3-6-9 à la poutre', resume: '3 échelles',
-      consigne: 'Suspensions de 3, 6 puis 9 secondes, loin de l’échec. Poids du corps, épaules engagées.',
-      mot: 'SUSPENDS-TOI', detail: 'Semi-arqué 20 mm · poids du corps', preuve: 'Avis de coach',
-      config: { gabarit: 'echelle', dureesS: [3, 6, 9], creneauS: 45, series: 3, reposSeriesS: 120 },
+      id: 'echelles', forme: 'chrono', titre: 'Échelles 3-6-9 à la poutre', resume: '9 échelles',
+      consigne: 'Suspensions de 3, 6 puis 9 secondes, loin de l’échec. Poids du corps, épaules engagées. Change de prise à chaque échelle, en circuit.',
+      mot: 'SUSPENDS-TOI', detail: 'Semi-arqué, main ouverte, 3 doigts · poids du corps', preuve: 'Avis de coach',
+      config: { gabarit: 'echelle', dureesS: [3, 6, 9], creneauS: 45, reposEntrePaliersS: 6, series: 9, reposSeriesS: 0 },
     },
     {
       id: 'bloc-limite', forme: 'essais', titre: 'Bloc limite, blocs à réglettes', resume: '40 min',

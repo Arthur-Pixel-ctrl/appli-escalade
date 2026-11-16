@@ -10,8 +10,11 @@ export type ConfigChrono =
   | { gabarit: 'depart_minute'; effortS: number; creneauS: number; repetitions: number; series: number; reposSeriesS: number }
   // Effort / repos répété (ex. 7 s / 3 s, six fois)
   | { gabarit: 'intermittent'; effortS: number; reposRepetitionsS: number; repetitions: number; series: number; reposSeriesS: number }
-  // Durées variables dans un créneau fixe (ex. échelle 3-6-9 s, un départ toutes les 45 s)
-  | { gabarit: 'echelle'; dureesS: number[]; creneauS: number; series: number; reposSeriesS: number }
+  // Durées variables (ex. échelle 3-6-9 s). Deux façons de compter le créneau :
+  // - sans reposEntrePaliersS : chaque suspension démarre toutes les `creneauS` secondes ;
+  // - avec reposEntrePaliersS : toute l'échelle tient dans `creneauS` (façon Bechtel),
+  //   avec ce repos court entre les suspensions, et le reste du créneau après la dernière.
+  | { gabarit: 'echelle'; dureesS: number[]; creneauS: number; reposEntrePaliersS?: number; series: number; reposSeriesS: number }
 
 export type TypePhase = 'preparation' | 'effort' | 'repos'
 
@@ -44,13 +47,24 @@ function effortsDUneSerie(c: ConfigChrono): { effortS: number; reposS: number }[
         reposS: c.reposRepetitionsS,
       }))
     case 'echelle':
+      if (c.reposEntrePaliersS !== undefined) {
+        return c.dureesS.map((d) => ({ effortS: d, reposS: c.reposEntrePaliersS! }))
+      }
       return c.dureesS.map((d) => ({ effortS: d, reposS: Math.max(0, c.creneauS - d) }))
   }
 }
 
 /** Transforme un réglage en suite de phases : préparation, puis efforts et repos. */
+/** Échelle « façon Bechtel » : le temps qui reste dans le créneau une fois l'échelle finie. */
+function resteDuCreneauS(c: ConfigChrono): number {
+  if (c.gabarit !== 'echelle' || c.reposEntrePaliersS === undefined) return 0
+  const occupe = c.dureesS.reduce((t, d) => t + d, 0) + c.reposEntrePaliersS * (c.dureesS.length - 1)
+  return Math.max(0, c.creneauS - occupe)
+}
+
 export function construireSequence(c: ConfigChrono, preparationS = PREPARATION_S): Phase[] {
   const efforts = effortsDUneSerie(c)
+  const reposApresSerieS = c.reposSeriesS + resteDuCreneauS(c)
   const phases: Phase[] = []
   const repere = { totalSeries: c.series, totalRepetitions: efforts.length }
 
@@ -67,9 +81,9 @@ export function construireSequence(c: ConfigChrono, preparationS = PREPARATION_S
 
       if (!derniereRepetition && e.reposS > 0) {
         phases.push({ type: 'repos', dureeS: e.reposS, serie: s, repetition, ...repere })
-      } else if (derniereRepetition && !derniereSerie && c.reposSeriesS > 0) {
+      } else if (derniereRepetition && !derniereSerie && reposApresSerieS > 0) {
         // Après la dernière répétition d'une série : le long repos, pas le repos court.
-        phases.push({ type: 'repos', dureeS: c.reposSeriesS, serie: s, repetition, entreSeries: true, ...repere })
+        phases.push({ type: 'repos', dureeS: reposApresSerieS, serie: s, repetition, entreSeries: true, ...repere })
       }
     })
   }
