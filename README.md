@@ -12,7 +12,7 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 |---|---|---|
 | 3.1 | Squelette de l'app, thème, navigation | Fait |
 | 3.1 bis | Mise en ligne automatique (GitHub Pages) | Fait |
-| 3.2 | Moteur de chrono | À faire |
+| 3.2 | Moteur de chrono (4 gabarits, sons, vibrations, écran allumé) | Fait |
 | 3.3 | Séance guidée (solo) | À faire |
 | 3.4 | Séance en groupe, saisie des blocs | À faire |
 | 3.5 | Trois questions et débrief | À faire |
@@ -42,6 +42,9 @@ npm run build   # construit la version à mettre en ligne (dossier dist/)
 | `src/main.tsx` | Point d'entrée : démarre l'app |
 | `src/App.tsx` | Structure générale et barre d'onglets |
 | `src/ecrans/` | Un fichier par écran |
+| `src/chrono/sequence.ts` | Calcul du chrono : phases d'effort et de repos, testé |
+| `src/chrono/useChrono.ts` | Fait tourner le chrono dans un écran |
+| `src/chrono/signaux.ts` | Bips, vibrations, écran qui reste allumé |
 | `src/index.css` | Thème : couleurs, police, composants de base |
 | `vite.config.ts` | Configuration de la construction et de l'installation sur téléphone |
 | `docs/modele-donnees.md` | Modèle de données de l'app |

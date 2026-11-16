@@ -13,7 +13,7 @@ const EXEMPLE = {
   ],
 }
 
-export function Aujourdhui() {
+export function Aujourdhui({ onEssayerChrono }: { onEssayerChrono: () => void }) {
   return (
     <main className="ecran">
       <div className="pile">
@@ -36,6 +36,8 @@ export function Aujourdhui() {
       <div>
         <button className="ligne"><span>Forme du jour</span><span>À renseigner</span></button>
         <button className="ligne"><span>Assiette du jour</span><span>Plus de féculents</span></button>
+        {/* Ligne provisoire pour tester le chrono, retirée quand la séance guidée existera. */}
+        <button className="ligne" onClick={onEssayerChrono}><span>Essayer le chrono</span><span>Échelles 3-6-9</span></button>
       </div>
 
       <div className="pile">

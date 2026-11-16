@@ -80,3 +80,24 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .jour b { font-size: 14px; font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Écran de chrono */
+.chrono { flex: 1; display: flex; flex-direction: column; gap: 20px; padding: calc(24px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom)); background: var(--fond); color: var(--texte); }
+.chrono.effort { background: var(--accent); color: var(--sur-accent); }
+.chrono .bas { margin-top: auto; }
+.chrono-tete { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; }
+.chrono-centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
+.chrono-consigne { font-size: 30px; font-weight: 700; letter-spacing: 0.04em; }
+.chrono-nombre { font-size: min(56vw, 220px); font-weight: 700; line-height: 1; }
+.chrono-sous { font-size: 18px; font-weight: 600; }
+.chrono-suite { text-align: center; font-size: 15px; font-weight: 500; }
+.chrono-actions { display: flex; gap: 10px; }
+.bouton-chrono { flex: 1; min-height: 72px; border-radius: var(--rayon-carte); font-size: 15px; font-weight: 700; line-height: 1.25; text-align: center; border: 2px solid currentColor; }
+.bouton-chrono.large { flex: 2; font-size: 20px; background: var(--surface-haute); border-color: var(--surface-haute); color: var(--texte); }
+.chrono.effort .bouton-chrono.large { background: var(--sur-accent); border-color: var(--sur-accent); }
+.chrono.effort button:focus-visible { outline-color: var(--sur-accent); }
+.bouton.centre { align-items: center; min-height: 64px; }
+.bouton-texte { width: 100%; min-height: 48px; font-size: 15px; font-weight: 600; color: var(--texte-2); text-align: center; }
+.liste-simple { margin: 0; padding: 0; list-style: none; }
+.liste-simple li { padding: 12px 0; border-top: 1px solid var(--filet); font-size: 15px; color: var(--texte-2); }
+.liste-simple li:last-child { border-bottom: 1px solid var(--filet); }
