@@ -37,12 +37,12 @@ describe('bibliothèque de protocoles', () => {
     }
   })
 
-  it('la durée annoncée colle à la durée du chrono (à 50 % près)', () => {
+  it('la durée annoncée colle à la durée du chrono (à 15 % près)', () => {
     for (const p of BIBLIOTHEQUE) {
       if (p.forme !== 'chrono') continue
       const minutes = dureeTotaleS(construireSequence(p.config)) / 60
-      expect(p.dureeMin, p.id).toBeGreaterThanOrEqual(minutes * 0.5)
-      expect(p.dureeMin, p.id).toBeLessThanOrEqual(minutes * 1.5)
+      expect(p.dureeMin, p.id).toBeGreaterThanOrEqual(minutes * 0.85)
+      expect(p.dureeMin, p.id).toBeLessThanOrEqual(minutes * 1.15)
     }
   })
 
@@ -51,6 +51,33 @@ describe('bibliothèque de protocoles', () => {
       if (p.marqueurs.includes('poutre_intensive') || p.marqueurs.includes('pan_gullich')) {
         expect(Object.keys(p.prerequis).length, p.id).toBeGreaterThan(0)
       }
+    }
+  })
+
+  it('toute séance maximale (hors bloc limite) a un prérequis', () => {
+    for (const p of BIBLIOTHEQUE) {
+      if (p.marqueurs.includes('maximale') && !p.marqueurs.includes('bloc_limite')) {
+        expect(Object.keys(p.prerequis).length, p.id).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('toute fiche sur poutre porte le marqueur « poutre » (pour le plafond par semaine)', () => {
+    for (const p of BIBLIOTHEQUE) {
+      if (p.contexte?.terrain === 'poutre') expect(p.marqueurs, p.id).toContain('poutre')
+    }
+  })
+
+  it('le pan Güllich est réservé aux adultes', () => {
+    for (const p of BIBLIOTHEQUE) {
+      if (p.marqueurs.includes('pan_gullich')) expect(p.prerequis.adulte, p.id).toBe(true)
+    }
+  })
+
+  // Un prérequis écrit en phrase ne peut pas être lu par le générateur : il doit être un champ.
+  it('aucune consigne ne cache un prérequis', () => {
+    for (const p of BIBLIOTHEQUE) {
+      expect(p.consigne, p.id).not.toMatch(/strictes|réservé à/i)
     }
   })
 
@@ -63,6 +90,12 @@ describe('bibliothèque de protocoles', () => {
   it('les fiches « à vérifier » disent ce qui est à vérifier', () => {
     for (const p of BIBLIOTHEQUE) {
       if (p.aVerifier !== undefined) expect(p.aVerifier.trim(), p.id).not.toBe('')
+    }
+  })
+
+  it('les fiches exclues de la génération disent pourquoi', () => {
+    for (const p of BIBLIOTHEQUE) {
+      if (p.exclureDeLaGeneration !== undefined) expect(p.exclureDeLaGeneration.trim(), p.id).not.toBe('')
     }
   })
 })

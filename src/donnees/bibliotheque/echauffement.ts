@@ -51,7 +51,7 @@ export const ECHAUFFEMENT: Protocole[] = [
     nom: 'Échauffement des doigts',
     qualite: 'echauffement',
     resume: '3 à 8 suspensions',
-    consigne: 'Juste avant une séance de poutre, après 15 à 30 min de grimpe facile. La dernière suspension te dit la charge du jour.',
+    consigne: 'Juste avant une séance de poutre, si possible après 15 à 30 min de grimpe facile. La dernière suspension te dit la charge du jour.',
     forme: 'liste',
     elements: [
       '3 à 4 suspensions de 5 à 7 s si tu as déjà grimpé',
@@ -62,9 +62,10 @@ export const ECHAUFFEMENT: Protocole[] = [
     preuve: 'Avis de coach',
     source: { auteur: 'Eva López', adresse: 'https://en-eva-lopez.blogspot.com/2018/05' },
     prerequis: {},
+    contexte: { terrain: 'poutre' },
     contreIndications: ['doigts'],
-    marqueurs: [],
+    marqueurs: ['poutre'],
     progression: 'Garde le même ordre de prises que dans la séance qui suit.',
-    aVerifier: 'Le repos entre les suspensions d’échauffement n’est pas donné par la synthèse ; durée de 8 min estimée par nous.',
+    aVerifier: 'Le repos entre les suspensions d’échauffement n’est pas donné par la synthèse ; durée de 8 min estimée par nous. Durée de 5 à 7 s : proposition de la synthèse, pas de López.',
   },
 ]

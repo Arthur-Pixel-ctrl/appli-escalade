@@ -17,7 +17,7 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | 3.4 | Séance en groupe, saisie des blocs par couleur | Fait |
 | 3.5 | Trois questions, débrief, enregistrement des séances, historique | Fait |
 | 3.6 | Profil, premier lancement, sauvegarde des données | Fait |
-| 4.1 | Bibliothèque de 60 protocoles, chiffres vérifiés à la source (`docs/verifications.md`) | En cours (audit à faire) |
+| 4.1 | Bibliothèque de 60 protocoles, vérifiée à la source et auditée (`docs/verifications.md`, `docs/audit-bibliotheque.md`) | Fait |
 
 ## Ouvrir l'app
 
