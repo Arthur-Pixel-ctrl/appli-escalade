@@ -1,0 +1,10 @@
+# Consignes pour Claude sur ce dépôt
+
+- Projet piloté depuis le projet Claude « Appli escalade ». Le document de contexte du projet fait foi (vision, décisions, feuille de route, direction visuelle).
+- Langue : interface, commentaires, noms de variables métier et messages de commit en français.
+- Le propriétaire est peu technique et lit le code pour progresser : noms clairs, commentaires courts qui expliquent le pourquoi, pas de sur-ingénierie.
+- Travailler une tâche à la fois ; chaque tâche se termine par un commit poussé et une mise à jour du tableau « État » du README.
+- Design : un seul accent (`--accent`), variables de `src/index.css` uniquement, boutons d'au moins 48 px de haut, focus visible, un écran = une action principale.
+- Données : suivre `docs/modele-donnees.md`. Rien de calculable n'est stocké.
+- Sécurité de l'entraînement : avertir sans bloquer ; afficher les signaux d'arrêt ; valeurs par défaut prudentes.
+- Avant de livrer : `npm run build` et `npm run test` doivent passer.

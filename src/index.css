@@ -1,0 +1,82 @@
+/* Thème de l'app. Toutes les couleurs et tailles passent par ces variables. */
+:root {
+  color-scheme: dark;
+  --fond: #0c0d0e;
+  --surface: #17181a;
+  --surface-haute: #232528;
+  --filet: #2a2c2f;
+  --filet-fort: #34373b;
+  --texte: #f4f4f2;
+  --texte-2: #cfd1d3;
+  --texte-3: #a3a6aa;
+  --accent: #e9f55b; /* un seul accent : action principale, état en cours, chiffre clé */
+  --sur-accent: #0c0d0e;
+  --rayon-controle: 8px;
+  --rayon-bouton: 10px;
+  --rayon-carte: 12px;
+  --police: 'Geist Variable', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--police);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+h1, h2 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+p { margin: 0; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chiffres { font-variant-numeric: tabular-nums; }
+
+/* Structure générale : contenu qui défile + barre d'onglets en bas */
+.app { height: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; }
+.ecran { flex: 1; overflow-y: auto; padding: calc(32px + env(safe-area-inset-top)) 20px 20px; display: flex; flex-direction: column; gap: 28px; }
+.onglets { display: flex; border-top: 1px solid var(--filet); padding-bottom: env(safe-area-inset-bottom); }
+.onglet { flex: 1; min-height: 60px; font-size: 13px; font-weight: 500; color: var(--texte-2); }
+.onglet[aria-current='page'] { font-weight: 700; color: var(--accent); }
+
+/* Éléments réutilisés */
+.surtitre { font-size: 14px; color: var(--texte-3); }
+.titre { font-size: 40px; font-weight: 700; line-height: 1.05; }
+.texte-2 { font-size: 15px; color: var(--texte-2); }
+.pile { display: flex; flex-direction: column; gap: 10px; }
+
+.bouton { width: 100%; min-height: 76px; border-radius: var(--rayon-bouton); padding: 12px 18px; display: flex; flex-direction: column; justify-content: center; gap: 2px; text-align: left; background: var(--surface-haute); }
+.bouton strong { font-size: 19px; font-weight: 700; }
+.bouton span { font-size: 14px; font-weight: 500; color: var(--texte-2); }
+.bouton.principal { background: var(--accent); color: var(--sur-accent); }
+.bouton.principal span { color: var(--sur-accent); }
+.bouton:active { transform: translateY(1px); }
+
+.ligne { width: 100%; min-height: 56px; border-top: 1px solid var(--filet); display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
+.ligne:last-child { border-bottom: 1px solid var(--filet); }
+.ligne span:last-child { font-weight: 400; color: var(--texte-3); }
+
+.semaine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.jour { border-top: 3px solid var(--filet-fort); padding-top: 8px; }
+.jour.actif { border-top-color: var(--accent); }
+.jour small { display: block; font-size: 12px; color: var(--texte-3); }
+.jour b { font-size: 14px; font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
