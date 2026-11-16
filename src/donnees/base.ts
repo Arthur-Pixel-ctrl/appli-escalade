@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import type { BlocGrimpe } from './seanceGroupeExemple.ts'
+import type { Profil } from './profil.ts'
 
 // La base de données de l'app, stockée sur le téléphone (IndexedDB, via Dexie).
 // Version simplifiée de `SeanceRealisee` du modèle de données : on n'enregistre que ce que
@@ -24,12 +25,18 @@ export interface SeanceRealisee {
 /** Ce qu'on connaît de la séance avant les trois questions de fin. */
 export type Brouillon = Omit<SeanceRealisee, 'id' | 'creeLe' | 'modifieLe' | 'date' | 'effortPercu' | 'peau' | 'douleur'>
 
+/** Le profil tel qu'il est rangé dans la base : un seul enregistrement, d'identifiant fixe. */
+export type ProfilEnregistre = Profil & { id: 'profil'; modifieLe: string }
+
 class Base extends Dexie {
   seancesRealisees!: Table<SeanceRealisee, string>
+  reglages!: Table<ProfilEnregistre, string>
   constructor() {
     super('appli-escalade')
     // Seuls les champs qui servent à chercher ou trier sont indexés.
     this.version(1).stores({ seancesRealisees: 'id, date, mode' })
+    // Version 2 : ajout des réglages (le profil du grimpeur). Les séances déjà enregistrées sont conservées.
+    this.version(2).stores({ seancesRealisees: 'id, date, mode', reglages: 'id' })
   }
 }
 
@@ -56,4 +63,35 @@ export async function enregistrerSeance(
   }
   await base.seancesRealisees.add(seance)
   return seance.id
+}
+
+export async function lireProfil(): Promise<Profil | null> {
+  return (await base.reglages.get('profil')) ?? null
+}
+
+export async function enregistrerProfil(profil: Profil): Promise<void> {
+  await base.reglages.put({ ...profil, id: 'profil', modifieLe: new Date().toISOString() })
+}
+
+// Sauvegarde : toutes les données dans un seul fichier, à garder ou à transférer sur un autre appareil.
+interface Sauvegarde { version: 1; exporteLe: string; tables: { seancesRealisees: SeanceRealisee[]; reglages: ProfilEnregistre[] } }
+
+export async function exporterDonnees(): Promise<string> {
+  const sauvegarde: Sauvegarde = {
+    version: 1,
+    exporteLe: new Date().toISOString(),
+    tables: { seancesRealisees: await base.seancesRealisees.toArray(), reglages: await base.reglages.toArray() },
+  }
+  return JSON.stringify(sauvegarde, null, 2)
+}
+
+/** Recharge une sauvegarde. Les enregistrements de même identifiant sont remplacés, les autres sont gardés. */
+export async function importerDonnees(texte: string): Promise<number> {
+  const s = JSON.parse(texte) as Partial<Sauvegarde>
+  if (s.version !== 1 || !s.tables || !Array.isArray(s.tables.seancesRealisees)) {
+    throw new Error('Ce fichier n’est pas une sauvegarde de l’app.')
+  }
+  await base.seancesRealisees.bulkPut(s.tables.seancesRealisees)
+  if (Array.isArray(s.tables.reglages)) await base.reglages.bulkPut(s.tables.reglages)
+  return s.tables.seancesRealisees.length
 }

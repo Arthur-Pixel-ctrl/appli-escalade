@@ -172,3 +172,12 @@ div.ligne { font-weight: 400; }
 .ligne small { display: block; font-size: 13px; font-weight: 400; color: var(--texte-3); }
 .surtitre::first-letter { text-transform: uppercase; }
 .tableau td, .tableau thead th + th { padding-left: 20px; }
+
+/* Formulaires */
+.champ { display: flex; flex-direction: column; gap: 8px; font-size: 16px; font-weight: 600; min-width: 0; }
+.champ input, .champ select { width: 100%; min-height: 52px; padding: 0 14px; border-radius: var(--rayon-controle); border: 1px solid var(--filet-fort); background-color: var(--surface); color: var(--texte); font: inherit; font-weight: 400; }
+.champ input::placeholder { color: var(--texte-3); }
+.champ input:focus-visible, .champ select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.champ .texte-3 { font-weight: 400; }
+.deux-champs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+form.pile-large { gap: 24px; }

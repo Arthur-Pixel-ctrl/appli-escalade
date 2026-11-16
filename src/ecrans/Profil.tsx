@@ -1,0 +1,52 @@
+import { useRef, useState } from 'react'
+import { exporterDonnees, importerDonnees, jourLocal } from '../donnees/base.ts'
+import type { Profil as TypeProfil } from '../donnees/profil.ts'
+import { ProfilFormulaire } from './ProfilFormulaire.tsx'
+
+interface Props {
+  profil: TypeProfil
+  onEnregistrer: (p: TypeProfil) => void
+  onMisesEnGarde: () => void
+  onDonneesImportees: () => void
+}
+
+// Onglet Profil : le formulaire, les mises en garde et la sauvegarde des données.
+export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImportees }: Props) {
+  const [message, setMessage] = useState('')
+  const fichier = useRef<HTMLInputElement>(null)
+
+  const exporter = async () => {
+    const lien = document.createElement('a')
+    lien.href = URL.createObjectURL(new Blob([await exporterDonnees()], { type: 'application/json' }))
+    lien.download = `appli-escalade-${jourLocal()}.json`
+    lien.click()
+    URL.revokeObjectURL(lien.href)
+    setMessage('Sauvegarde créée dans tes téléchargements.')
+  }
+  const importer = async (f: File | undefined) => {
+    if (!f) return
+    try {
+      const n = await importerDonnees(await f.text())
+      setMessage(`Sauvegarde rechargée : ${n} séance${n > 1 ? 's' : ''}.`)
+      onDonneesImportees()
+    } catch (e) {
+      setMessage(e instanceof Error ? `Import impossible. ${e.message}` : 'Import impossible : fichier illisible.')
+    }
+  }
+
+  return (
+    <main className="ecran">
+      <ProfilFormulaire initial={profil} titre="Profil" libelleValider="Enregistrer le profil" onValider={onEnregistrer} />
+      <section className="pile">
+        <h2 className="sous-titre">À savoir et données</h2>
+        <div>
+          <button className="ligne" onClick={onMisesEnGarde}><span>Mises en garde</span><span>Les douleurs à repérer</span></button>
+          <button className="ligne" onClick={exporter}><span>Sauvegarder mes données</span><span>Créer un fichier</span></button>
+          <button className="ligne" onClick={() => fichier.current?.click()}><span>Recharger une sauvegarde</span><span>Choisir un fichier</span></button>
+        </div>
+        <input ref={fichier} type="file" accept="application/json,.json" hidden aria-label="Fichier de sauvegarde" onChange={(e) => { void importer(e.target.files?.[0]); e.target.value = '' }} />
+        <p className="texte-3" role="status" aria-live="polite">{message || 'Tes données restent sur cet appareil. Fais une sauvegarde de temps en temps : vider les données du navigateur les efface.'}</p>
+      </section>
+    </main>
+  )
+}

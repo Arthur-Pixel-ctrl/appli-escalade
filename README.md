@@ -16,7 +16,7 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | 3.3 | Séance guidée (solo), sur une séance d'exemple | Fait |
 | 3.4 | Séance en groupe, saisie des blocs par couleur | Fait |
 | 3.5 | Trois questions, débrief, enregistrement des séances, historique | Fait |
-| 3.6 | Profil et premier lancement | À faire |
+| 3.6 | Profil, premier lancement, sauvegarde des données | Fait |
 
 ## Ouvrir l'app
 
@@ -44,6 +44,7 @@ npm run build   # construit la version à mettre en ligne (dossier dist/)
 | `src/ecrans/` | Un fichier par écran |
 | `src/donnees/seanceExemple.ts` | La séance d'exemple et la forme d'une étape |
 | `src/donnees/seanceGroupeExemple.ts` | Les objectifs de groupe d'exemple |
+| `src/donnees/profil.ts` | La forme du profil du grimpeur |
 | `src/donnees/base.ts` | La base de données sur le téléphone et l'enregistrement d'une séance |
 | `src/donnees/debrief.ts` | Calculs du débrief (charge, semaine, blocs par couleur), testés |
 | `src/donnees/salles.ts` | Les salles et leurs couleurs de blocs |

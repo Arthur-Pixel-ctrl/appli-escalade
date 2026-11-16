@@ -1,13 +1,16 @@
-import { useState } from 'react'
-import { enregistrerSeance, type Brouillon } from './donnees/base.ts'
-import { MROC } from './donnees/salles.ts'
+import { useEffect, useState } from 'react'
+import { enregistrerProfil, enregistrerSeance, lireProfil, type Brouillon } from './donnees/base.ts'
+import type { Profil as TypeProfil } from './donnees/profil.ts'
+import { salleParId } from './donnees/salles.ts'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
 import { avancement, SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
+import { Bienvenue } from './ecrans/Bienvenue.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
 import { EnConstruction } from './ecrans/EnConstruction.tsx'
 import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
+import { Profil } from './ecrans/Profil.tsx'
 import { Questions } from './ecrans/Questions.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
 import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
@@ -23,16 +26,37 @@ type Vue =
   | { nom: 'seance_solo' }
   | { nom: 'seance_groupe' }
   | { nom: 'questions'; brouillon: Brouillon }
-  | { nom: 'mises_en_garde'; puisDebrief?: string }
+  | { nom: 'mises_en_garde'; puisDebrief?: string; premierLancement?: boolean }
   | { nom: 'debrief'; seanceId: string }
 
 export default function App() {
   const [onglet, setOnglet] = useState<Onglet>('Aujourd’hui')
   const [vue, setVue] = useState<Vue>({ nom: 'onglets' })
+  // undefined = lecture en cours ; null = pas encore de profil (premier lancement)
+  const [profil, setProfil] = useState<TypeProfil | null | undefined>(undefined)
+  useEffect(() => { void lireProfil().then(setProfil) }, [])
   const accueil = () => setVue({ nom: 'onglets' })
   const quitter = () => {
     if (window.confirm('Quitter la séance ? Elle ne sera pas enregistrée.')) accueil()
   }
+
+  if (profil === undefined) return <div className="app" aria-busy="true" />
+
+  // Premier lancement : le profil, puis les mises en garde, une seule fois.
+  if (profil === null) {
+    return (
+      <div className="app">
+        <Bienvenue
+          onValider={async (p) => {
+            await enregistrerProfil(p)
+            setProfil(p)
+            setVue({ nom: 'mises_en_garde', premierLancement: true })
+          }}
+        />
+      </div>
+    )
+  }
+  const salle = salleParId(profil.salleHabituelleId)
 
   // Pendant une séance, tout l'écran lui est réservé : pas de barre d'onglets.
   if (vue.nom === 'seance_solo') {
@@ -61,7 +85,7 @@ export default function App() {
       <div className="app">
         <SeanceGroupe
           seance={SEANCE_GROUPE_EXEMPLE}
-          salle={MROC}
+          salle={salle}
           onQuitter={quitter}
           onTerminer={(blocs, dureeMin) =>
             setVue({
@@ -95,11 +119,11 @@ export default function App() {
   }
 
   if (vue.nom === 'mises_en_garde') {
-    const { puisDebrief } = vue
+    const { puisDebrief, premierLancement } = vue
     return (
       <div className="app">
         <MisesEnGarde
-          libelleFermer={puisDebrief ? 'Voir le débrief' : 'Fermer'}
+          libelleFermer={puisDebrief ? 'Voir le débrief' : premierLancement ? 'J’ai compris' : 'Fermer'}
           onFermer={() => (puisDebrief ? setVue({ nom: 'debrief', seanceId: puisDebrief }) : accueil())}
         />
       </div>
@@ -107,7 +131,7 @@ export default function App() {
   }
 
   if (vue.nom === 'debrief') {
-    return <div className="app"><Debrief seanceId={vue.seanceId} salle={MROC} onFermer={accueil} /></div>
+    return <div className="app"><Debrief seanceId={vue.seanceId} salle={salle} onFermer={accueil} /></div>
   }
 
   return (
@@ -117,7 +141,14 @@ export default function App() {
       )}
       {onglet === 'Bilans' && <Historique onOuvrir={(seanceId) => setVue({ nom: 'debrief', seanceId })} />}
       {onglet === 'Programme' && <EnConstruction titre="Programme" />}
-      {onglet === 'Profil' && <EnConstruction titre="Profil" onMisesEnGarde={() => setVue({ nom: 'mises_en_garde' })} />}
+      {onglet === 'Profil' && (
+        <Profil
+          profil={profil}
+          onEnregistrer={async (p) => { await enregistrerProfil(p); setProfil(p) }}
+          onMisesEnGarde={() => setVue({ nom: 'mises_en_garde' })}
+          onDonneesImportees={() => void lireProfil().then((p) => p && setProfil(p))}
+        />
+      )}
       <nav className="onglets" aria-label="Navigation principale">
         {ONGLETS.map((nom) => (
           <button key={nom} className="onglet" aria-current={nom === onglet ? 'page' : undefined} onClick={() => setOnglet(nom)}>
