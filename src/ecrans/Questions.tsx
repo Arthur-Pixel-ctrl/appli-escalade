@@ -1,0 +1,62 @@
+import { useState } from 'react'
+import type { SeanceRealisee } from '../donnees/base.ts'
+
+type Reponses = Pick<SeanceRealisee, 'effortPercu' | 'peau' | 'douleur'>
+
+const PEAU: { valeur: 1 | 2 | 3; nom: string }[] = [
+  { valeur: 1, nom: 'Abîmée' },
+  { valeur: 2, nom: 'Limite' },
+  { valeur: 3, nom: 'Bonne' },
+]
+
+// Fin de séance, premier temps : trois questions, une touche chacune.
+export function Questions({ contexte, onValider }: { contexte: string; onValider: (r: Reponses) => void }) {
+  const [effort, setEffort] = useState<number | null>(null)
+  const [peau, setPeau] = useState<1 | 2 | 3 | null>(null)
+  const [douleur, setDouleur] = useState<boolean | null>(null)
+  const complet = effort !== null && peau !== null && douleur !== null
+
+  return (
+    <main className="ecran">
+      <div className="pile">
+        <p className="surtitre">{contexte}</p>
+        <h1 className="titre moyen">Trois questions</h1>
+      </div>
+
+      <fieldset className="question">
+        <legend>La séance était dure comment ?</legend>
+        <div className="choix cinq">
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+            <button key={n} className="chiffres" aria-pressed={effort === n} onClick={() => setEffort(n)}>{n}</button>
+          ))}
+        </div>
+        <p className="texte-3">1 = très facile · 10 = à fond du début à la fin</p>
+      </fieldset>
+
+      <fieldset className="question">
+        <legend>État de la peau</legend>
+        <div className="choix trois">
+          {PEAU.map((p) => (
+            <button key={p.valeur} aria-pressed={peau === p.valeur} onClick={() => setPeau(p.valeur)}>{p.nom}</button>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="question">
+        <legend>Une douleur aux doigts, coudes ou épaules ?</legend>
+        <div className="choix deux">
+          <button aria-pressed={douleur === false} onClick={() => setDouleur(false)}>Non, rien</button>
+          <button aria-pressed={douleur === true} onClick={() => setDouleur(true)}>Oui</button>
+        </div>
+      </fieldset>
+
+      <button
+        className="bouton principal centre bas"
+        disabled={!complet}
+        onClick={() => complet && onValider({ effortPercu: effort, peau, douleur })}
+      >
+        <strong>Enregistrer et voir le débrief</strong>
+      </button>
+    </main>
+  )
+}

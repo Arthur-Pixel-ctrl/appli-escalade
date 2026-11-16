@@ -1,28 +1,38 @@
 import { useState } from 'react'
+import { enregistrerSeance, type Brouillon } from './donnees/base.ts'
 import { MROC } from './donnees/salles.ts'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
-import { SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
+import { avancement, SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
+import { Debrief } from './ecrans/Debrief.tsx'
 import { EnConstruction } from './ecrans/EnConstruction.tsx'
+import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
+import { Questions } from './ecrans/Questions.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
-import { SeanceSolo, type StatutEtape } from './ecrans/SeanceSolo.tsx'
+import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
 
 // Les quatre onglets de la barre du bas.
 const ONGLETS = ['Aujourd’hui', 'Programme', 'Bilans', 'Profil'] as const
 type Onglet = (typeof ONGLETS)[number]
 
-// Ce qui occupe l'écran : les onglets, une séance en cours, ou son résumé.
+// Ce qui occupe l'écran. Une séance suit toujours le même chemin :
+// séance → trois questions → (mises en garde si douleur) → débrief.
 type Vue =
   | { nom: 'onglets' }
   | { nom: 'seance_solo' }
-  | { nom: 'mises_en_garde' }
   | { nom: 'seance_groupe' }
-  | { nom: 'fin'; resume: string }
+  | { nom: 'questions'; brouillon: Brouillon }
+  | { nom: 'mises_en_garde'; puisDebrief?: string }
+  | { nom: 'debrief'; seanceId: string }
 
 export default function App() {
   const [onglet, setOnglet] = useState<Onglet>('Aujourd’hui')
   const [vue, setVue] = useState<Vue>({ nom: 'onglets' })
+  const accueil = () => setVue({ nom: 'onglets' })
+  const quitter = () => {
+    if (window.confirm('Quitter la séance ? Elle ne sera pas enregistrée.')) accueil()
+  }
 
   // Pendant une séance, tout l'écran lui est réservé : pas de barre d'onglets.
   if (vue.nom === 'seance_solo') {
@@ -30,11 +40,16 @@ export default function App() {
       <div className="app">
         <SeanceSolo
           seance={SEANCE_EXEMPLE}
-          onQuitter={() => {
-            if (window.confirm('Quitter la séance ? Ce qui a été fait ne sera pas gardé.')) setVue({ nom: 'onglets' })
-          }}
-          onTerminer={(statuts: StatutEtape[], dureeMin) =>
-            setVue({ nom: 'fin', resume: `${statuts.filter((s) => s === 'faite').length} étapes faites sur ${statuts.length}, en ${dureeMin} min.` })
+          onQuitter={quitter}
+          onTerminer={(statuts, dureeMin) =>
+            setVue({
+              nom: 'questions',
+              brouillon: {
+                mode: 'solo', nom: SEANCE_EXEMPLE.nom, durete: 'dure', dureeMin,
+                etapes: SEANCE_EXEMPLE.etapes.map((e, i) => ({ titre: e.titre, statut: statuts[i] })),
+                objectifs: [], blocs: [],
+              },
+            })
           }
         />
       </div>
@@ -47,13 +62,32 @@ export default function App() {
         <SeanceGroupe
           seance={SEANCE_GROUPE_EXEMPLE}
           salle={MROC}
-          onQuitter={() => {
-            if (window.confirm('Quitter la séance ? Ce qui a été noté ne sera pas gardé.')) setVue({ nom: 'onglets' })
-          }}
-          onTerminer={(blocs, dureeMin) => {
-            const enchaines = blocs.filter((b) => b.resultat !== 'non_enchaine').length
-            const essais = blocs.reduce((total, b) => total + b.essais, 0)
-            setVue({ nom: 'fin', resume: `${enchaines} blocs enchaînés sur ${blocs.length}, ${essais} essais, en ${dureeMin} min.` })
+          onQuitter={quitter}
+          onTerminer={(blocs, dureeMin) =>
+            setVue({
+              nom: 'questions',
+              brouillon: {
+                mode: 'groupe', nom: SEANCE_GROUPE_EXEMPLE.nom, durete: 'dure', dureeMin,
+                etapes: [], blocs,
+                objectifs: SEANCE_GROUPE_EXEMPLE.objectifs.map((o, p) => ({ libelle: o.libelle, cible: o.cible, fait: avancement(o, p, blocs) })),
+              },
+            })
+          }
+        />
+      </div>
+    )
+  }
+
+  if (vue.nom === 'questions') {
+    const { brouillon } = vue
+    return (
+      <div className="app">
+        <Questions
+          contexte={`${brouillon.nom} · ${brouillon.mode === 'groupe' ? 'en groupe' : 'seul'}`}
+          onValider={async (reponses) => {
+            const seanceId = await enregistrerSeance(brouillon, reponses)
+            // En cas de douleur, on montre d'abord les repères, puis le débrief.
+            setVue(reponses.douleur ? { nom: 'mises_en_garde', puisDebrief: seanceId } : { nom: 'debrief', seanceId })
           }}
         />
       </div>
@@ -61,38 +95,32 @@ export default function App() {
   }
 
   if (vue.nom === 'mises_en_garde') {
-    return <div className="app"><MisesEnGarde onFermer={() => setVue({ nom: 'onglets' })} /></div>
-  }
-
-  // Résumé provisoire : les trois questions et le débrief arrivent au lot 3.5.
-  if (vue.nom === 'fin') {
+    const { puisDebrief } = vue
     return (
       <div className="app">
-        <main className="ecran">
-          <div className="pile">
-            <p className="surtitre">{SEANCE_EXEMPLE.nom}</p>
-            <h1 className="titre">Séance terminée</h1>
-            <p className="texte-2 chiffres">{vue.resume}</p>
-          </div>
-          <button className="bouton principal centre" onClick={() => setVue({ nom: 'onglets' })}><strong>Retour à l’accueil</strong></button>
-        </main>
+        <MisesEnGarde
+          libelleFermer={puisDebrief ? 'Voir le débrief' : 'Fermer'}
+          onFermer={() => (puisDebrief ? setVue({ nom: 'debrief', seanceId: puisDebrief }) : accueil())}
+        />
       </div>
     )
   }
 
+  if (vue.nom === 'debrief') {
+    return <div className="app"><Debrief seanceId={vue.seanceId} salle={MROC} onFermer={accueil} /></div>
+  }
+
   return (
     <div className="app">
-      {onglet === 'Aujourd’hui'
-        ? <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
-        : <EnConstruction titre={onglet} onMisesEnGarde={onglet === 'Profil' ? () => setVue({ nom: 'mises_en_garde' }) : undefined} />}
+      {onglet === 'Aujourd’hui' && (
+        <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
+      )}
+      {onglet === 'Bilans' && <Historique onOuvrir={(seanceId) => setVue({ nom: 'debrief', seanceId })} />}
+      {onglet === 'Programme' && <EnConstruction titre="Programme" />}
+      {onglet === 'Profil' && <EnConstruction titre="Profil" onMisesEnGarde={() => setVue({ nom: 'mises_en_garde' })} />}
       <nav className="onglets" aria-label="Navigation principale">
         {ONGLETS.map((nom) => (
-          <button
-            key={nom}
-            className="onglet"
-            aria-current={nom === onglet ? 'page' : undefined}
-            onClick={() => setOnglet(nom)}
-          >
+          <button key={nom} className="onglet" aria-current={nom === onglet ? 'page' : undefined} onClick={() => setOnglet(nom)}>
             {nom}
           </button>
         ))}

@@ -143,3 +143,32 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .compteur p { min-width: 28px; text-align: center; font-size: 30px; font-weight: 700; }
 .ligne span:first-child { text-align: left; }
 .ligne span:last-child { text-align: right; flex: none; }
+
+/* Trois questions */
+.question { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.question legend { padding: 0; margin-bottom: 10px; font-size: 16px; font-weight: 600; }
+.choix { display: grid; gap: 8px; }
+.choix.cinq { grid-template-columns: repeat(5, 1fr); }
+.choix.trois { grid-template-columns: repeat(3, 1fr); }
+.choix.deux { grid-template-columns: repeat(2, 1fr); }
+.choix button { min-height: 48px; border-radius: var(--rayon-controle); background: var(--surface); font-size: 15px; font-weight: 600; text-align: center; }
+.choix.cinq button { font-size: 17px; }
+.choix button[aria-pressed='true'] { background: var(--accent); color: var(--sur-accent); font-weight: 700; }
+.bouton:disabled { opacity: 0.4; cursor: default; }
+
+/* Débrief et historique */
+.chiffres-cles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.chiffres-cles b { display: block; font-size: 34px; font-weight: 700; line-height: 1; }
+.chiffres-cles b.accent { color: var(--accent); }
+.chiffres-cles span { display: block; margin-top: 4px; font-size: 13px; color: var(--texte-3); }
+div.ligne { font-weight: 400; }
+.tableau { width: 100%; border-collapse: collapse; font-size: 15px; }
+.tableau th, .tableau td { padding: 12px 0; text-align: right; border-top: 1px solid var(--filet); font-weight: 400; }
+.tableau thead th { padding: 0 0 8px; border-top: 0; font-size: 13px; font-weight: 500; color: var(--texte-3); }
+.tableau th:first-child { text-align: left; font-weight: 500; }
+.tableau tbody tr:last-child > * { border-bottom: 1px solid var(--filet); }
+.carre { display: inline-block; width: 12px; height: 12px; margin-right: 8px; border-radius: 3px; border: 1px solid var(--texte-3); }
+.ligne.haute { min-height: 64px; }
+.ligne small { display: block; font-size: 13px; font-weight: 400; color: var(--texte-3); }
+.surtitre::first-letter { text-transform: uppercase; }
+.tableau td, .tableau thead th + th { padding-left: 20px; }

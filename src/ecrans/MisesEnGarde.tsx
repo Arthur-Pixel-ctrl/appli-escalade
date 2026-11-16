@@ -18,7 +18,7 @@ const REDUCTION = [
   'Douleur au coude quand tu serres une prise',
 ]
 
-export function MisesEnGarde({ onFermer, apresDouleur = false }: { onFermer: () => void; apresDouleur?: boolean }) {
+export function MisesEnGarde({ onFermer, apresDouleur = false, libelleFermer }: { onFermer: () => void; apresDouleur?: boolean; libelleFermer?: string }) {
   return (
     <main className="ecran">
       <div className="pile">
@@ -39,7 +39,7 @@ export function MisesEnGarde({ onFermer, apresDouleur = false }: { onFermer: () 
         <p className="texte-3">Retire les arqués, le pan Güllich, les trous et les efforts maximaux. Garde de la grimpe facile et sans douleur. Sans nette amélioration en 14 jours, consulte.</p>
       </section>
 
-      <button className="bouton principal centre" onClick={onFermer}><strong>{apresDouleur ? 'Revenir à la séance' : 'Fermer'}</strong></button>
+      <button className="bouton principal centre" onClick={onFermer}><strong>{libelleFermer ?? (apresDouleur ? 'Revenir à la séance' : 'Fermer')}</strong></button>
     </main>
   )
 }
