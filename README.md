@@ -17,6 +17,7 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | 3.4 | Séance en groupe, saisie des blocs par couleur | Fait |
 | 3.5 | Trois questions, débrief, enregistrement des séances, historique | Fait |
 | 3.6 | Profil, premier lancement, sauvegarde des données | Fait |
+| 4.1 | Bibliothèque de 60 protocoles (premier jet, chiffres à vérifier signalés) | En cours |
 
 ## Ouvrir l'app
 
@@ -46,6 +47,7 @@ npm run build   # construit la version à mettre en ligne (dossier dist/)
 | `src/ecrans/` | Un fichier par écran |
 | `src/donnees/seanceExemple.ts` | La séance d'exemple et la forme d'une étape |
 | `src/donnees/seanceGroupeExemple.ts` | Les objectifs de groupe d'exemple |
+| `src/donnees/bibliotheque/` | La bibliothèque de protocoles, un fichier par qualité, testée |
 | `src/donnees/profil.ts` | La forme du profil du grimpeur |
 | `src/donnees/base.ts` | La base de données sur le téléphone et l'enregistrement d'une séance |
 | `src/donnees/debrief.ts` | Calculs du débrief (charge, semaine, blocs par couleur), testés |

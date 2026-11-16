@@ -1,0 +1,70 @@
+import type { Protocole } from './types.ts'
+
+// Échauffement : progressif, avant toute séance, et toujours avant un travail des doigts.
+// Pas d’étirement statique long des poignets et des doigts juste avant de grimper.
+
+export const ECHAUFFEMENT: Protocole[] = [
+  {
+    id: 'echauffement-general',
+    nom: 'Échauffement complet',
+    qualite: 'echauffement',
+    resume: '25 min',
+    consigne: 'Monte en intensité petit à petit. Tu dois finir chaud, pas fatigué.',
+    forme: 'liste',
+    elements: [
+      '5 min de cardio léger',
+      '5 à 7 min de mobilité dynamique',
+      'Activation des épaules à l’élastique',
+      '100 à 120 mouvements de plus en plus durs : 3 voies ou une douzaine de blocs',
+    ],
+    dureeMin: 25,
+    preuve: 'Synthèse',
+    source: { auteur: 'Synthèse du projet (d’après The Prehab Guys et Power Company)', adresse: 'https://theprehabguys.com/rock-climbing-injury-prevention/' },
+    prerequis: {},
+    contreIndications: [],
+    marqueurs: [],
+    progression: 'Garde la même routine : c’est elle qui te dit si tu es en forme ce jour-là.',
+  },
+  {
+    id: 'echauffement-dynamique-vagy',
+    nom: 'Échauffement dynamique',
+    qualite: 'echauffement',
+    resume: '10 min',
+    consigne: 'Au sol, avant de grimper. Des mouvements, pas des étirements tenus.',
+    forme: 'liste',
+    elements: [
+      'Drapeau, drapeau inversé, pied haut, grenouille, genou rentré, croisé : 5 de chaque, tenus 1 à 3 s',
+      'Cercles de bras, de hanches, de genoux : 5 dans chaque sens',
+      'Salut, étirement croisé, tapes dans le dos : 5 de chaque',
+      'Glissements des tendons du poignet puis des doigts : 10',
+    ],
+    dureeMin: 10,
+    preuve: 'Avis de coach',
+    source: { auteur: 'Jared Vagy (The Climbing Doctor)', adresse: 'https://theclimbingdoctor.com/warm-up' },
+    prerequis: {},
+    contreIndications: [],
+    marqueurs: [],
+    progression: 'Pas de progression : c’est une préparation.',
+  },
+  {
+    id: 'echauffement-doigts-poutre',
+    nom: 'Échauffement des doigts',
+    qualite: 'echauffement',
+    resume: '3 à 8 suspensions',
+    consigne: 'Juste avant une séance de poutre, après 15 à 30 min de grimpe facile. La dernière suspension te dit la charge du jour.',
+    forme: 'liste',
+    elements: [
+      '3 à 4 suspensions de 5 à 7 s si tu as déjà grimpé',
+      '6 à 8 suspensions si tu n’as pas grimpé avant',
+      'Charge croissante : de la moitié à 90 % de la charge prévue',
+    ],
+    dureeMin: 8,
+    preuve: 'Avis de coach',
+    source: { auteur: 'Eva López', adresse: 'https://en-eva-lopez.blogspot.com/2018/05' },
+    prerequis: {},
+    contreIndications: ['doigts'],
+    marqueurs: [],
+    progression: 'Garde le même ordre de prises que dans la séance qui suit.',
+    aVerifier: 'Le repos entre les suspensions d’échauffement n’est pas donné par la synthèse ; durée de 8 min estimée par nous.',
+  },
+]
