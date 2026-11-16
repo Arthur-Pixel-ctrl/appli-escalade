@@ -181,3 +181,7 @@ div.ligne { font-weight: 400; }
 .champ .texte-3 { font-weight: 400; }
 .deux-champs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 form.pile-large { gap: 24px; }
+
+/* Bandeau de mise à jour */
+.bandeau { width: 100%; min-height: 48px; padding: calc(8px + env(safe-area-inset-top)) 20px 8px; background: var(--accent); color: var(--sur-accent); font-size: 14px; font-weight: 500; text-align: center; }
+.bandeau + .ecran { padding-top: 24px; }

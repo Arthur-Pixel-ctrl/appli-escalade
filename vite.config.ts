@@ -6,11 +6,15 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   // Chemins relatifs : l'app fonctionne quel que soit l'hébergement choisi.
   base: './',
+  // Date de construction, affichée dans le profil pour savoir quelle version tourne.
+  define: { __VERSION__: JSON.stringify(new Date().toISOString()) },
   plugins: [
     react(),
     // Rend l'app installable sur téléphone et utilisable hors ligne.
     VitePWA({
-      registerType: 'autoUpdate',
+      // « prompt » : une nouvelle version n'est appliquée que lorsque l'utilisateur le demande,
+      // pour ne jamais recharger l'app au milieu d'une séance.
+      registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Appli escalade',

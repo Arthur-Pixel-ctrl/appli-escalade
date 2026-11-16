@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { enregistrerProfil, enregistrerSeance, lireProfil, type Brouillon } from './donnees/base.ts'
 import type { Profil as TypeProfil } from './donnees/profil.ts'
 import { salleParId } from './donnees/salles.ts'
+import { appliquerMiseAJour, surMiseAJourDisponible } from './miseAJour.ts'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
 import { avancement, SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
@@ -35,6 +36,8 @@ export default function App() {
   // undefined = lecture en cours ; null = pas encore de profil (premier lancement)
   const [profil, setProfil] = useState<TypeProfil | null | undefined>(undefined)
   useEffect(() => { void lireProfil().then(setProfil) }, [])
+  const [majPrete, setMajPrete] = useState(false)
+  useEffect(() => surMiseAJourDisponible(() => setMajPrete(true)), [])
   const accueil = () => setVue({ nom: 'onglets' })
   const quitter = () => {
     if (window.confirm('Quitter la séance ? Elle ne sera pas enregistrée.')) accueil()
@@ -136,6 +139,10 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* Proposée seulement ici, jamais pendant une séance, pour ne rien faire perdre. */}
+      {majPrete && (
+        <button className="bandeau" onClick={appliquerMiseAJour}>Nouvelle version disponible · <b>Mettre à jour</b></button>
+      )}
       {onglet === 'Aujourd’hui' && (
         <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
       )}

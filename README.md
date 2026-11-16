@@ -24,6 +24,8 @@ Adresse : https://arthur-pixel-ctrl.github.io/appli-escalade/
 
 À chaque enregistrement sur la branche `main`, l'app est testée, construite et mise en ligne automatiquement (onglet « Actions » du dépôt). Sur téléphone, ouvrir l'adresse puis « Ajouter à l'écran d'accueil » pour l'installer.
 
+L'app installée vérifie les nouvelles versions à chaque ouverture. Quand il y en a une, un bandeau « Nouvelle version disponible » apparaît en haut des onglets : il suffit de le toucher. La date de la version en cours est affichée en bas de l'onglet Profil.
+
 ## Lancer l'app sur son ordinateur
 
 Il faut Node.js 22 ou plus récent.

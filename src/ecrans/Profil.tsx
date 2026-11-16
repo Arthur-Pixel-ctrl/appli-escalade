@@ -46,6 +46,7 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
         </div>
         <input ref={fichier} type="file" accept="application/json,.json" hidden aria-label="Fichier de sauvegarde" onChange={(e) => { void importer(e.target.files?.[0]); e.target.value = '' }} />
         <p className="texte-3" role="status" aria-live="polite">{message || 'Tes données restent sur cet appareil. Fais une sauvegarde de temps en temps : vider les données du navigateur les efface.'}</p>
+        <p className="texte-3">Version du {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(__VERSION__))}</p>
       </section>
     </main>
   )
