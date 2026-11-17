@@ -1,16 +1,16 @@
 # Décisions de fin de phase 1
 
-17 novembre 2026. Les trois concepteurs (architecture, design, entraînement) ont posé 24 questions qui se recoupent. Elles sont regroupées ici avec une recommandation. Statut : **en attente de validation par Arthur.** Une recommandation non contestée devient une décision.
+17 novembre 2026. Les trois concepteurs (architecture, design, entraînement) ont posé 24 questions qui se recoupent. Elles sont regroupées ici avec une recommandation. Statut : **validé par Arthur le 17/11/2026** (A1 oui, A3 Gmail dédiée, toutes les recommandations B appliquées). A2, le nom, reste en discussion.
 
 ## A. Questions qu'Arthur doit trancher lui-même
 
 | # | Question | Options | Recommandation |
 |---|---|---|---|
-| A1 | La direction visuelle « Topo » (carnet de salle, fond craie, fiches vissées, rubalise) et le vert pétrole pour l'action | Oui / à retravailler | — (goût personnel) |
-| A2 | Nom de l'app | Libre | — |
-| A3 | Adresse d'envoi des codes de connexion | Une adresse Gmail dédiée (gratuit) / un nom de domaine (environ 10 € par an, plus propre) | Gmail dédiée pour commencer |
+| A1 | La direction visuelle « Topo » (carnet de salle, fond craie, fiches vissées, rubalise) et le vert pétrole pour l'action | Oui / à retravailler | **Décidé : oui** |
+| A2 | Nom de l'app | Libre | **En discussion** : « Appli escalade » en attendant |
+| A3 | Adresse d'envoi des codes de connexion | Une adresse Gmail dédiée (gratuit) / un nom de domaine (environ 10 € par an, plus propre) | **Décidé : Gmail dédiée** |
 
-## B. Recommandations, appliquées sauf avis contraire
+## B. Recommandations (toutes validées le 17/11/2026)
 
 **Compte et données**
 | # | Sujet | Recommandation | Pourquoi |
