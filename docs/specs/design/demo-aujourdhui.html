@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo Topo : Aujourd'hui et séance en groupe (téléphone)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@500;600;700&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+/* Jetons du système Topo (voir DESIGN.md) */
+:root {
+  --fond: #F1EFE9; --surface: #FBFAF7; --surface-creuse: #E6E3DA;
+  --texte: #1D1C19; --texte-2: #4B4943; --texte-3: #5D5A52;
+  --filet: #C9C5BA; --filet-fort: #8C8980;
+  --accent: #0F5A54; --accent-presse: #0B4540; --accent-doux: #D5E6E2; --sur-accent: #FFFFFF;
+  --relief: #1D1C19; --annotation: #7A4420;
+  --avertissement: #8A5200; --avertissement-fond: #FBEFD5; --arret: #A32E1E; --arret-fond: #F8E1DC;
+  --police-titre: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --police: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --police-fixe: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+  --police-main: 'Gochi Hand', cursive;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.12 0 0 0 0 0.11 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #d9d6cd; font-family: var(--police); color: var(--texte); padding: 32px; }
+.planche { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }
+.legende { font-family: var(--police-fixe); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 10px; color: var(--texte-2); }
+.telephone { width: 390px; height: 844px; border: 2px solid var(--texte); border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; background: var(--fond) var(--grain); box-shadow: 0 6px 0 var(--relief); position: relative; }
+.ecran { flex: 1; overflow: hidden; padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 15px; }
+.barre-etat { display: flex; justify-content: space-between; align-items: center; font-family: var(--police-fixe); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texte-3); }
+.synchro { display: inline-flex; align-items: center; gap: 6px; }
+.pile { display: flex; flex-direction: column; gap: 8px; }
+.mention { font-family: var(--police-fixe); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texte-3); margin: 0; }
+.affiche { font-family: var(--police-titre); font-weight: 800; font-size: 44px; line-height: .95; margin: 0; text-wrap: balance; letter-spacing: .005em; }
+.titre-2 { font-family: var(--police-titre); font-weight: 800; font-size: 28px; line-height: 1.05; margin: 0; }
+.titre-3 { font-family: var(--police-titre); font-weight: 800; font-size: 22px; line-height: 1.1; margin: 0; text-transform: uppercase; letter-spacing: .03em; }
+.texte-2 { color: var(--texte-2); margin: 0; font-size: 16px; line-height: 1.45; }
+.donnee { font-family: var(--police-fixe); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.etiquette { display: inline-block; background: var(--texte); color: var(--fond); font-family: var(--police-fixe); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
+.etiquette.contour { background: transparent; color: var(--texte); border: 1.5px solid var(--texte); padding: 2px 7px; }
+/* La fiche : l'étiquette de voie vissée au mur */
+.fiche { position: relative; background: var(--surface); border: 2px solid var(--texte); border-radius: 6px; box-shadow: 0 3px 0 var(--relief); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.vis { position: absolute; top: 8px; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--texte); background: var(--surface-creuse); }
+.vis::after { content: ''; position: absolute; left: 1px; right: 1px; top: 3.25px; height: 1.5px; background: var(--texte); transform: rotate(-35deg); }
+.vis.g { left: 8px; } .vis.d { right: 8px; }
+.fiche-tete { display: flex; justify-content: space-between; align-items: center; padding: 0 14px; }
+.etapes-apercu { list-style: none; margin: 0; padding: 0; }
+.etapes-apercu li { display: flex; align-items: center; gap: 10px; min-height: 33px; border-top: 1px solid var(--filet); font-size: 15px; }
+.etapes-apercu li span:last-child { margin-left: auto; color: var(--texte-3); }
+.repere { width: 24px; height: 24px; flex: none; display: grid; place-items: center; background: var(--texte); color: var(--fond); font-family: var(--police-fixe); font-size: 13px; font-weight: 700; border-radius: 2px; }
+/* Boutons en relief */
+.bouton { width: 100%; border: 2px solid var(--texte); border-radius: 6px; box-shadow: 0 4px 0 var(--relief); font-family: var(--police); font-weight: 700; font-size: 18px; text-align: left; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; }
+.bouton small { display: block; font-weight: 400; font-size: 15px; margin-top: 2px; }
+.bouton.principal { background: var(--accent); color: var(--sur-accent); min-height: 68px; }
+.bouton.second { background: var(--surface); color: var(--texte); min-height: 60px; }
+.bouton svg { flex: none; }
+.lignes > div { display: flex; justify-content: space-between; align-items: center; min-height: 52px; border-top: 1px solid var(--filet); font-weight: 700; font-size: 16px; }
+.lignes > div:last-child { border-bottom: 1px solid var(--filet); }
+.lignes .valeur { font-weight: 400; color: var(--texte-3); display: inline-flex; align-items: center; gap: 8px; }
+.semaine { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.jour { min-height: 52px; border: 1px solid var(--filet-fort); border-radius: 4px; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.marque { display: block; }
+.marque.coche { width: 12px; height: 7px; border-left: 2.5px solid var(--texte); border-bottom: 2.5px solid var(--texte); transform: rotate(-45deg) translateY(-2px); }
+.marque.point { width: 12px; height: 12px; background: var(--accent); border-radius: 2px; }
+.marque.carre { width: 12px; height: 12px; border: 2px solid var(--texte); border-radius: 2px; }
+.marque.tiret { width: 12px; height: 2px; background: var(--texte-3); }
+.jour b { font-family: var(--police-fixe); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.jour.repos { background: var(--surface-creuse); border-style: dashed; color: var(--texte-3); }
+.jour.fait { background: var(--accent-doux); }
+.jour.aujourdhui { border: 2px solid var(--accent); box-shadow: inset 0 -4px 0 var(--accent); }
+.jour span { font-size: 12px; line-height: 1.15; }
+.annotation { font-family: var(--police-main); color: var(--annotation); font-size: 20px; line-height: 1.15; display: flex; align-items: center; gap: 6px; margin: -14px 0 -8px 120px; transform: rotate(-2deg); }
+.onglets { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--texte); background: var(--surface); }
+.onglet { min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 13px; color: var(--texte-2); position: relative; }
+.onglet.actif { color: var(--texte); font-weight: 700; }
+.onglet.actif::before { content: ''; position: absolute; top: 0; left: 22%; right: 22%; height: 4px; background: var(--accent); }
+/* Séance en groupe */
+.couleurs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.choix-couleur { min-height: 52px; border: 2px solid var(--filet-fort); border-radius: 4px; background: var(--surface); display: flex; align-items: center; gap: 8px; padding: 0 8px; font-size: 15px; font-family: var(--police); color: var(--texte); font-weight: 700; position: relative; }
+.choix-couleur[aria-pressed=true] { border: 3px solid var(--texte); padding: 0 7px; }
+.choix-couleur[aria-pressed=true]::before { content: ''; position: absolute; top: -3px; right: -3px; width: 20px; height: 20px; background: var(--texte); border-radius: 0 3px 0 4px; }
+.choix-couleur[aria-pressed=true]::after { content: ''; position: absolute; top: 2px; right: 3px; width: 9px; height: 5px; border-left: 2.5px solid var(--fond); border-bottom: 2.5px solid var(--fond); transform: rotate(-45deg); }
+.prise { width: 30px; height: 24px; flex: none; border: 1.5px solid var(--texte); border-radius: 64% 36% 58% 42% / 42% 60% 40% 58%; transform: rotate(-12deg); position: relative; }
+.prise::after { content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--surface); border: 1px solid var(--texte); } /* le trou de vis de la prise */
+.jauge { display: flex; gap: 4px; }
+.jauge span { flex: 1; height: 8px; border-radius: 1px; background: var(--surface-creuse); border: 1px solid var(--filet-fort); }
+.jauge span.fait { background: var(--texte); border-color: var(--texte); }
+.compteur { display: flex; align-items: center; gap: 12px; }
+.compteur button { width: 56px; height: 56px; border: 2px solid var(--texte); border-radius: 6px; background: var(--surface); box-shadow: 0 4px 0 var(--relief); font-size: 28px; font-weight: 700; font-family: var(--police); }
+.compteur output { min-width: 32px; text-align: center; font-family: var(--police-fixe); font-weight: 700; font-size: 32px; }
+.entete { display: flex; justify-content: space-between; align-items: center; }
+.discret { font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; min-height: 48px; display: inline-flex; align-items: center; }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.deux .bouton { justify-content: center; text-align: center; min-height: 64px; }
+.note-planche { max-width: 380px; font-size: 15px; line-height: 1.5; color: var(--texte-2); }
+.note-planche h2 { font-family: var(--police-titre); font-weight: 800; font-size: 28px; color: var(--texte); margin: 0 0 8px; }
+.note-planche p { margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<div class="planche">
+
+  <!-- 1. Aujourd'hui, branché sur le plan -->
+  <div>
+    <p class="legende">Téléphone · Aujourd'hui</p>
+    <div class="telephone">
+      <main class="ecran" aria-labelledby="t-jour">
+        <div class="barre-etat">
+          <span>Mardi 17 novembre</span>
+          <span class="synchro"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 9.5 4.25 4.25 0 0 0 7 18z"/><path d="m9.5 13.5 2 2 3.5-3.5"/></svg>À jour</span>
+        </div>
+
+        <div class="pile">
+          <p class="mention">Bloc 1 · doigts · semaine 2 sur 4</p>
+          <h1 class="affiche" id="t-jour">Doigts et bloc limite</h1>
+        </div>
+
+        <article class="fiche" aria-label="Séance du jour">
+          <span class="vis g" aria-hidden="true"></span><span class="vis d" aria-hidden="true"></span>
+          <div class="fiche-tete"><span class="etiquette">Séance dure</span><span class="donnee">1 h 45</span></div>
+          <ol class="etapes-apercu">
+            <li><span class="repere">1</span><span>Échauffement</span><span class="donnee">20 min</span></li>
+            <li><span class="repere">2</span><span>Échelles 3-6-9</span><span class="donnee">7 min</span></li>
+            <li><span class="repere">3</span><span>Bloc limite, réglettes</span><span class="donnee">40 min</span></li>
+            <li><span class="repere">4</span><span>Antagonistes, mobilité</span><span class="donnee">27 min</span></li>
+          </ol>
+        </article>
+
+        <div class="pile" style="gap:12px">
+          <button class="bouton principal"><span>Je grimpe seul<small>Séance guidée, chrono intégré</small></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <button class="bouton second"><span>Je grimpe en groupe<small>2 objectifs, 1 h 30</small></span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.5"/><path d="M3 19c.7-3 2.7-4.5 5-4.5s4.3 1.5 5 4.5M14 15c2.3-.6 5 .4 6 3.5"/></svg></button>
+        </div>
+
+        <div class="lignes">
+          <div><span>Forme du jour</span><span class="valeur">À renseigner <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></div>
+        </div>
+
+        <p class="annotation" aria-hidden="true">
+          <svg width="46" height="34" viewBox="0 0 46 34" fill="none" stroke="#7A4420" stroke-width="2" stroke-linecap="round"><path d="M4 30 C 10 18, 22 26, 30 12 S 40 6, 42 4" stroke-dasharray="1 5"/><circle cx="42" cy="4" r="3" fill="#7A4420" stroke="none"/></svg>
+          30 secondes, et la séance s'ajuste</p>
+        <div class="pile">
+          <p class="mention">Cette semaine</p>
+          <div class="semaine" role="list" aria-label="Séances de la semaine">
+            <div class="jour fait" role="listitem" aria-label="Lundi, fait"><b>L</b><i class="marque coche"></i></div>
+            <div class="jour aujourdhui" role="listitem" aria-label="Mardi, aujourd'hui, doigts"><b>M</b><i class="marque point"></i></div>
+            <div class="jour repos" role="listitem" aria-label="Mercredi, repos"><b>M</b><i class="marque tiret"></i></div>
+            <div class="jour" role="listitem" aria-label="Jeudi, technique"><b>J</b><i class="marque carre"></i></div>
+            <div class="jour repos" role="listitem" aria-label="Vendredi, repos"><b>V</b><i class="marque tiret"></i></div>
+            <div class="jour" role="listitem" aria-label="Samedi, voies"><b>S</b><i class="marque carre"></i></div>
+            <div class="jour repos" role="listitem" aria-label="Dimanche, repos"><b>D</b><i class="marque tiret"></i></div>
+          </div>
+          <p class="texte-2" style="font-size:15px;margin-top:2px">Prochaine : jeudi, technique (facile)</p>
+        </div>
+      </main>
+      <nav class="onglets" aria-label="Navigation principale">
+        <a class="onglet actif" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Aujourd’hui</a>
+        <a class="onglet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Programme</a>
+        <a class="onglet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20h18M4 16l5-5 4 3 7-8"/></svg>Bilans</a>
+        <a class="onglet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Profil</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- 2. Séance en groupe : noter un bloc, pastilles de prise -->
+  <div>
+    <p class="legende">Téléphone · Séance en groupe</p>
+    <div class="telephone">
+      <main class="ecran">
+        <div class="entete">
+          <a class="discret">Quitter</a>
+          <span class="mention">42 min · 6 blocs notés</span>
+        </div>
+        <div class="pile">
+          <p class="mention">Objectif 1 sur 2</p>
+          <h1 class="titre-2">5 blocs durs à réglettes, 5 essais max chacun</h1>
+          <div class="jauge" role="img" aria-label="3 blocs sur 5"><span class="fait"></span><span class="fait"></span><span class="fait"></span><span></span><span></span></div>
+        </div>
+
+        <section class="fiche" aria-labelledby="t-noter" style="gap:16px">
+          <span class="vis g" aria-hidden="true"></span><span class="vis d" aria-hidden="true"></span>
+          <h2 class="titre-3" id="t-noter" style="padding:0 14px">Noter un bloc</h2>
+          <div class="couleurs" role="group" aria-label="Couleur du bloc">
+            <button class="choix-couleur" aria-pressed="false"><span class="prise" style="background:#E8D44A"></span>Jaune</button>
+            <button class="choix-couleur" aria-pressed="false"><span class="prise" style="background:#5FA052"></span>Vert</button>
+            <button class="choix-couleur" aria-pressed="false"><span class="prise" style="background:#4A7BD0"></span>Bleu</button>
+            <button class="choix-couleur" aria-pressed="false"><span class="prise" style="background:#8E5CC2"></span>Violet</button>
+            <button class="choix-couleur" aria-pressed="true"><span class="prise" style="background:#C8443C"></span>Rouge</button>
+            <button class="choix-couleur" aria-pressed="false"><span class="prise" style="background:#000"></span>Noir</button>
+          </div>
+          <div class="entete">
+            <span style="font-weight:700">Essais</span>
+            <div class="compteur"><button aria-label="Un essai de moins">−</button><output>3</output><button aria-label="Un essai de plus">+</button></div>
+          </div>
+          <div class="deux">
+            <button class="bouton second">Pas encore</button>
+            <button class="bouton principal" style="min-height:64px">Enchaîné</button>
+          </div>
+        </section>
+
+        <div class="lignes">
+          <div><span>Lancer un repos</span><span class="valeur donnee">4:00</span></div>
+          <div><span>Objectif 2 : flasher 3 violets</span><span class="valeur donnee">1 sur 3</span></div>
+        </div>
+        <a class="discret" style="align-self:center;margin-top:auto">Terminer la séance</a>
+      </main>
+    </div>
+  </div>
+
+  <div class="note-planche">
+    <h2>Ce que montre la planche</h2>
+    <p>Fond magnésie, encre, une seule couleur d'action : la résine. Les couleurs de prises n'apparaissent que dans les pastilles, à côté de leur nom.</p>
+    <p>La séance du jour est une fiche vissée : étiquette en chasse fixe, repères carrés, durées alignées.</p>
+    <p>Les boutons ont un relief dur : ils descendent sous le doigt. Tous font au moins 56 px de haut.</p>
+    <p>La semaine montre ce qui est fait (fond résine doux), aujourd'hui (cadre résine), ce qui est prévu (carré) et les jours de repos (tiret, bord pointillé). Chaque jour a aussi son nom complet pour les lecteurs d'écran.</p>
+  </div>
+</div>
+</body>
+</html>

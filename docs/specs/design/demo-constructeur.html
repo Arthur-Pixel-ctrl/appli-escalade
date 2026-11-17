@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo Topo : constructeur de cycle (ordinateur)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@500;600;700&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fond: #F1EFE9; --surface: #FBFAF7; --surface-creuse: #E6E3DA;
+  --texte: #1D1C19; --texte-2: #4B4943; --texte-3: #5D5A52;
+  --filet: #C9C5BA; --filet-fort: #8C8980;
+  --accent: #0F5A54; --accent-presse: #0B4540; --accent-doux: #D5E6E2; --sur-accent: #FFFFFF;
+  --relief: #1D1C19; --annotation: #7A4420;
+  --avertissement: #8A5200; --avertissement-fond: #FBEFD5; --rubalise-avertissement: #E9A23B;
+  --arret: #A32E1E; --arret-fond: #F8E1DC;
+  --police-titre: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --police: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --police-fixe: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+  --police-main: 'Gochi Hand', cursive;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.12 0 0 0 0 0.11 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fond) var(--grain); font-family: var(--police); color: var(--texte); font-size: 16px; line-height: 1.45; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.mention { font-family: var(--police-fixe); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--texte-3); margin: 0; }
+.donnee { font-family: var(--police-fixe); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.etiquette { display: inline-block; background: var(--texte); color: var(--fond); font-family: var(--police-fixe); font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 2px; white-space: nowrap; }
+.etiquette.contour { background: transparent; color: var(--texte); border: 1.5px solid var(--texte); padding: 1px 6px; }
+.etiquette.attente { background: transparent; color: var(--texte-3); border: 1.5px dashed var(--filet-fort); padding: 1px 6px; }
+/* Barre du haut */
+.barre { height: 64px; display: flex; align-items: center; gap: 32px; padding: 0 32px; border-bottom: 2px solid var(--texte); background: var(--fond); }
+.marque { font-family: var(--police-titre); font-weight: 900; font-size: 26px; letter-spacing: .01em; display: flex; align-items: center; gap: 8px; }
+.nav { display: flex; gap: 4px; }
+.nav a { min-height: 48px; display: flex; align-items: center; padding: 0 12px; font-weight: 700; color: var(--texte-2); position: relative; }
+.nav a[aria-current] { color: var(--texte); }
+.nav a[aria-current]::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 3px; background: var(--accent); }
+.barre .droite { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.b { border: 2px solid var(--texte); border-radius: 6px; box-shadow: 0 4px 0 var(--relief); min-height: 48px; padding: 0 16px; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; background: var(--surface); }
+.b.principal { background: var(--accent); color: var(--sur-accent); }
+.b.petit { min-height: 40px; box-shadow: 0 3px 0 var(--relief); font-size: 15px; padding: 0 12px; }
+.lien { font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; background: none; border: 0; padding: 0; min-height: 32px; }
+/* Mise en page */
+.page { display: grid; grid-template-columns: 312px minmax(0, 1fr) 404px; gap: 24px; padding: 20px 24px 40px; }
+.colonne { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+h1 { font-family: var(--police-titre); font-weight: 800; font-size: 38px; white-space: nowrap; line-height: 1; margin: 0; }
+h2.t3 { font-family: var(--police-titre); font-weight: 800; font-size: 22px; line-height: 1.1; margin: 0; text-transform: uppercase; letter-spacing: .03em; }
+/* Bibliothèque */
+.champ { display: flex; align-items: center; gap: 8px; min-height: 48px; border: 2px solid var(--filet-fort); border-radius: 4px; background: var(--surface); padding: 0 12px; color: var(--texte-3); }
+.filtres { display: flex; flex-wrap: wrap; gap: 6px; }
+.filtre { min-height: 36px; padding: 0 10px; border: 2px solid var(--filet-fort); border-radius: 4px; background: var(--surface); font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.filtre[aria-pressed=true] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.interrupteur { display: flex; align-items: center; justify-content: space-between; min-height: 44px; font-weight: 700; font-size: 15px; }
+.inter { width: 44px; height: 26px; border: 2px solid var(--texte); border-radius: 4px; background: var(--texte); position: relative; }
+.inter::after { content: ''; position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; background: var(--surface); border: 1.5px solid var(--texte); border-radius: 2px; }
+.fiche { position: relative; background: var(--surface); border: 2px solid var(--texte); border-radius: 6px; box-shadow: 0 3px 0 var(--relief); padding: 12px 12px 12px 34px; display: flex; flex-direction: column; gap: 6px; }
+.fiche .poignee { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--texte-3); }
+.fiche .nom { font-weight: 700; font-size: 16px; }
+.fiche .pied { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; color: var(--texte-3); font-size: 14px; }
+.fiche.bloquee { border-style: dashed; border-color: var(--filet-fort); box-shadow: none; background: var(--surface-creuse); }
+.fiche.bloquee .nom { color: var(--texte-2); }
+.fiche.saisie { box-shadow: 0 6px 0 var(--relief); transform: translate(10px, 0) rotate(0deg) scale(1.02); outline: 3px solid var(--accent); outline-offset: 2px; }
+.vis { position: absolute; top: 7px; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--texte); background: var(--surface-creuse); }
+.vis::after { content: ''; position: absolute; left: 1px; right: 1px; top: 2.75px; height: 1.5px; background: var(--texte); transform: rotate(-35deg); }
+.vis.d { right: 7px; }
+/* Cycle de 12 semaines */
+.cycle { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.bloc { border: 2px solid var(--texte); border-radius: 6px; background: var(--surface); padding: 8px 10px 10px; }
+.bloc.actuel { box-shadow: 0 3px 0 var(--relief); }
+.bloc .entete-bloc { display: flex; flex-direction: column; margin-bottom: 8px; gap: 0; }
+.bloc .entete-bloc b { font-size: 14px; }
+.semaines { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.sem { height: 30px; border: 1px solid var(--filet-fort); border-radius: 3px; display: grid; place-items: center; font-family: var(--police-fixe); font-size: 13px; font-weight: 700; background: var(--surface); }
+.sem.allegee { background: repeating-linear-gradient(-45deg, var(--surface-creuse) 0 5px, var(--surface) 5px 10px); }
+.sem.faite { background: var(--accent-doux); }
+.sem.ouverte { background: var(--texte); color: var(--fond); border: 2px solid var(--texte); box-shadow: inset 0 -4px 0 var(--accent); }
+.vues { display: flex; border: 2px solid var(--texte); border-radius: 6px; overflow: hidden; }
+.vues button { min-height: 44px; white-space: nowrap; padding: 0 14px; border: 0; background: var(--surface); font-weight: 700; font-size: 15px; }
+.vues button + button { border-left: 2px solid var(--texte); }
+.vues button[aria-pressed=true] { background: var(--texte); color: var(--fond); }
+.ligne-titre { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 16px; flex-wrap: wrap; }
+/* Avertissement : rubalise ambre */
+.avert { position: relative; background: var(--avertissement-fond); border-radius: 4px; padding: 12px 14px 12px 26px; display: flex; gap: 10px; align-items: flex-start; }
+.avert::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 12px; border-radius: 4px 0 0 4px; background: repeating-linear-gradient(-45deg, var(--rubalise-avertissement) 0 6px, var(--texte) 6px 12px); }
+.avert svg { flex: none; color: var(--avertissement); margin-top: 2px; }
+.avert p { margin: 0; font-size: 15px; }
+.avert .actions { display: flex; gap: 16px; margin-top: 4px; }
+/* Semaine en lignes */
+.jours { display: flex; flex-direction: column; border-top: 1px solid var(--filet); }
+.jour { display: grid; grid-template-columns: 76px minmax(0,1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--filet); align-items: start; }
+.jour .nom-jour { font-family: var(--police-fixe); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; padding-top: 8px; }
+.jour .nom-jour small { display: block; font-weight: 500; color: var(--texte-3); letter-spacing: 0; }
+.repos { min-height: 40px; border: 1px dashed var(--filet-fort); border-radius: 4px; background: var(--surface-creuse); display: flex; align-items: center; padding: 0 12px; color: var(--texte-3); font-size: 15px; }
+.depot { min-height: 52px; border: 2px dashed var(--accent); border-radius: 4px; background: var(--accent-doux); display: flex; align-items: center; padding: 0 12px; color: var(--accent); font-weight: 700; font-size: 15px; }
+.seance { position: relative; background: var(--surface); border: 2px solid var(--texte); border-radius: 6px; box-shadow: 0 3px 0 var(--relief); }
+.seance .haut { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 24px; border-bottom: 1px solid var(--filet); flex-wrap: wrap; }
+.seance .haut .titre { font-weight: 700; font-size: 17px; }
+.seance .haut .droite { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.modes { display: flex; border: 2px solid var(--texte); border-radius: 4px; overflow: hidden; }
+.modes button { min-height: 32px; padding: 0 10px; border: 0; background: var(--surface); font-family: var(--police-fixe); font-weight: 700; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; }
+.modes button + button { border-left: 2px solid var(--texte); }
+.modes button[aria-pressed=true] { background: var(--texte); color: var(--fond); }
+.etapes { list-style: none; margin: 0; padding: 4px 12px 8px; }
+.etapes li { display: grid; grid-template-columns: 20px 24px minmax(0,1fr) auto; align-items: center; gap: 8px; min-height: 40px; border-bottom: 1px solid var(--filet); font-size: 15px; }
+.etapes li:last-child { border-bottom: 0; }
+.repere { width: 22px; height: 22px; display: grid; place-items: center; background: var(--texte); color: var(--fond); font-family: var(--police-fixe); font-size: 12px; font-weight: 700; border-radius: 2px; }
+.poignee-mini { color: var(--texte-3); }
+.seance.compacte .haut { border-bottom: 0; }
+/* Assistant */
+.assistant { background: var(--surface); border: 2px solid var(--texte); border-radius: 6px; box-shadow: 0 6px 0 var(--relief); display: flex; flex-direction: column; align-self: start; }
+.assistant .tete-a { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 2px solid var(--texte); }
+.assistant .corps { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.bulle-moi { align-self: flex-end; max-width: 85%; background: var(--surface-creuse); border-radius: 6px 6px 0 6px; padding: 10px 12px; font-size: 15px; }
+.proposition { border-left: 4px solid var(--annotation); padding-left: 12px; display: flex; flex-direction: column; gap: 10px; }
+.proposition p { margin: 0; font-size: 15px; }
+.element { border: 1px solid var(--filet-fort); border-radius: 4px; background: var(--surface); padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.element p { font-size: 15px; }
+.element .choix3 { display: flex; gap: 6px; }
+.element .choix3 button { min-height: 40px; flex: 1; border: 2px solid var(--texte); border-radius: 4px; background: var(--surface); font-weight: 700; font-size: 14px; }
+.element .choix3 button.garde { background: var(--texte); color: var(--fond); }
+.element.garde { background: var(--accent-doux); border-color: var(--accent); }
+.element.rejete { background: var(--surface-creuse); border-style: dashed; }
+.element.rejete p { text-decoration: line-through; color: var(--texte-3); }
+.statut { display: flex; justify-content: space-between; align-items: center; }
+.sources { margin: 0; padding-left: 20px; font-size: 14px; color: var(--texte-2); }
+.sources li { margin: 2px 0; }
+.saisie-a { display: flex; gap: 8px; border-top: 2px solid var(--texte); padding: 12px 14px; }
+.saisie-a .champ { flex: 1; }
+.annotation { font-family: var(--police-main); color: var(--annotation); font-size: 21px; line-height: 1.1; display: flex; align-items: center; gap: 4px; transform: rotate(-2deg); }
+</style>
+</head>
+<body>
+<header class="barre">
+  <span class="marque" translate="no">
+    <svg width="26" height="22" viewBox="0 0 30 24" aria-hidden="true"><path d="M3 15c0-6 5-12 12-12 7 0 12 4 12 9 0 6-6 10-13 10C7 22 3 20 3 15z" fill="#0F5A54" stroke="#1D1C19" stroke-width="2"/><circle cx="15" cy="12.5" r="3" fill="#FBFAF7" stroke="#1D1C19" stroke-width="1.5"/></svg>
+    Appli escalade</span>
+  <nav class="nav" aria-label="Navigation principale">
+    <a>Tableau de bord</a><a aria-current="page">Plan</a><a>Bibliothèque</a><a>Bilans</a><a>Profil</a>
+  </nav>
+  <div class="droite">
+    <span class="mention" style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 9.5 4.25 4.25 0 0 0 7 18z"/><path d="m9.5 13.5 2 2 3.5-3.5"/></svg>À jour</span>
+    <button class="b petit" aria-pressed="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Assistant</button>
+  </div>
+</header>
+
+<div class="page">
+  <!-- Colonne 1 : bibliothèque à glisser -->
+  <aside class="colonne" aria-labelledby="t-biblio">
+    <h2 class="t3" id="t-biblio">Bibliothèque</h2>
+    <div class="champ"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>Chercher un protocole…</div>
+    <div class="filtres" role="group" aria-label="Filtres">
+      <button class="filtre" aria-pressed="true">Doigts</button>
+      <button class="filtre" aria-pressed="false">Puissance</button>
+      <button class="filtre" aria-pressed="false">Résistance</button>
+      <button class="filtre" aria-pressed="false">+ 7 qualités</button>
+      <button class="filtre" aria-pressed="true">Poutre</button>
+      <button class="filtre" aria-pressed="false">20 min max</button>
+    </div>
+    <div class="interrupteur"><span>Seulement ceux qui me conviennent</span><span class="inter" role="switch" aria-checked="true" aria-label="Seulement les protocoles dont j'ai les prérequis"></span></div>
+    <p class="mention">12 protocoles · 9 me conviennent</p>
+
+    <article class="fiche saisie" aria-label="Échelles 3-6-9, en cours de déplacement">
+      <span class="vis d" aria-hidden="true"></span>
+      <svg class="poignee" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>
+      <div><span class="etiquette">Doigts · 7 min</span></div>
+      <span class="nom">Échelles 3-6-9</span>
+      <div class="pied"><span class="etiquette contour">Avis de coach</span><span>Poutre · Bechtel</span></div>
+    </article>
+    <article class="fiche">
+      <span class="vis d" aria-hidden="true"></span>
+      <svg class="poignee" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>
+      <div><span class="etiquette">Doigts · 6 min</span></div>
+      <span class="nom">Plan le plus simple</span>
+      <div class="pied"><span class="etiquette contour">Avis de coach</span><span>Poutre · Bechtel</span></div>
+    </article>
+    <article class="fiche bloquee">
+      <svg class="poignee" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>
+      <div><span class="etiquette contour">Doigts · 32 min</span></div>
+      <span class="nom">Suspensions 7:13</span>
+      <div class="pied"><span class="etiquette attente">Prérequis</span><span>Poutre « parfois » demandée</span></div>
+    </article>
+  </aside>
+
+  <!-- Colonne 2 : le plan -->
+  <main class="colonne" aria-labelledby="t-plan">
+    <div class="ligne-titre">
+      <div>
+        <p class="mention">Cycle hiver · du 3 nov. au 25 janv.</p>
+        <h1 id="t-plan">Bloc 1 · Force des doigts</h1>
+      </div>
+      <div class="vues" role="group" aria-label="Vue"><button aria-pressed="false">12 semaines</button><button aria-pressed="false">Bloc</button><button aria-pressed="true">Semaine</button></div>
+    </div>
+
+    <div class="cycle" aria-label="Les 12 semaines du cycle">
+      <div class="bloc actuel"><div class="entete-bloc"><b>Bloc 1 · Doigts</b><span class="mention">2 objectifs</span></div>
+        <div class="semaines"><span class="sem faite">S1</span><span class="sem ouverte" aria-current="true">S2</span><span class="sem">S3</span><span class="sem allegee" title="Semaine allégée">S4</span></div></div>
+      <div class="bloc"><div class="entete-bloc"><b>Bloc 2 · Puissance</b><span class="mention">1 objectif</span></div>
+        <div class="semaines"><span class="sem">S5</span><span class="sem">S6</span><span class="sem">S7</span><span class="sem allegee">S8</span></div></div>
+      <div class="bloc"><div class="entete-bloc"><b>Bloc 3 · Résistance</b><span class="mention">À choisir</span></div>
+        <div class="semaines"><span class="sem">S9</span><span class="sem">S10</span><span class="sem">S11</span><span class="sem allegee">S12</span></div></div>
+    </div>
+
+    <div class="ligne-titre" style="align-items:center">
+      <h2 class="t3">Semaine 2 · 10 au 16 nov.</h2>
+      <div style="display:flex;gap:16px;align-items:center"><span class="donnee">3 séances · 2 dures</span><button class="b principal">Ajouter une séance</button></div>
+    </div>
+
+    <div class="avert" role="status">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.5"/></svg>
+      <div>
+        <p><b>Deux séances dures à moins de 48 h.</b> Jeudi et vendredi sollicitent tous deux les doigts au maximum. Tu peux garder ce choix.</p>
+        <div class="actions"><button class="lien">Pourquoi ?</button><button class="lien">Déplacer vendredi à samedi</button></div>
+      </div>
+    </div>
+
+    <div class="jours">
+      <div class="jour"><span class="nom-jour">Lun<small>10</small></span>
+        <div class="seance compacte"><span class="vis" style="left:7px" aria-hidden="true"></span><div class="haut"><span class="etiquette contour">Facile</span><span class="titre">Technique et pieds</span><div class="droite"><span class="donnee">1 h 10</span><div class="modes" role="group" aria-label="Version"><button aria-pressed="true">Solo</button><button aria-pressed="false">Groupe</button></div></div></div></div></div>
+      <div class="jour"><span class="nom-jour">Mar<small>11</small></span><div class="repos">Repos</div></div>
+      <div class="jour"><span class="nom-jour">Mer<small>12</small></span><div class="repos">Repos</div></div>
+      <div class="jour"><span class="nom-jour">Jeu<small>13</small></span>
+        <div class="seance"><span class="vis" style="left:7px" aria-hidden="true"></span>
+          <div class="haut"><span class="etiquette">Dure</span><span class="titre">Doigts et bloc limite</span>
+            <div class="droite"><span class="donnee">1 h 45</span><div class="modes" role="group" aria-label="Version"><button aria-pressed="true">Solo</button><button aria-pressed="false">Groupe</button></div></div></div>
+          <ol class="etapes">
+            <li><svg class="poignee-mini" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg><span class="repere">1</span><span>Échauffement progressif</span><span class="donnee">20 min</span></li>
+            <li><svg class="poignee-mini" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg><span class="repere">2</span><span>Suspensions 7:13 <span class="etiquette attente" style="margin-left:6px">Prérequis</span></span><span class="donnee">32 min</span></li>
+            <li><svg class="poignee-mini" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg><span class="repere">3</span><span>Bloc limite, blocs à réglettes</span><span class="donnee">40 min</span></li>
+            <li><svg class="poignee-mini" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg><span class="repere">4</span><span>Antagonistes</span><span class="donnee">12 min</span></li>
+          </ol>
+        </div></div>
+      <div class="jour"><span class="nom-jour">Ven<small>14</small></span>
+        <div class="seance compacte"><span class="vis" style="left:7px" aria-hidden="true"></span><div class="haut"><span class="etiquette">Dure</span><span class="titre">Puissance au pan</span><div class="droite"><span class="donnee">1 h 30</span><div class="modes" role="group" aria-label="Version"><button aria-pressed="false">Solo</button><button aria-pressed="true">Groupe</button></div></div></div></div></div>
+      <div class="jour"><span class="nom-jour">Sam<small>15</small></span><div class="depot">Dépose ici pour ajouter Échelles 3-6-9 à samedi</div></div>
+      <div class="jour"><span class="nom-jour">Dim<small>16</small></span><div class="repos">Repos</div></div>
+    </div>
+  </main>
+
+  <!-- Colonne 3 : assistant -->
+  <aside class="assistant" aria-labelledby="t-assist">
+    <div class="tete-a">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+      <h2 class="t3" id="t-assist" style="font-size:20px">Assistant</h2>
+      <span class="mention" style="margin-left:auto">Clé sur cet appareil</span>
+      <button class="lien" aria-label="Fermer l'assistant" style="min-width:32px">×</button>
+    </div>
+    <div class="corps">
+      <p class="bulle-moi">Ma semaine 2 te paraît tenable ? Je suis un peu fatigué.</p>
+      <div class="proposition">
+        <div class="statut"><span class="etiquette" style="background:var(--annotation)">Brouillon</span><span class="mention">2 sur 3 traités</span></div>
+        <p>Trois ajustements pour la semaine 2. Rien n'est appliqué tant que tu ne gardes pas.</p>
+
+        <div class="element garde">
+          <div class="statut"><span class="mention" style="color:var(--accent)">Gardé</span><button class="lien" style="font-size:14px">Annuler</button></div>
+          <p>Lundi : ajouter 10 min de mobilité des épaules après l'échauffement. <sup>1</sup></p>
+        </div>
+        <div class="element">
+          <p>Déplacer « Puissance au pan » de vendredi à samedi, pour laisser 48 h après jeudi. <sup>1</sup></p>
+          <div class="choix3"><button class="garde">Garder</button><button>Modifier</button><button>Rejeter</button></div>
+        </div>
+        <div class="element rejete">
+          <div class="statut"><span class="mention">Rejeté</span><button class="lien" style="font-size:14px">Annuler</button></div>
+          <p>Retirer la séance de lundi.</p>
+        </div>
+
+        <p class="mention" style="margin-top:4px">Sources</p>
+        <ol class="sources">
+          <li>Synthèse théorique du projet : 48 h entre deux séances maximales</li>
+          <li>Escalade Training : les secrets de la planification (Arc, Di Domenico), cité par son titre</li>
+        </ol>
+      </div>
+      <p class="annotation" aria-hidden="true">
+        <svg width="40" height="30" viewBox="0 0 40 30" fill="none" stroke="#7A4420" stroke-width="2" stroke-linecap="round"><path d="M36 28 C 30 18, 20 24, 12 12 S 6 5, 4 3" stroke-dasharray="1 5"/><circle cx="4" cy="3" r="3" fill="#7A4420" stroke="none"/></svg>
+        chaque ligne se garde à part</p>
+    </div>
+    <div class="saisie-a">
+      <div class="champ">Demande un ajustement…</div>
+      <button class="b petit">Envoyer</button>
+    </div>
+  </aside>
+</div>
+</body>
+</html>

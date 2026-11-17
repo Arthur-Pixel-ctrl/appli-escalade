@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo Topo : chrono plein écran (téléphone)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@500;600;700&family=Gochi+Hand&display=swap" rel="stylesheet">
+<style>
+:root {
+  --texte: #1D1C19; --relief: #1D1C19; --fond: #F1EFE9; --texte-2: #4B4943;
+  --accent: #0F5A54; --arret: #A32E1E; --arret-fond: #F8E1DC; --avertissement: #8A5200;
+  --chrono-preparation-fond: #1D1C19; --chrono-preparation-texte: #F6F4EE;
+  --chrono-effort-fond: #F6F4EE; --chrono-effort-texte: #1D1C19;
+  --chrono-repos-fond: #0F5A54; --chrono-repos-texte: #FBFAF7;
+  --focus-sur-sombre: #7FC4BA; --rubalise-avertissement: #E9A23B;
+  --police-titre: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --police: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --police-fixe: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #d9d6cd; font-family: var(--police); color: var(--texte); padding: 32px; }
+.planche { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+.legende { font-family: var(--police-fixe); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin: 0 0 10px; color: var(--texte-2); }
+.telephone { width: 390px; height: 844px; border: 2px solid var(--texte); border-radius: 28px; overflow: hidden; box-shadow: 0 6px 0 var(--relief); position: relative; }
+.chrono { height: 100%; display: flex; flex-direction: column; padding: 22px 20px 22px; gap: 14px; }
+.chrono.preparation { background: var(--chrono-preparation-fond); color: var(--chrono-preparation-texte); }
+.chrono.effort { background: var(--chrono-effort-fond); color: var(--chrono-effort-texte); }
+.chrono.repos { background: var(--chrono-repos-fond); color: var(--chrono-repos-texte); }
+.tete { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--police-fixe); font-size: 15px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.series { display: flex; gap: 4px; }
+.series span { flex: 1; height: 8px; border: 1.5px solid currentColor; border-radius: 1px; }
+.series span.fait { background: currentColor; }
+.centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+.consigne { font-family: var(--police-titre); font-weight: 900; font-size: 44px; line-height: 1; letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+.nombre { font-family: var(--police-titre); font-weight: 900; font-size: 300px; line-height: .85; margin: 0; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.nombre.long { font-size: 190px; }
+/* Big Shoulders n'a pas de chiffres tabulaires : chaque chiffre est posé dans une case de même largeur. */
+.nombre .c { display: inline-block; width: .5em; text-align: center; }
+.nombre .dp { display: inline-block; width: .24em; text-align: center; }
+.sous { font-size: 20px; font-weight: 700; margin: 0; }
+.suite { text-align: center; font-family: var(--police-fixe); font-size: 16px; font-weight: 600; margin: 0; }
+.actions { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.b { min-height: 76px; border-radius: 6px; font-family: var(--police); font-weight: 700; font-size: 22px; border: 2px solid currentColor; }
+.preparation .b.large { background: var(--chrono-preparation-texte); color: var(--chrono-preparation-fond); border-color: var(--chrono-preparation-texte); }
+.effort .b.large { background: var(--chrono-effort-texte); color: var(--chrono-effort-fond); }
+.repos .b.large { background: var(--chrono-repos-texte); color: var(--chrono-repos-fond); border-color: var(--chrono-repos-texte); }
+.b.stop { background: var(--arret-fond); color: var(--arret); border-color: var(--arret); font-size: 16px; line-height: 1.2; box-shadow: 0 4px 0 var(--arret); }
+.effort .b.large { box-shadow: 0 4px 0 #6d6f6b; }
+.rubalise { height: 14px; background: repeating-linear-gradient(-45deg, var(--rubalise-avertissement) 0 12px, var(--texte) 12px 24px); margin: -22px -20px 0; }
+.pause-mot { font-family: var(--police-titre); font-weight: 900; font-size: 44px; letter-spacing: .04em; }
+.discret { color: inherit; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; min-height: 48px; display: flex; align-items: center; justify-content: center; }
+.note-planche { max-width: 330px; font-size: 15px; line-height: 1.5; color: var(--texte-2); }
+.note-planche h2 { font-family: var(--police-titre); font-weight: 800; font-size: 28px; color: var(--texte); margin: 0 0 8px; }
+.note-planche p { margin: 0 0 10px; }
+.focus-demo { outline: 3px solid var(--focus-sur-sombre); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<div class="planche">
+  <div>
+    <p class="legende">Préparation</p>
+    <div class="telephone"><main class="chrono preparation">
+      <div class="tete"><span>Échelles 3-6-9</span><span>Série 1 sur 9</span></div>
+      <div class="series" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="centre" aria-live="off">
+        <p class="consigne">Prêt</p>
+        <p class="nombre"><span class="c">5</span></p>
+        <p class="sous">Semi-arqué · poids du corps</p>
+      </div>
+      <p class="suite">Ensuite : effort de 3 s</p>
+      <div class="actions"><button class="b large focus-demo">Pause</button><button class="b stop">Stop, ça fait mal</button></div>
+    </main></div>
+  </div>
+
+  <div>
+    <p class="legende">Effort</p>
+    <div class="telephone"><main class="chrono effort">
+      <div class="tete"><span>Échelles 3-6-9</span><span>Série 4 sur 9</span></div>
+      <div class="series" aria-hidden="true"><span class="fait"></span><span class="fait"></span><span class="fait"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="centre">
+        <p class="consigne">Suspends-toi</p>
+        <p class="nombre"><span class="c">6</span></p>
+        <p class="sous">Palier 2 sur 3 · main ouverte</p>
+      </div>
+      <p class="suite">Ensuite : repos de 6 s</p>
+      <div class="actions"><button class="b large">Pause</button><button class="b stop">Stop, ça fait mal</button></div>
+    </main></div>
+  </div>
+
+  <div>
+    <p class="legende">Repos</p>
+    <div class="telephone"><main class="chrono repos">
+      <div class="tete"><span>Bloc limite</span><span>Essai 3</span></div>
+      <div class="series" aria-hidden="true"><span class="fait"></span><span class="fait"></span><span></span><span></span><span></span></div>
+      <div class="centre">
+        <p class="consigne">Repos</p>
+        <p class="nombre long"><span class="c">3</span><span class="dp">:</span><span class="c">4</span><span class="c">8</span></p>
+        <p class="sous">Secoue les bras, respire</p>
+      </div>
+      <p class="suite">Ensuite : essai 4</p>
+      <div class="actions"><button class="b large">Pause</button><button class="b stop">Stop, ça fait mal</button></div>
+    </main></div>
+  </div>
+
+  <div>
+    <p class="legende">En pause</p>
+    <div class="telephone"><main class="chrono preparation">
+      <div class="rubalise" aria-hidden="true"></div>
+      <div class="tete"><span>Échelles 3-6-9</span><span>Série 4 sur 9</span></div>
+      <div class="centre">
+        <p class="pause-mot">En pause</p>
+        <p class="nombre" style="font-size:200px"><span class="c">6</span></p>
+        <p class="sous">Reprends quand tu es prêt</p>
+      </div>
+      <div class="actions"><button class="b large">Reprendre</button><button class="b stop">Stop, ça fait mal</button></div>
+      <a class="discret">Quitter l’exercice</a>
+    </main></div>
+  </div>
+
+  <div class="note-planche">
+    <h2>Lisible à deux mètres</h2>
+    <p>Trois fonds, trois phases : encre pour se préparer, craie pour l'effort, résine pour le repos. Le passage à l'effort est un saut du sombre au clair, visible du coin de l'œil.</p>
+    <p>Chiffres en Big Shoulders 900, jusqu'à 300 px de haut. Chaque chiffre est posé dans une case de même largeur : le nombre ne bouge pas d'une seconde à l'autre.</p>
+    <p>« Stop, ça fait mal » reste au même endroit dans toutes les phases, en brique, avec son propre relief.</p>
+    <p>En pause, une rubalise barre le haut de l'écran. Le premier écran montre l'anneau de focus clair, visible sur fond sombre.</p>
+  </div>
+</div>
+<script>
+  // Vérifie que les chiffres ont tous la même largeur (chiffres tabulaires).
+  const m = document.createElement('span'); m.style.cssText = "font-family:'Big Shoulders Display';font-weight:900;font-size:200px;font-variant-numeric:tabular-nums;position:absolute;visibility:hidden"; document.body.append(m);
+  document.fonts.ready.then(() => { const w = []; for (const c of '0123456789') { m.textContent = c; w.push(Math.round(m.getBoundingClientRect().width)) } document.body.dataset.largeurs = w.join(',') })
+</script>
+</body>
+</html>
