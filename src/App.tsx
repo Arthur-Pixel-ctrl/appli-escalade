@@ -14,14 +14,20 @@ import { Chargement, Erreur } from './ecrans/Erreur.tsx'
 import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
 import { Profil } from './ecrans/Profil.tsx'
+import { Icone } from './composants/Icone.tsx'
 import { Confirmation } from './composants/Confirmation.tsx'
 import { Questions } from './ecrans/Questions.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
 import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
 
 // Les quatre onglets de la barre du bas.
-const ONGLETS = ['Aujourd’hui', 'Programme', 'Bilans', 'Profil'] as const
-type Onglet = (typeof ONGLETS)[number]
+const ONGLETS = [
+  { nom: 'Aujourd’hui', icone: 'aujourdhui' },
+  { nom: 'Programme', icone: 'programme' },
+  { nom: 'Bilans', icone: 'bilans' },
+  { nom: 'Profil', icone: 'profil' },
+] as const
+type Onglet = (typeof ONGLETS)[number]['nom']
 
 // Ce qui occupe l'écran. Une séance suit toujours le même chemin :
 // séance → trois questions → (mises en garde si douleur) → débrief.
@@ -176,7 +182,7 @@ export default function App() {
         <button className="bandeau" onClick={appliquerMiseAJour}>Nouvelle version disponible · <b>Mettre à jour</b></button>
       )}
       {onglet === 'Aujourd’hui' && (
-        <Aujourdhui onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
+        <Aujourdhui grimpeSouventEnGroupe={profil.grimpeSouventEnGroupe} onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
       )}
       {onglet === 'Bilans' && <Historique onOuvrir={(seanceId) => setVue({ nom: 'debrief', seanceId })} />}
       {onglet === 'Programme' && <EnConstruction titre="Programme" />}
@@ -189,8 +195,9 @@ export default function App() {
         />
       )}
       <nav className="onglets" aria-label="Navigation principale">
-        {ONGLETS.map((nom) => (
+        {ONGLETS.map(({ nom, icone }) => (
           <button key={nom} className="onglet" aria-current={nom === onglet ? 'page' : undefined} onClick={() => setOnglet(nom)}>
+            <Icone nom={icone} />
             {nom}
           </button>
         ))}
