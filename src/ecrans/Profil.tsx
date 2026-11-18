@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { exporterDonnees, importerDonnees, jourLocal } from '../donnees/base.ts'
 import type { Profil as TypeProfil } from '../donnees/profil.ts'
+import { comptesDisponibles } from '../compte/client.ts'
+import { useSession } from '../compte/session.ts'
 import { ProfilFormulaire } from './ProfilFormulaire.tsx'
 
 interface Props {
@@ -8,10 +10,12 @@ interface Props {
   onEnregistrer: (p: TypeProfil) => void
   onMisesEnGarde: () => void
   onDonneesImportees: () => void
+  onCompte: () => void
 }
 
 // Onglet Profil : le formulaire, les mises en garde et la sauvegarde des données.
-export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImportees }: Props) {
+export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImportees, onCompte }: Props) {
+  const { email } = useSession()
   const [message, setMessage] = useState('')
   const fichier = useRef<HTMLInputElement>(null)
 
@@ -40,6 +44,8 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
       <section className="pile">
         <h2 className="sous-titre">À savoir et données</h2>
         <div>
+          {/* Sans configuration Supabase, la ligne n'apparaît pas : l'app reste sans compte. */}
+          {comptesDisponibles && <button className="ligne" onClick={onCompte}><span>Compte</span><span>{email ?? 'Pas de compte'}</span></button>}
           <button className="ligne" onClick={onMisesEnGarde}><span>Mises en garde</span><span>Les douleurs à repérer</span></button>
           <button className="ligne" onClick={exporter}><span>Sauvegarder mes données</span><span>Créer un fichier</span></button>
           <button className="ligne" onClick={() => fichier.current?.click()}><span>Recharger une sauvegarde</span><span>Choisir un fichier</span></button>
