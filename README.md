@@ -53,6 +53,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | F2-14 | Mise en page ordinateur (1024 px et plus) : barre du haut et rubriques, sans lancement de séance | Fait |
 | D-21 | Bienvenue avec compte ou sans compte, « J'ai une sauvegarde » avant de créer le profil, bandeau hors ligne | Fait |
 | F2-16 | Recette de fin de phase 2 et README (`docs/recette-phase-2.md`) | Fait |
+| Audit 2 | Audit de fin de phase 2 (`docs/audits/audit-phase-2.md`) : 0 bloquant, 2 importants et 11 mineurs, tous corrigés | Fait |
 
 ## Ouvrir l'app
 

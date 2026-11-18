@@ -116,7 +116,7 @@ export function RepriseAutreCompte({ emailAutre, nouvelEmail, resume, enAttente,
     (enAttente > 0
       ? `${pluriel(enAttente, 'modification')} pas encore envoyée${enAttente > 1 ? 's' : ''} au compte d’origine ne ${enAttente > 1 ? 'partiront' : 'partira'} plus : elle${enAttente > 1 ? 's seront' : ' sera'} seulement dans le fichier de sauvegarde. `
       : 'Tout est déjà envoyé au compte d’origine. ') +
-    'Un fichier de sauvegarde est créé avant l’effacement.'
+    'On crée d’abord le fichier de sauvegarde ; rien n’est effacé tant que tu n’as pas confirmé l’avoir.'
   return (
     <main className="ecran">
       <div className="pile">
@@ -142,11 +142,10 @@ export function RepriseAutreCompte({ emailAutre, nouvelEmail, resume, enAttente,
       {!enLigne && <Avertissement niveau="information" titre={RAISON_HORS_LIGNE}>Réessaie quand le réseau revient.</Avertissement>}
       <Confirmation
         ouverte={confirme}
-        titre="Effacer cet appareil ?"
+        titre="D'abord, une sauvegarde"
         texte={texteConfirmation}
-        libelleAction="Sauvegarder puis effacer"
+        libelleAction="Créer le fichier de sauvegarde"
         libelleRester="Ne rien effacer"
-        danger
         onRester={() => setConfirme(false)}
         onAction={() => { setConfirme(false); onSauvegarderEfface() }}
       />
