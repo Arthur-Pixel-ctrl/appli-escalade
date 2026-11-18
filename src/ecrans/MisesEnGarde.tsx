@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Avertissement } from '../composants/Avertissement.tsx'
 
 // Mises en garde : les douleurs à repérer. Page de référence, consultable à tout moment
@@ -20,12 +21,22 @@ const REDUCTION = [
   'Douleur au coude quand tu serres une prise',
 ]
 
-export function MisesEnGarde({ onFermer, apresDouleur = false, libelleFermer }: { onFermer: () => void; apresDouleur?: boolean; libelleFermer?: string }) {
+// `onTerminer` (facultatif) ajoute « Terminer et enregistrer » : utilisé quand les mises en garde
+// s'ouvrent par-dessus une séance en cours, pour finir la séance avec la douleur déjà signalée.
+export function MisesEnGarde({ onFermer, apresDouleur = false, libelleFermer, onTerminer }: {
+  onFermer: () => void
+  apresDouleur?: boolean
+  libelleFermer?: string
+  onTerminer?: () => void
+}) {
+  // Le titre prend le focus à l'ouverture : le lecteur d'écran annonce le nouvel écran.
+  const titre = useRef<HTMLHeadingElement>(null)
+  useEffect(() => { titre.current?.focus() }, [])
   return (
     <main className="ecran">
       <div className="pile">
         <p className="surtitre">Les douleurs à repérer</p>
-        <h1 className="titre moyen">{apresDouleur ? 'Tu as bien fait d’arrêter' : 'Mises en garde'}</h1>
+        <h1 ref={titre} tabIndex={-1} className="titre moyen">{apresDouleur ? 'Tu as bien fait d’arrêter' : 'Mises en garde'}</h1>
         <p className="texte-2">Ces repères aident à décider quoi faire. Ils ne remplacent pas l’avis d’un professionnel de santé.</p>
       </div>
 
@@ -46,6 +57,7 @@ export function MisesEnGarde({ onFermer, apresDouleur = false, libelleFermer }: 
       </section>
 
       <button className="bouton principal centre" onClick={onFermer}><strong>{libelleFermer ?? (apresDouleur ? 'Revenir à la séance' : 'Fermer')}</strong></button>
+      {onTerminer && <button className="bouton-second" onClick={onTerminer}>Terminer et enregistrer</button>}
     </main>
   )
 }

@@ -6,7 +6,7 @@ Cette recette n'a encore été faite par personne. Les cases sont toutes vides.
 
 ## Avant de commencer : protéger tes données
 
-- [ ] **Fais une sauvegarde.** Onglet **Profil**, touche **Sauvegarder mes données**. Le message « Sauvegarde créée dans tes téléchargements. » doit apparaître. Garde le fichier.
+- [ ] **Fais une sauvegarde.** Onglet **Profil**, touche **Sauvegarder mes données**. Le message « Sauvegarde créée dans tes téléchargements. » doit apparaître. Vérifie ensuite que le fichier est bien dans l'app **Fichiers** de l'iPhone, avec l'app installée : ne te fie pas seulement au message. Garde le fichier.
 - [ ] **Ne réinstalle jamais l'app sans sauvegarde récente.** Supprimer l'icône de l'app efface les données du téléphone.
 - [ ] **En cas de souci, recharge la sauvegarde.** Dans **Profil**, touche **Recharger une sauvegarde**. Sur l'écran d'accueil, touche **J'ai une sauvegarde**.
 - **À savoir : le nouveau nom sur l'écran d'accueil** (« Get me to 9a ») ne s'affiche qu'après une réinstallation. Ne réinstalle que lorsque la synchronisation a été vérifiée (partie B).
@@ -51,6 +51,7 @@ Ouvre l'app installée sur l'écran d'accueil. Les onglets du bas sont **Aujourd
 6. Termine les étapes. Touche **Terminer la séance**.
 
 - [ ] Les étapes 1 à 6 se font sans bug ni blocage.
+- [ ] **Stop, ça fait mal hors chrono** : sur une étape sans chrono (liste ou essais), le bouton rouge est aussi en haut de l'écran. Touche-le : les mises en garde s'ouvrent. **Revenir à la séance** te ramène à la même étape, avec le nombre d'essais gardé. Touche-le encore, puis **Terminer et enregistrer** : les trois questions s'ouvrent avec **Oui** déjà choisi à la douleur.
 
 ### A3. Chrono : bips, écran, couleurs, chiffres
 
@@ -77,6 +78,8 @@ Fais un tour de chrono complet.
 - [ ] Même avec l'avertissement, tu peux continuer d'ajouter des essais. Rien n'est bloqué.
 - [ ] Le bloc noté apparaît bien, et **Annuler le dernier bloc** le retire.
 - [ ] Le changement d'objectif fonctionne, et l'objectif quitté garde son avancement.
+- [ ] **Stop, ça fait mal** : le bouton rouge est toujours en haut de l'écran. Touche-le : les mises en garde s'ouvrent. Touche **Revenir à la séance** : tes blocs notés sont toujours là. Touche-le encore, puis **Terminer et enregistrer** : les trois questions s'ouvrent avec **Oui** déjà choisi à la douleur.
+- [ ] **Terminer sans bloc** : sur une séance neuve, touche **Terminer la séance** sans avoir noté de bloc. La fenêtre « Aucun bloc noté. Terminer quand même ? » s'ouvre. **Revenir à la séance** te ramène à la séance ; **Terminer quand même** ouvre les trois questions.
 
 ### A5. Les trois questions
 
@@ -125,6 +128,7 @@ Refais une séance solo et réponds **Oui** à la question sur la douleur.
 1. Onglet **Profil** > **Sauvegarder mes données** : le message « Sauvegarde créée dans tes téléchargements. » apparaît.
 2. Onglet **Profil** > **Recharger une sauvegarde**, puis choisis le fichier.
 
+- [ ] **Le fichier est vraiment là** : ouvre l'app **Fichiers** de l'iPhone, dossier **Téléchargements**. Le fichier de sauvegarde y est. À faire avec l'app installée (icône de l'écran d'accueil), pas dans Safari. Ne te fie pas seulement au message.
 - [ ] Le message « Sauvegarde rechargée : … séances et … autres éléments. » apparaît.
 - [ ] Tes séances et ton profil sont toujours là.
 
@@ -206,6 +210,7 @@ Ouvre l'onglet **Aujourd’hui**, sous la date.
 4. Confirme dans la fenêtre **Supprimer ton compte ?** avec **Supprimer définitivement**.
 5. Écran **Compte supprimé** : choisis **Garder mes données sur cet appareil** (recommandé pour la recette).
 
+- [ ] **Le fichier est vraiment là** : si tu as touché **Sauvegarder dans un fichier**, ouvre l'app **Fichiers** de l'iPhone, dossier **Téléchargements**, avec l'app installée (icône de l'écran d'accueil). Le fichier y est. Ne te fie pas seulement au message. Avant d'effacer quoi que ce soit sur cet appareil, vérifie-le.
 - [ ] Le compte d'essai est supprimé, et l'écran **Compte supprimé** s'affiche.
 - [ ] Les données du téléphone sont toujours là après **Garder mes données sur cet appareil**.
 

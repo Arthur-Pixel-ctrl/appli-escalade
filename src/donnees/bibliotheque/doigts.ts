@@ -241,7 +241,7 @@ export const DOIGTS: Protocole[] = [
     contreIndications: ['doigts', 'coude', 'epaule'],
     marqueurs: ['poutre_intensive', 'poutre'],
     maxParSemaine: 2,
-    progression: '2 séances par semaine pendant 4 semaines. Utile après un bloc de suspensions max si ton objectif est la voie.',
+    progression: '2 séances par semaine pendant 4 semaines. Utile après une phase de suspensions max si ton objectif est la voie.',
     aVerifier: 'Nombre de répétitions (12, la source dit « jusqu’à 12 »), compte par main ou au total, et réglage des 80 % : à relire dans l’article.',
     exclureDeLaGeneration: 'Nombre de répétitions, compte par main ou au total et réglage des 80 % : à relire dans Devise et al., 2022.',
   },
@@ -263,7 +263,7 @@ export const DOIGTS: Protocole[] = [
     contreIndications: ['doigts', 'coude', 'epaule'],
     marqueurs: ['poutre_intensive', 'poutre'],
     maxParSemaine: 2,
-    progression: 'Bloc de 3 à 5 semaines. Tenue jusqu’à 45 s ; si tu atteins 60 s, prends une réglette plus petite.',
+    progression: 'Phase de 3 à 5 semaines. Tenue jusqu’à 45 s ; si tu atteins 60 s, prends une réglette plus petite.',
     aVerifier: 'Nelson donne une charge de 40 à 70 % du maximum, que l’app ne mesure pas : la consigne demande de garder de la marge à la place.',
   },
 ]

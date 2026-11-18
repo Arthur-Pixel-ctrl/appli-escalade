@@ -11,7 +11,8 @@ export type { StatutEtape }
 
 interface Props {
   seance: SeanceGuidee
-  onTerminer: (statuts: StatutEtape[], dureeMin: number) => void
+  // douleur = true quand la séance se termine après « Stop, ça fait mal ».
+  onTerminer: (statuts: StatutEtape[], dureeMin: number, douleur?: boolean) => void
   onQuitter: () => void
 }
 
@@ -32,9 +33,7 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
   const etape: EtapeSeance | undefined = seance.etapes[enCours]
   const minutes = minutesEcoulees(etat, maintenant)
   const marquer = (statut: 'faite' | 'passee') => setEtat((avant) => marquerEtape(avant, statut))
-  const terminer = () => onTerminer(bilanEtapes(seance, etat).map((e) => e.statut), minutes)
-
-  if (gardeOuverte) return <MisesEnGarde apresDouleur onFermer={() => setGardeOuverte(false)} />
+  const terminer = (douleur?: boolean) => onTerminer(bilanEtapes(seance, etat).map((e) => e.statut), minutes, douleur)
 
   if (chronoOuvert && etape?.forme === 'chrono') {
     return (
@@ -52,8 +51,15 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
     )
   }
 
+  // Les mises en garde passent par-dessus la séance : la liste reste montée mais cachée,
+  // donc l'étape en cours et le compteur d'essais sont gardés.
   return (
-    <main className="ecran serre">
+    <>
+    {gardeOuverte && (
+      <MisesEnGarde apresDouleur onFermer={() => setGardeOuverte(false)} onTerminer={() => terminer(true)} />
+    )}
+    <main className="ecran serre" hidden={gardeOuverte}>
+      <button className="bouton arret centre stop-seance" onClick={() => setGardeOuverte(true)}>Stop, ça fait mal</button>
       <div className="pile">
         <div className="entete">
           <button className="bouton-discret" onClick={onQuitter}>Quitter</button>
@@ -104,11 +110,12 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
 
       <div className="deux-boutons bas">
         {enCours !== -1 && <button className="bouton-second" onClick={() => marquer('passee')}>Passer l’étape</button>}
-        <button className={enCours === -1 ? 'bouton principal centre' : 'bouton-second'} onClick={terminer}>
+        <button className={enCours === -1 ? 'bouton principal centre' : 'bouton-second'} onClick={() => terminer()}>
           {enCours === -1 ? <strong>Terminer la séance</strong> : 'Terminer la séance'}
         </button>
       </div>
     </main>
+    </>
   )
 }
 

@@ -250,6 +250,9 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .deux-boutons.egaux > * { flex: 1; min-width: 0; }
 .deux-boutons.egaux .bouton { padding: 10px 8px; }
 .ecran .bas { margin-top: auto; }
+[hidden] { display: none !important; }
+/* Stop, ça fait mal : collé en haut de l'écran de séance, toujours à portée du pouce. */
+.stop-seance { position: sticky; top: 0; z-index: 2; min-height: 48px; }
 .essais { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .essais .bouton-second { grid-column: 1 / -1; }
 .grand-chiffre { font-family: var(--police-fixe); font-size: 30px; font-weight: 700; line-height: 1.1; }

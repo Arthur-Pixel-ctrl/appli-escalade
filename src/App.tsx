@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { enregistrerProfil, enregistrerSeance, lireProfil, type Brouillon } from './donnees/base.ts'
 import type { Profil as TypeProfil } from './donnees/profil.ts'
 import { salleParId } from './donnees/salles.ts'
@@ -32,7 +32,7 @@ type Vue =
   | { nom: 'onglets' }
   | { nom: 'seance_solo' }
   | { nom: 'seance_groupe' }
-  | { nom: 'questions'; brouillon: Brouillon }
+  | { nom: 'questions'; brouillon: Brouillon; douleurInitiale?: boolean }
   | { nom: 'mises_en_garde'; puisDebrief?: string; premierLancement?: boolean }
   | { nom: 'debrief'; seanceId: string }
   | { nom: 'compte' }
@@ -80,6 +80,20 @@ export default function App() {
     }).catch(() => {})
     return () => { annule = true; arreter?.() }
   }, [session.userId, versionLien])
+  // Lecteur d'écran : quand l'écran change, le focus va sur son titre pour qu'il soit annoncé.
+  // Pas au premier affichage, pas si une fenêtre de confirmation est ouverte, pas si le focus
+  // est déjà dans la page (le chrono, lui, ne change pas de vue : il ne passe jamais ici).
+  const cleEcran = `${vue.nom}|${onglet}|${rubrique}|${profil === null ? 'accueil' : 'profil'}`
+  const cleAvant = useRef(cleEcran)
+  useEffect(() => {
+    if (cleAvant.current === cleEcran) return
+    cleAvant.current = cleEcran
+    if (document.querySelector('dialog[open]')) return
+    const titre = document.querySelector<HTMLElement>('main h1')
+    if (!titre) return
+    titre.tabIndex = -1
+    titre.focus({ preventScroll: true })
+  }, [cleEcran])
   const [majPrete, setMajPrete] = useState(false)
   useEffect(() => surMiseAJourDisponible(() => setMajPrete(true)), [])
   // Erreur d'enregistrement, affichée dans l'écran Questions (les réponses restent gardées).
@@ -132,9 +146,10 @@ export default function App() {
         <SeanceSolo
           seance={SEANCE_EXEMPLE}
           onQuitter={quitter}
-          onTerminer={(statuts, dureeMin) =>
+          onTerminer={(statuts, dureeMin, douleur) =>
             setVue({
               nom: 'questions',
+              douleurInitiale: douleur,
               brouillon: {
                 mode: 'solo', nom: SEANCE_EXEMPLE.nom, durete: 'dure', dureeMin,
                 etapes: SEANCE_EXEMPLE.etapes.map((e, i) => ({ titre: e.titre, statut: statuts[i] })),
@@ -155,9 +170,10 @@ export default function App() {
           seance={SEANCE_GROUPE_EXEMPLE}
           salle={salle}
           onQuitter={quitter}
-          onTerminer={(blocs, dureeMin) =>
+          onTerminer={(blocs, dureeMin, douleur) =>
             setVue({
               nom: 'questions',
+              douleurInitiale: douleur,
               brouillon: {
                 mode: 'groupe', nom: SEANCE_GROUPE_EXEMPLE.nom, durete: 'dure', dureeMin,
                 etapes: [], blocs,
@@ -178,6 +194,7 @@ export default function App() {
         <Questions
           contexte={`${brouillon.nom} · ${brouillon.mode === 'groupe' ? 'en groupe' : 'seul'}`}
           erreur={erreurEnregistrement}
+          douleurInitiale={vue.douleurInitiale}
           onValider={async (reponses) => {
             let seanceId: string
             try {
