@@ -16,15 +16,18 @@ export default defineConfig({
       // pour ne jamais recharger l'app au milieu d'une séance.
       registerType: 'prompt',
       includeAssets: ['favicon.svg'],
+      // Les polices (woff2) sont mises en cache pour fonctionner hors ligne.
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,woff2}'] },
       manifest: {
-        name: 'Appli escalade',
-        short_name: 'Escalade',
-        description: "Entraînement à l'escalade : séances guidées, chrono, programme.",
+        name: 'Get me to 9a',
+        short_name: 'Get me to 9a',
+        description: "Get me to 9a : ton carnet d'entraînement d'escalade. Séances guidées, chrono, plan.",
         lang: 'fr',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0C0D0E',
-        theme_color: '#0C0D0E',
+        // = --fond dans index.css (le manifeste ne lit pas les variables)
+        background_color: '#F1EFE9',
+        theme_color: '#F1EFE9',
         icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
       },
     }),
