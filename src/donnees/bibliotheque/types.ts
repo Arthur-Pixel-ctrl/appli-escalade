@@ -16,6 +16,7 @@ export type Preuve = 'Étude' | 'Avis de coach' | 'Synthèse'
 /** Étiquettes utilisées par les règles de sécurité (quotas par semaine, 48 h entre deux séances maximales). */
 export type Marqueur =
   | 'maximale' | 'poutre_intensive' | 'bloc_limite' | 'pan_gullich' | 'arque' | 'bidoigts'
+  | 'resistance_voie' // résistance en voie : 2 séances par semaine au plus, 1 seule pour un profil « bloc » (décision 13, à faire respecter par le moteur)
   | 'poutre' // toute séance sur poutre, intensive ou non : sert à plafonner le total (3 par semaine au plus, posé par l'audit)
   | 'trou' // la synthèse demande d'étiqueter les trous pour en limiter le cumul
   | 'pan' // pan Güllich pieds posés : sans les contraintes du pan sans pieds
@@ -66,4 +67,5 @@ export type Protocole = Forme & {
   progression: string // comment durcir au fil des semaines, en une phrase
   aVerifier?: string // présent si un réglage n'a pas pu être confirmé à la source : dire lequel
   exclureDeLaGeneration?: string // présent tant qu'une valeur clé reste à vérifier : dire pourquoi
+  estTest?: true // test de fin de phase ou de cycle : jamais placé dans une séance générée, seulement proposé par « faire mes tests »
 }

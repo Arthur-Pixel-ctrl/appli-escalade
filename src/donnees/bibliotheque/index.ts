@@ -9,6 +9,8 @@ import { MENTAL } from './mental.ts'
 import { ANTAGONISTES } from './antagonistes.ts'
 import { MOBILITE } from './mobilite.ts'
 import { ECHAUFFEMENT } from './echauffement.ts'
+import { TESTS } from './tests.ts'
+import { GROUPE } from './groupe.ts'
 
 // Toute la bibliothèque en une seule liste : les cinq qualités physiques d’abord,
 // puis les volets transversaux.
@@ -23,9 +25,16 @@ export const BIBLIOTHEQUE: Protocole[] = [
   ...ANTAGONISTES,
   ...MOBILITE,
   ...ECHAUFFEMENT,
+  ...TESTS,
+  ...GROUPE,
 ]
 
 /** Retrouve un protocole par son identifiant ; undefined s’il n’existe pas. */
 export function protocoleParId(id: string): Protocole | undefined {
   return BIBLIOTHEQUE.find((p) => p.id === id)
+}
+
+/** Un protocole peut-il être placé dans une séance générée ? Jamais un test, jamais une fiche exclue. */
+export function peutEtreGeneree(p: Protocole): boolean {
+  return p.estTest !== true && p.exclureDeLaGeneration === undefined
 }
