@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { lireSeances, type SeanceRealisee } from '../donnees/base.ts'
 import { chargeSeance, chiffresBlocs, parCouleur, precedente, prochaineSeanceDurePossible, resume, seancesDeLaSemaine } from '../donnees/debrief.ts'
 import { PastillePrise } from '../composants/PastillePrise.tsx'
+import { Avertissement } from '../composants/Avertissement.tsx'
+import { MisesEnGarde } from './MisesEnGarde.tsx'
 import type { Salle } from '../donnees/salles.ts'
 
 const dateLongue = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -16,7 +18,11 @@ function duree(min: number) {
 export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle: Salle; onFermer: () => void }) {
   const [toutes, setToutes] = useState<SeanceRealisee[] | null>(null)
   const [echec, setEchec] = useState(false)
+  // Les repères s'ouvrent ici même : pas besoin de changer l'écran affiché par l'app.
+  const [reperesOuverts, setReperesOuverts] = useState(false)
   useEffect(() => { lireSeances().then(setToutes).catch(() => setEchec(true)) }, [seanceId])
+
+  if (reperesOuverts) return <MisesEnGarde libelleFermer="Retour au débrief" onFermer={() => setReperesOuverts(false)} />
 
   if (echec) {
     return (
@@ -28,7 +34,17 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
     )
   }
 
-  if (!toutes) return <main className="ecran" aria-busy="true" />
+  if (!toutes) {
+    // Silhouettes à la place d'une page vide : une grande, deux lignes.
+    return (
+      <main className="ecran" aria-busy="true">
+        <p className="pour-lecteur" role="status">Chargement du débrief…</p>
+        <div className="silhouette grande" />
+        <div className="silhouette ligne-silhouette" />
+        <div className="silhouette ligne-silhouette" />
+      </main>
+    )
+  }
   const s = toutes.find((x) => x.id === seanceId)
   if (!s) {
     return (
@@ -56,13 +72,20 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
         <p className="texte-2">{resume(s)}</p>
       </div>
 
+      {s.douleur && (
+        <Avertissement niveau="arret" titre="Douleur signalée" correction={{ libelle: 'Relire les mises en garde', action: () => setReperesOuverts(true) }}>
+          Relis les repères avant ta prochaine séance.
+        </Avertissement>
+      )}
+
+      {/* Le total est dans le chiffre (« 1/6 ») : la légende tient sur une ligne. */}
       <div className="chiffres-cles chiffres">
         {s.mode === 'groupe'
-          ? <><div><b className="accent">{blocs.enchaines}</b><span>blocs enchaînés sur {blocs.tentes}</span></div>
-              <div><b>{blocs.essais}</b><span>essais au total</span></div></>
-          : <><div><b className="accent">{etapesFaites}</b><span>étapes faites sur {s.etapes.length}</span></div>
+          ? <><div><b className="accent">{blocs.enchaines}/{blocs.tentes}</b><span>blocs enchaînés</span></div>
+              <div><b>{blocs.essais}</b><span>essais</span></div></>
+          : <><div><b className="accent">{etapesFaites}/{s.etapes.length}</b><span>étapes faites</span></div>
               <div><b>{s.dureeMin}</b><span>minutes</span></div></>}
-        <div><b>{s.effortPercu}</b><span>effort sur 10</span></div>
+        <div><b>{s.effortPercu}/10</b><span>effort</span></div>
       </div>
 
       {s.objectifs.length > 0 && (
