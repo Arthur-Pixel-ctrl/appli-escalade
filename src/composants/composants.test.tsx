@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { Icone } from './Icone.tsx'
 import { PastillePrise } from './PastillePrise.tsx'
 import { Avertissement } from './Avertissement.tsx'
+import { Confirmation } from './Confirmation.tsx'
 
 describe('Icone', () => {
   it('est cachée aux lecteurs d’écran sans libellé', () => {
@@ -44,5 +45,19 @@ describe('Avertissement', () => {
     expect(html).toContain('Décaler')
     expect(html).not.toContain('disabled')
     expect(html).not.toContain('règle') // replié par défaut
+  })
+})
+
+describe('Confirmation', () => {
+  const props = { ouverte: false, titre: 'Quitter la séance ?', texte: 'Elle ne sera pas enregistrée.', libelleAction: 'Quitter la séance', onAction: () => {}, onRester: () => {} }
+  it('annonce son titre et propose « Rester » par défaut', () => {
+    const html = renderToStaticMarkup(<Confirmation {...props} />)
+    expect(html).toContain('aria-labelledby')
+    expect(html).toContain('Quitter la séance ?')
+    expect(html).toContain('Rester')
+  })
+  it('utilise la couleur d’arrêt pour une action destructrice', () => {
+    expect(renderToStaticMarkup(<Confirmation {...props} danger />)).toContain('bouton arret')
+    expect(renderToStaticMarkup(<Confirmation {...props} />)).toContain('bouton principal')
   })
 })
