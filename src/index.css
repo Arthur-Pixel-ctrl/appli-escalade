@@ -90,7 +90,7 @@ textarea:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--acce
 
 /* Barre d'onglets : papier, filet encre en haut, trait résine sur l'onglet actif */
 .onglets { display: flex; background: var(--surface); border-top: 2px solid var(--texte); padding-bottom: env(safe-area-inset-bottom); }
-.onglet { flex: 1; position: relative; min-height: 64px; font-size: 14px; font-weight: 500; color: var(--texte-2); }
+.onglet { flex: 1; position: relative; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 14px; font-weight: 500; color: var(--texte-2); }
 .onglet[aria-current='page'] { font-weight: 700; color: var(--texte); }
 .onglet[aria-current='page']::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent); }
 
@@ -148,11 +148,27 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .liste-simple li { padding: 12px 0; border-top: 1px solid var(--filet); font-size: 15px; color: var(--texte-2); }
 .liste-simple li:last-child { border-bottom: 1px solid var(--filet); }
 
-.semaine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.jour { border-top: 3px solid var(--filet-fort); padding-top: 8px; }
-.jour.actif { border-top-color: var(--accent); }
-.jour small { display: block; font-size: 14px; color: var(--texte-3); }
-.jour b { font-size: 14px; font-weight: 600; }
+/* Cette semaine : 7 cases (fait, aujourd'hui, prévu, repos) */
+.semaine { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.jour { min-height: 52px; border: 1px solid var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.jour b { font-family: var(--police-fixe); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+.jour.fait { background: var(--accent-doux); }
+.jour.aujourdhui { border: 2px solid var(--accent); box-shadow: inset 0 -4px 0 var(--accent); }
+.jour.repos { background: var(--surface-creuse); border-style: dashed; color: var(--texte-3); }
+.marque { display: block; }
+.marque.coche { width: 12px; height: 7px; border-left: 2.5px solid var(--texte); border-bottom: 2.5px solid var(--texte); transform: rotate(-45deg) translateY(-2px); }
+.marque.point { width: 12px; height: 12px; background: var(--accent); border-radius: 2px; }
+.marque.carre { width: 12px; height: 12px; border: 2px solid var(--texte); border-radius: 2px; }
+.marque.tiret { width: 12px; height: 2px; background: var(--texte-3); }
+
+/* Fiche de la séance du jour : en-tête et aperçu des étapes */
+.fiche-tete { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; padding-top: 6px; }
+.etapes-apercu { margin: 0; padding: 0; list-style: none; }
+.etapes-apercu li { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 12px; min-height: 44px; border-top: 1px solid var(--filet); font-size: 15px; font-weight: 500; }
+
+/* Bouton avec libellés à gauche et icône à droite */
+.bouton.avec-icone { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+.bouton-libelles { display: flex; flex-direction: column; gap: 2px; }
 
 /* Cartes : simple, fiche (étiquette de voie à deux vis) */
 .carte { padding: 16px; border: 1px solid var(--filet); border-radius: var(--rayon-carte); background: var(--surface); }
