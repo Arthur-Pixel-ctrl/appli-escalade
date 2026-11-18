@@ -246,7 +246,11 @@ export interface Profil {
   // (consolidation 17/11)
   joursDisponibles: JourSemaine[]       // vide = pas renseigné ; sert au placement des séances et à l'assistant
   repereTraction: 'aucun' | 'hommes' | 'femmes' // décision B14 : repère Lattice facultatif dans les bilans, 'aucun' par défaut
+  // (consolidation 18/11, décision F3) où la personne s'entraîne : filtre la banque d'exercices (corde, maison).
+  // Vide = pas renseigné : on suppose une salle de bloc seulement (prudence). Saisie : D-20.
+  lieux: LieuEntrainement[]
 }
+export type LieuEntrainement = 'salle_bloc' | 'salle_voie' | 'maison' // (consolidation 18/11)
 ```
 
 Fichier `src/donnees/modele.ts` (tâche F2-02) — les documents enregistrés.
@@ -267,6 +271,9 @@ export type AccentPhase = QualitePhysique | 'technique'
 export type Durete = 'dure' | 'legere'
 /** (consolidation 17/11) Note de 1 à 5 de la forme du jour : 1 = mauvais, 5 = très bon ; « rouge » = 1 ou 2. */
 export type Note5 = 1 | 2 | 3 | 4 | 5
+/** (consolidation 18/11, décisions F4 et F5) Ce que le téléphone montre d'une séance. Voir docs/specs/niveaux-de-detail.md. */
+export type NiveauDetail = 'simple' | 'grandes_lignes' | 'detaille'
+export const NIVEAUX_DETAIL: NiveauDetail[] = ['simple', 'grandes_lignes', 'detaille'] // du moins au plus détaillé
 
 /** Champs communs à tout document enregistré et synchronisé. */
 export interface Document {
@@ -311,6 +318,7 @@ export interface Cycle extends Document {
   abandonneLe?: DateISO          // arrêté avant la fin ; le cycle reste dans l'historique
   assistant?: TraceAssistant
   avertissementsGardes: string[] // (consolidation 17/11) clés des avertissements repliés par « Je garde ce choix » (C-01)
+  niveauDetail?: NiveauDetail    // (consolidation 18/11) niveau par défaut, choisi à la création (O-13) ; absent = 'detaille'
 }
 
 export interface SemainePlan {
@@ -337,11 +345,22 @@ export interface ObjectifSpecifique extends Document {
   indicateur?: { nom: string; unite: string; depart?: number; cible?: number }
 }
 
+/** (consolidation 18/11) Une partie d'une séance en grandes lignes, écrite à la main : « Échauffement · 20 min ». */
+export interface PartieSeance {
+  titre: string
+  dureeMin: number               // 5 à 180
+  principal?: { source: 'bibliotheque' | 'perso'; refId: string } // exercice principal : ses marqueurs comptent dans les règles
+  consigne?: string              // une phrase, 120 caractères au plus
+}
+
 /** Version solo d'une séance planifiée : étapes complètes, recopiées à la création. */
 export interface VersionSolo extends SeanceGuidee {
   durete: Durete                 // choisie par l'utilisateur (défaut proposé par les règles)
   effortPrevu?: number           // (consolidation 17/11) 1 à 10 ; absent = 7 si dure, 4 si légère (B17)
   // (consolidation 17/11) plus de champ `marqueurs` : ils se calculent depuis les fiches citées par origine.refId
+  // (consolidation 18/11) Niveaux simple et grandes lignes. `etapes` peut être vide pour une séance écrite à la main.
+  recommandation?: string        // une ligne (120 caractères) ; recopiée de la séance type, ou écrite
+  parties?: PartieSeance[]       // 1 à 5, écrites à la main ; absentes = calculées depuis les étapes (jamais stockées)
 }
 
 /** Version groupe : objectifs globaux, et un mini-bloc solo facultatif. */
@@ -369,6 +388,7 @@ export interface SeancePlanifiee extends Document {
   variante?: string
   sauteeLe?: Horodatage          // l'utilisateur a choisi de la sauter (téléphone ou ordinateur, B11)
   // (consolidation 17/11) `avertissementsVus` est retiré : les avertissements gardés sont sur le cycle.
+  niveauDetail?: NiveauDetail    // (consolidation 18/11) remplace celui du cycle pour cette séance ; modifiable sur ordinateur seulement
 }
 
 // ——— Journal ———
@@ -458,6 +478,8 @@ export interface ResultatTest extends Document {
 Le titre complet des livres est une constante de code (`LIVRES`), pas une donnée : `planification` → « Escalade Training : les secrets de la planification (K. Arc, H. Di Domenico, Amphora) », `cent_exercices` → « Escalade Training : 100 exercices spécifiques d'entraînement (mêmes auteurs) », `alimentation` → « Guide de l'alimentation du grimpeur (C. Milenkovic-Messin) ». Aucun contenu des livres n'est recopié : seulement titre et page. (consolidation 17/11) L'app et l'assistant ne prêtent jamais à ces livres une affirmation que nous n'avons pas vérifiée : ils les citent par leur titre, comme lecture conseillée.
 
 **Pourquoi les séances planifiées recopient leurs étapes** : le modèle v1 le prévoyait déjà (« modifier la bibliothèque ne réécrit jamais le passé »). C'est aussi ce qui permet à une future app de montre de lire une séance sans connaître la bibliothèque, et au téléphone d'exécuter une séance créée sur l'ordinateur avec une version plus récente de l'app. Ce n'est pas une valeur « calculable » au sens du modèle : c'est un instantané figé, comme une photocopie datée. Taille estimée : 3 Ko par séance, environ 300 Ko par cycle. (consolidation 17/11) Les **marqueurs**, eux, ne sont pas recopiés dans la version : ils servent seulement aux règles, qui tournent sur l'appareil avec la bibliothèque ; la montre n'en a pas besoin pour exécuter.
+
+(consolidation 18/11, décisions F4 et F5) **Niveaux de détail** (`docs/specs/niveaux-de-detail.md`, § 1). Le niveau ne change que l'affichage de la version solo ; rien n'est effacé quand il change. Une séance tirée d'une séance type ou du générateur garde toujours ses étapes complètes et recopie sa `recommandation` (instantané, comme les étapes). Seules les séances écrites à la main en simple ou en grandes lignes ont `etapes: []` ; elles portent alors `recommandation` et `parties` (une seule partie en simple, qui donne la durée et l'exercice principal). Les champs sont facultatifs : un document ancien se lit en « détaillé ». La version groupe ne change pas.
 
 ### 3.3 Schéma côté serveur (Supabase / PostgreSQL)
 
@@ -580,6 +602,7 @@ this.version(3).stores({
 - Le nom de la base (`appli-escalade`) et les versions 1 et 2 restent déclarés tels quels : Dexie en a besoin pour faire monter les téléphones existants. (consolidation 17/11) Le nouveau nom de l'app, « Get me to 9a », ne change **pas** le nom de la base.
 - La migration vers la version 3 ajoute à chaque séance et au profil existants : `aEnvoyer: 1`, `versionFormat: 1`, `creeLe` (= `modifieLe` s'il manque) et, pour le profil, les champs ajoutés en v2 par `completerProfil` (quatre prérequis à `null`, `joursDisponibles: []`, `repereTraction: 'aucun'` ; consolidation 17/11).
 - `aEnvoyer` vaut 0 ou 1 (Dexie n'indexe pas les booléens).
+- (consolidation 18/11) Les niveaux de détail, les lieux du profil, `recommandation` et `parties` sont des champs de documents, sans index : **aucune nouvelle version de la base**, `versionFormat` reste 1.
 - Les tables synchronisées sont listées une seule fois, dans `TABLES_SYNCHRONISEES` (`src/donnees/stockage.ts`), **11 tables** (consolidation 17/11). Le type envoyé au serveur est le nom de la table.
 
 `etatSynchro` contient : `compteId` (identifiant du compte auquel les données de l'appareil sont liées), `compteEmail`, `curseur`, `derniereSynchro`, `derniereErreur`.
@@ -604,6 +627,11 @@ this.version(3).stores({
 | État d'envoi d'une séance réalisée (consolidation 17/11) | `aEnvoyer` local : 1 = « envoi au retour du réseau », 0 = « envoyée » |
 | Débrief, avancement d'un objectif de groupe | Comme aujourd'hui (`debrief.ts`, `avancement`) |
 | Salle effective | Salle personnelle de même id si elle existe, sinon préréglage |
+| Niveau affiché d'une séance (consolidation 18/11) | Niveau choisi (`seance.niveauDetail ?? cycle.niveauDetail ?? 'detaille'`), ramené au niveau disponible : étapes → détaillé ; sinon parties → grandes lignes ; sinon simple (N-01) |
+| Parties d'une séance qui a des étapes (consolidation 18/11) | `partiesDepuisEtapes` : familles du gabarit de séance, étapes consécutives fusionnées (C-01) |
+| Recommandation par défaut (consolidation 18/11) | `recommandationParDefaut` si `recommandation` est absente (C-01) |
+| Durée d'une version solo sans étapes (consolidation 18/11) | Somme des `dureeMin` de ses parties |
+| Fiches disponibles pour le générateur et l'assistant (consolidation 18/11) | `trierFiches` (G-01) : à vérifier, test, prérequis, douleur, contexte (lieux, grimpe en tête) |
 
 ### 3.6 Ce que les deux autres concepteurs trouveront dans le modèle
 
@@ -678,6 +706,12 @@ Confrontation des listes « Besoins de données » (`parcours-et-ecrans.md` § 6
 | Tests repères et résultats | Ajouté : `ResultatTest`, table `resultatsTests` ; catalogue des tests (unité, sens de progrès) — C-08, après la recherche sur la bibliothèque |
 | Marqueurs et heure de fin d'une séance réalisée | Couvert : `SeanceRealisee.marqueurs`, `creeLe` |
 | Réglages des règles de sécurité | Couvert : `Reglages.reglesSecurite` (nombres et booléens) ; défauts dans `REGLES_PAR_DEFAUT` (E-01) |
+| **Niveaux de détail et banque (consolidation 18/11)** | |
+| Niveau par défaut du cycle, niveau propre d'une séance | Ajouté : `Cycle.niveauDetail?`, `SeancePlanifiee.niveauDetail?` — N-01 (saisie : D-14, D-26) |
+| Recommandation d'une ligne, parties d'une séance en grandes lignes | Ajouté : `VersionSolo.recommandation?`, `VersionSolo.parties?` (`PartieSeance`) — N-01 ; recommandations du catalogue — E-10 |
+| Lieux d'entraînement (salle de bloc, voies, maison) | Ajouté : `Profil.lieux` — D-20 (vide = salle de bloc seulement) |
+| Niveau affiché, parties calculées, recommandation par défaut | Calculés — N-01, C-01 |
+| Plan proposé par le générateur | Calculé en mémoire (G-03), puis écrit en cycle **brouillon** par l'écran (D-25) |
 
 ## 4. Reprise des données existantes
 
