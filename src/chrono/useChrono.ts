@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  demarrerHorloge, HORLOGE_PRETE, mettreEnPause, reprendreHorloge, secondesEcoulees, terminerHorloge, type Horloge,
+} from '../moteur/horloge.ts'
 import { construireSequence, etatA, type ConfigChrono } from './sequence.ts'
 import { garderEcranAllume, preparerSon, signal } from './signaux.ts'
-
-type Marche = 'pret' | 'en_cours' | 'en_pause' | 'termine'
 
 /**
  * Fait tourner un chrono à partir d'un réglage.
@@ -11,11 +12,15 @@ type Marche = 'pret' | 'en_cours' | 'en_pause' | 'termine'
  */
 export function useChrono(config: ConfigChrono) {
   const phases = useMemo(() => construireSequence(config), [config])
-  const [marche, setMarche] = useState<Marche>('pret')
+  // L'horloge est une donnée simple manipulée par les fonctions du moteur ; le ref sert aux callbacks.
+  const [horloge, setHorloge] = useState<Horloge>(HORLOGE_PRETE)
   const [ecouleS, setEcouleS] = useState(0)
-
-  const departMs = useRef(0) // heure du dernier démarrage ou de la dernière reprise
-  const dejaEcouleS = useRef(0) // temps accumulé avant la dernière pause
+  const { marche } = horloge
+  const horlogeRef = useRef(horloge)
+  const changerHorloge = (h: Horloge) => {
+    horlogeRef.current = h
+    setHorloge(h)
+  }
   const dernierSignal = useRef('') // évite de rejouer deux fois le même signal
 
   const etat = etatA(phases, ecouleS)
@@ -25,7 +30,7 @@ export function useChrono(config: ConfigChrono) {
     if (marche !== 'en_cours') return
     const relacherEcran = garderEcranAllume()
     const minuteur = setInterval(() => {
-      setEcouleS(dejaEcouleS.current + (Date.now() - departMs.current) / 1000)
+      setEcouleS(secondesEcoulees(horlogeRef.current, Date.now()))
     }, 100)
     return () => {
       clearInterval(minuteur)
@@ -38,7 +43,7 @@ export function useChrono(config: ConfigChrono) {
     if (marche !== 'en_cours') return
     if (etat.termine) {
       signal.fin()
-      setMarche('termine')
+      changerHorloge(terminerHorloge(horlogeRef.current))
       return
     }
     const cle = `${etat.index}:${etat.resteS}`
@@ -57,20 +62,16 @@ export function useChrono(config: ConfigChrono) {
     phases,
     demarrer() {
       preparerSon()
-      dejaEcouleS.current = 0
-      departMs.current = Date.now()
       dernierSignal.current = ''
       setEcouleS(0)
-      setMarche('en_cours')
+      changerHorloge(demarrerHorloge(Date.now()))
     },
     pause() {
-      dejaEcouleS.current += (Date.now() - departMs.current) / 1000
-      setMarche('en_pause')
+      changerHorloge(mettreEnPause(horlogeRef.current, Date.now()))
     },
     reprendre() {
       preparerSon()
-      departMs.current = Date.now()
-      setMarche('en_cours')
+      changerHorloge(reprendreHorloge(horlogeRef.current, Date.now()))
     },
   }
 }

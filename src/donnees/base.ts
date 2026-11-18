@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { BlocGrimpe } from './seanceGroupeExemple.ts'
+import type { BlocGrimpe } from '../moteur/types.ts'
 import type { Profil } from './profil.ts'
 
 // La base de données de l'app, stockée sur le téléphone (IndexedDB, via Dexie).

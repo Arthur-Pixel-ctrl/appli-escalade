@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useRepos } from '../chrono/useRepos.ts'
 import type { Salle } from '../donnees/salles.ts'
-import { avancement, type BlocGrimpe, type SeanceGroupe as Seance } from '../donnees/seanceGroupeExemple.ts'
+import {
+  annulerDernierBloc, avancement, changerObjectif as changerObjectifMoteur, demarrerSeanceGroupe, noterBloc,
+} from '../moteur/seanceGroupe.ts'
+import { minutesEcoulees } from '../moteur/seanceSolo.ts'
+import type { BlocGrimpe, SeanceGroupe as Seance } from '../moteur/types.ts'
 
 interface Props {
   seance: Seance
@@ -13,11 +17,10 @@ interface Props {
 // Séance en groupe : un objectif à la fois, et la saisie d'un bloc en trois gestes
 // (couleur, essais, résultat). On peut noter au fil de l'eau ou tout à la fin.
 export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
-  const [blocs, setBlocs] = useState<BlocGrimpe[]>([])
-  const [position, setPosition] = useState(0) // objectif affiché
+  const [etat, setEtat] = useState(() => demarrerSeanceGroupe(Date.now()))
+  const { blocs, position } = etat // position = objectif affiché
   const [couleur, setCouleur] = useState(seance.objectifs[0].couleurConseillee ?? salle.couleurs[0].nom)
   const [essais, setEssais] = useState(1)
-  const [debutMs] = useState(() => Date.now())
   const [, rafraichir] = useState(0)
   const repos = useRepos(seance.reposConseilleS)
 
@@ -25,19 +28,18 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
     const minuteur = setInterval(() => rafraichir((n) => n + 1), 30000)
     return () => clearInterval(minuteur)
   }, [])
-  const minutes = Math.max(0, Math.round((Date.now() - debutMs) / 60000))
+  const minutes = minutesEcoulees(etat, Date.now())
 
   const objectif = seance.objectifs[position]
   const fait = avancement(objectif, position, blocs)
 
   const changerObjectif = (p: number) => {
-    setPosition(p)
+    setEtat((avant) => changerObjectifMoteur(avant, p))
     setCouleur(seance.objectifs[p].couleurConseillee ?? couleur)
     setEssais(1)
   }
   const noter = (enchaine: boolean) => {
-    const resultat = !enchaine ? 'non_enchaine' : essais === 1 ? 'flash' : 'enchaine'
-    setBlocs((avant) => [...avant, { couleur, essais, resultat, objectif: position }])
+    setEtat((avant) => noterBloc(avant, couleur, essais, enchaine))
     setEssais(1)
   }
 
@@ -97,7 +99,7 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
           </button>
         ))}
         {blocs.length > 0 && (
-          <button className="ligne" onClick={() => setBlocs((avant) => avant.slice(0, -1))}>
+          <button className="ligne" onClick={() => setEtat(annulerDernierBloc)}>
             <span>Annuler le dernier bloc</span>
             <span>{blocs[blocs.length - 1].couleur}, {blocs[blocs.length - 1].essais} {blocs[blocs.length - 1].essais > 1 ? 'essais' : 'essai'}</span>
           </button>

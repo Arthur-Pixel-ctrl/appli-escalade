@@ -4,7 +4,8 @@ import type { Profil as TypeProfil } from './donnees/profil.ts'
 import { salleParId } from './donnees/salles.ts'
 import { appliquerMiseAJour, surMiseAJourDisponible } from './miseAJour.ts'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
-import { avancement, SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
+import { SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
+import { bilanObjectifs } from './moteur/seanceGroupe.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
 import { Bienvenue } from './ecrans/Bienvenue.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
@@ -103,7 +104,7 @@ export default function App() {
               brouillon: {
                 mode: 'groupe', nom: SEANCE_GROUPE_EXEMPLE.nom, durete: 'dure', dureeMin,
                 etapes: [], blocs,
-                objectifs: SEANCE_GROUPE_EXEMPLE.objectifs.map((o, p) => ({ libelle: o.libelle, cible: o.cible, fait: avancement(o, p, blocs) })),
+                objectifs: bilanObjectifs(SEANCE_GROUPE_EXEMPLE, blocs),
               },
             })
           }
