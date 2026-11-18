@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, type Profil } from '../donnees/profil.ts'
+import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, depuisReponse3, versReponse3, type Profil, type Reponse3 } from '../donnees/profil.ts'
 import { SALLES } from '../donnees/salles.ts'
 
 interface Props {
@@ -104,6 +104,28 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
       <label className="champ">Ton objectif (facultatif)
         <input name="objectif" autoComplete="off" placeholder="Par exemple 7B en bloc…" value={p.objectif} onChange={(e) => modifier('objectif', e.target.value)} />
       </label>
+
+      <h2 className="sous-titre">Pour débloquer les exercices exigeants</h2>
+      <p className="texte-3">Si tu ne sais pas, laisse “Je ne sais pas” : par prudence, les exercices concernés ne te seront pas proposés.</p>
+
+      <div className="entete">
+        <p className="libelle" id="libelle-tractions">Tractions strictes d’affilée, bras tendus en bas</p>
+        <div className="compteur">
+          <button type="button" aria-label="Une traction de moins" disabled={p.tractionsStrictes === null || p.tractionsStrictes <= 0} onClick={() => modifier('tractionsStrictes', Math.max(0, (p.tractionsStrictes ?? 0) - 1))}>−</button>
+          <p className="chiffres" aria-live="polite" aria-labelledby="libelle-tractions">{p.tractionsStrictes ?? '?'}</p>
+          <button type="button" aria-label="Une traction de plus" disabled={(p.tractionsStrictes ?? 0) >= 40} onClick={() => modifier('tractionsStrictes', Math.min(40, (p.tractionsStrictes ?? 0) + 1))}>+</button>
+        </div>
+      </div>
+      <button type="button" className="bouton-texte" disabled={p.tractionsStrictes === null} onClick={() => modifier('tractionsStrictes', null)}>Je ne sais pas</button>
+
+      <Choix<Reponse3> legende="Tu tiens 15 s sur une réglette de 25 mm, poids du corps ?" colonnes="trois" valeur={versReponse3(p.tient15sSur25mm)} onChange={(v) => modifier('tient15sSur25mm', depuisReponse3(v))}
+        options={[{ valeur: 'oui', nom: 'Oui' }, { valeur: 'non', nom: 'Non' }, { valeur: 'inconnu', nom: 'Pas testé' }]} />
+
+      <Choix<Reponse3> legende="Tu as 18 ans ou plus ?" colonnes="trois" valeur={versReponse3(p.majeur)} onChange={(v) => modifier('majeur', depuisReponse3(v))}
+        options={[{ valeur: 'oui', nom: 'Oui' }, { valeur: 'non', nom: 'Non' }, { valeur: 'inconnu', nom: 'Je préfère ne pas dire' }]} />
+
+      <Choix<Reponse3> legende="Tu sais grimper et chuter en tête ?" colonnes="trois" valeur={versReponse3(p.grimpeEnTete)} onChange={(v) => modifier('grimpeEnTete', depuisReponse3(v))}
+        options={[{ valeur: 'oui', nom: 'Oui' }, { valeur: 'non', nom: 'Non' }, { valeur: 'inconnu', nom: 'Je ne sais pas' }]} />
 
       <button className="bouton principal centre" type="submit"><strong>{libelleValider}</strong></button>
       <p className="texte-3" role="status" aria-live="polite">{enregistre ? 'Profil enregistré.' : ''}</p>
