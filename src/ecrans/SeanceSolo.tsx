@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import type { Etape, SeanceGuidee } from '../donnees/seanceExemple.ts'
+import {
+  bilanEtapes, demarrerSeanceSolo, etapeEnCours, marquerEtape, minutesEcoulees, type StatutEtape,
+} from '../moteur/seanceSolo.ts'
+import type { EtapeSeance, SeanceGuidee } from '../moteur/types.ts'
 import { useRepos } from '../chrono/useRepos.ts'
 import { Chrono } from './Chrono.tsx'
 import { MisesEnGarde } from './MisesEnGarde.tsx'
 
-export type StatutEtape = 'a_faire' | 'faite' | 'passee'
+export type { StatutEtape }
 
 interface Props {
   seance: SeanceGuidee
@@ -12,14 +15,9 @@ interface Props {
   onQuitter: () => void
 }
 
-function minutesDepuis(debutMs: number) {
-  return Math.max(0, Math.round((Date.now() - debutMs) / 60000))
-}
-
 // Séance guidée : la liste des étapes, celle en cours ouverte avec son action principale.
 export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
-  const [statuts, setStatuts] = useState<StatutEtape[]>(() => seance.etapes.map(() => 'a_faire'))
-  const [debutMs] = useState(() => Date.now())
+  const [etat, setEtat] = useState(() => demarrerSeanceSolo(seance, Date.now()))
   const [chronoOuvert, setChronoOuvert] = useState(false)
   const [gardeOuverte, setGardeOuverte] = useState(false)
   const [, rafraichir] = useState(0)
@@ -30,12 +28,12 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
     return () => clearInterval(minuteur)
   }, [])
 
-  const enCours = statuts.indexOf('a_faire') // première étape pas encore traitée ; -1 si tout est fait
-  const etape: Etape | undefined = seance.etapes[enCours]
-  const marquer = (statut: StatutEtape) => {
-    setStatuts((avant) => avant.map((s, i) => (i === enCours ? statut : s)))
-  }
-  const terminer = () => onTerminer(statuts, minutesDepuis(debutMs))
+  const { statuts } = etat
+  const enCours = etapeEnCours(etat) // -1 si tout est fait
+  const etape: EtapeSeance | undefined = seance.etapes[enCours]
+  const minutes = minutesEcoulees(etat, Date.now())
+  const marquer = (statut: 'faite' | 'passee') => setEtat((avant) => marquerEtape(avant, statut))
+  const terminer = () => onTerminer(bilanEtapes(seance, etat).map((e) => e.statut), minutes)
 
   if (gardeOuverte) return <MisesEnGarde apresDouleur onFermer={() => setGardeOuverte(false)} />
 
@@ -61,7 +59,7 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
         <div className="entete">
           <button className="bouton-discret" onClick={onQuitter}>Quitter</button>
           <span className="surtitre chiffres">
-            {minutesDepuis(debutMs)} min · {enCours === -1 ? 'tout est fait' : `étape ${enCours + 1} sur ${seance.etapes.length}`}
+            {minutes} min · {enCours === -1 ? 'tout est fait' : `étape ${enCours + 1} sur ${seance.etapes.length}`}
           </span>
         </div>
         <h1 className="titre moyen">{seance.nom}</h1>
