@@ -3,13 +3,16 @@ import { Confirmation } from '../composants/Confirmation.tsx'
 import { Avertissement } from '../composants/Avertissement.tsx'
 import { comptesDisponibles, supabase } from '../compte/client.ts'
 import { jourLocal } from '../donnees/base.ts'
-import { lireEtat } from '../donnees/stockage.ts'
+import { lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
 import {
   effacerDonneesLocales, lierCompte, profilsACompare, resumerAppareil, sauvegardeComplete, situationReprise,
   type ResumeAppareil,
 } from '../synchro/reprise.ts'
 import { serveurSupabase } from '../synchro/serveurSupabase.ts'
 import { compterEnAttente } from '../synchro/synchro.ts'
+import {
+  depuisQuand, signalerCompteLie, surEtatSynchro, synchroEnCours, synchroniserMaintenant,
+} from '../synchro/automatique.ts'
 import { RepriseAutreCompte, RepriseChoixProfil, RepriseFin, ReprisePremierLien, type InfosProfil } from './Reprise.tsx'
 import { codeValide, emailValide, envoyerCode, nettoyerCode, seDeconnecter, useSession, verifierCode } from '../compte/session.ts'
 
@@ -202,6 +205,48 @@ function telechargerFichier(contenu: string): void {
   URL.revokeObjectURL(lien.href)
 }
 
+interface EtatIndicateur {
+  enAttente: number; derniereSynchro: string | null; derniereErreur: string | null; enCours: boolean
+  lueLe: Date // l'instant de la lecture, pour « il y a 2 min »
+}
+
+// Indicateur de synchronisation : relu à l'ouverture, toutes les 30 s, à chaque écriture,
+// à chaque fin de synchro et quand des données arrivent. Jamais en rouge : rien n'est perdu.
+function IndicateurSynchro({ enLigne }: { enLigne: boolean }) {
+  const [etat, setEtat] = useState<EtatIndicateur | null>(null)
+  useEffect(() => {
+    let actif = true
+    const relire = () => {
+      Promise.all([
+        compterEnAttente(), lireEtat<string | null>('derniereSynchro'), lireEtat<string | null>('derniereErreur'),
+      ]).then(([enAttente, derniereSynchro, derniereErreur]) => {
+        if (actif) setEtat({ enAttente, derniereSynchro: derniereSynchro ?? null, derniereErreur: derniereErreur ?? null, enCours: synchroEnCours(), lueLe: new Date() })
+      }).catch(() => {})
+    }
+    relire()
+    const minuteur = setInterval(relire, 30_000)
+    const desabonnements = [surEcriture(relire), surDonneesChangees(relire), surEtatSynchro(relire)]
+    return () => { actif = false; clearInterval(minuteur); desabonnements.forEach((f) => f()) }
+  }, [])
+
+  let texte = ''
+  if (etat) {
+    if (!enLigne) texte = 'Hors ligne. Tes données sont sur l’appareil et partiront au retour du réseau.'
+    else if (etat.derniereErreur) texte = `La dernière synchronisation a échoué : ${etat.derniereErreur}. Nouvel essai automatique.`
+    else if (etat.enAttente > 0) texte = `${etat.enAttente} modification${etat.enAttente > 1 ? 's' : ''} en attente d’envoi.`
+    else texte = etat.derniereSynchro ? `À jour, ${depuisQuand(etat.derniereSynchro, etat.lueLe)}` : 'À jour.'
+  }
+  return (
+    <div className="pile">
+      <div role="status" aria-live="polite">{texte && <p className="texte-2">{texte}</p>}</div>
+      <button className="bouton-second" disabled={!enLigne || etat?.enCours} onClick={() => void synchroniserMaintenant()}>
+        {etat?.enCours ? 'Synchronisation…' : 'Synchroniser maintenant'}
+      </button>
+      <p className="texte-3">Si tu modifies la même chose sur deux appareils sans réseau, c’est la modification la plus récente qui est gardée.</p>
+    </div>
+  )
+}
+
 // Vue « connecté » : décide quoi faire des données de l'appareil, puis affiche le compte.
 function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidentialite }: {
   userId: string; email: string; enLigne: boolean
@@ -230,6 +275,7 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
         }
       }
       if (resultat !== 'lie') return
+      signalerCompteLie() // l'app peut démarrer la synchro automatique
       const recharger = apresEffacement || choix === 'compte' || (bilan?.appliques ?? 0) > 0
       let message = `Tes données sont reliées à ton compte : ${bilan?.envoyes ?? 0} envoyée${(bilan?.envoyes ?? 0) > 1 ? 's' : ''}.`
       if (resume.nbSeances > 0) {
@@ -257,15 +303,9 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
         emailAutre: (await lireEtat<string | null>('compteEmail')) ?? null,
       })
     } else if (situation === 'meme_compte') {
-      // Déjà lié : on rattrape simplement ce qui n'est pas parti (réseau coupé la dernière fois).
+      // Déjà lié : la synchro automatique de l'app rattrape ce qui n'est pas parti ; on la relance simplement.
       setEtape({ nom: 'normal', nonLie: false })
-      if (enLigne) {
-        try {
-          const { bilan } = await lierCompte(serveur(), session)
-          const n = bilan?.envoyes ?? 0
-          setEtape({ nom: 'normal', nonLie: false, message: `Tes données sont reliées à ton compte : ${n} envoyée${n > 1 ? 's' : ''}.` })
-        } catch { /* l'envoi se refera plus tard ; rien n'est perdu */ }
-      }
+      void synchroniserMaintenant()
     } else if (resume.nbSeances > 0 && !plusTard) {
       setEtape({ nom: 'premier_lien', resume })
     } else if (plusTard || !enLigne) {
@@ -357,6 +397,7 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
         {etape.message && <p className="texte-2">{etape.message}</p>}
         {erreur && <p className="message-erreur">{erreur}</p>}
       </div>
+      {!etape.nonLie && <IndicateurSynchro enLigne={enLigne} />}
       {etape.nonLie && (
         <div className="pile">
           <Avertissement niveau="information" titre="Tes séances ne sont pas encore reliées à ton compte." />
