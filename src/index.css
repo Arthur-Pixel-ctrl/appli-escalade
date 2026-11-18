@@ -1,20 +1,53 @@
 /* Thème de l'app. Toutes les couleurs et tailles passent par ces variables. */
 :root {
-  color-scheme: dark;
-  --fond: #0c0d0e;
-  --surface: #17181a;
-  --surface-haute: #232528;
-  --filet: #2a2c2f;
-  --filet-fort: #34373b;
-  --texte: #f4f4f2;
-  --texte-2: #cfd1d3;
-  --texte-3: #a3a6aa;
-  --accent: #e9f55b; /* un seul accent : action principale, état en cours, chiffre clé */
-  --sur-accent: #0c0d0e;
-  --rayon-controle: 8px;
-  --rayon-bouton: 10px;
-  --rayon-carte: 12px;
-  --police: 'Geist Variable', system-ui, sans-serif;
+  color-scheme: light;
+  /* Neutres : une seule famille de gris chaude (teinte pierre). */
+  --fond: #F1EFE9;            /* magnésie */
+  --surface: #FBFAF7;         /* papier : cartes, champs */
+  --surface-creuse: #E6E3DA;  /* pierre : zones en retrait */
+  --texte: #1D1C19;           /* encre */
+  --texte-2: #4B4943;
+  --texte-3: #5D5A52;
+  --filet: #C9C5BA;           /* séparateurs décoratifs */
+  --filet-fort: #8C8980;      /* bords des champs (3:1 au moins) */
+  /* Un rôle par couleur. */
+  --accent: #0F5A54;          /* résine : action principale, en cours, focus */
+  --accent-presse: #0B4540;
+  --accent-doux: #D5E6E2;     /* fait, ou zone de dépôt */
+  --sur-accent: #FFFFFF;
+  --relief: #1D1C19;          /* ombre dure des éléments en relief */
+  --annotation: #7A4420;      /* sépia : notes manuscrites */
+  --avertissement: #8A5200;
+  --avertissement-fond: #FBEFD5;
+  --rubalise-avertissement: #E9A23B;
+  --arret: #A32E1E;
+  --arret-fond: #F8E1DC;
+  --rubalise-arret: #A32E1E;
+  --focus-sur-sombre: #7FC4BA;
+  /* Chrono : trois phases reconnaissables de loin. */
+  --chrono-preparation-fond: #1D1C19;  --chrono-preparation-texte: #F6F4EE;
+  --chrono-effort-fond: #F6F4EE;       --chrono-effort-texte: #1D1C19;
+  --chrono-repos-fond: #0F5A54;        --chrono-repos-texte: #FBFAF7;
+  /* Ancien nom, gardé le temps que les écrans soient repris (D-02 à D-09). */
+  --surface-haute: var(--surface-creuse);
+  /* Formes */
+  --rayon-etiquette: 2px; --rayon-controle: 4px; --rayon-bouton: 6px; --rayon-carte: 6px;
+  --ombre-bouton: 0 4px 0 var(--relief);
+  --ombre-carte: 0 3px 0 var(--relief);
+  --ombre-flottante: 0 6px 0 var(--relief);
+  /* Espacements, base 4 px */
+  --espace-1: 4px; --espace-2: 8px; --espace-3: 12px; --espace-4: 16px;
+  --espace-5: 24px; --espace-6: 32px; --espace-7: 48px; --espace-8: 64px;
+  /* Polices */
+  --police-titre: 'Big Shoulders Display Variable', 'Arial Narrow', sans-serif;
+  --police: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
+  --police-fixe: 'Atkinson Hyperlegible Mono Variable', ui-monospace, monospace;
+  --police-main: 'Gochi Hand', cursive;
+  /* Mouvement */
+  --duree-appui: 100ms; --duree-etat: 180ms; --duree-panneau: 240ms;
+  --courbe: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Grain de magnésie : tuile de bruit très légère. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.11 0 0 0 0 0.10 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
 }
 
 * { box-sizing: border-box; }
@@ -23,18 +56,18 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--fond);
+  background: var(--fond) var(--grain);
   color: var(--texte);
   font-family: var(--police);
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
 
-h1, h2 { margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
-p { margin: 0; }
+h1, h2 { margin: 0; font-family: var(--police-titre); font-weight: 800; letter-spacing: 0.005em; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
 
 button {
   font: inherit;
@@ -47,7 +80,7 @@ button {
 }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.chiffres { font-variant-numeric: tabular-nums; }
+.chiffres { font-family: var(--police-fixe); font-variant-numeric: tabular-nums; }
 
 /* Structure générale : contenu qui défile + barre d'onglets en bas */
 .app { height: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; }
