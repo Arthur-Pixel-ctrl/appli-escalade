@@ -32,6 +32,8 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | F2-13 | Format de séance documenté pour une future montre (`docs/format-seance.md`) | Fait |
 | F2-15 | Réveil automatique du projet Supabase, lundi et jeudi (`.github/workflows/reveil-supabase.yml`) | Fait |
 | D-03 | Icônes, pastille de prise et encadré d'avertissement (`src/composants/`) | Fait |
+| F2-04 | Base locale version 3 : nouvelles tables, écriture unique `ecrire()`, migration sans perte (`src/donnees/stockage.ts`) | Fait |
+| D-04 | Fenêtre de confirmation et erreur d'enregistrement affichée dans l'écran (`src/composants/Confirmation.tsx`) | Fait |
 
 ## Ouvrir l'app
 
