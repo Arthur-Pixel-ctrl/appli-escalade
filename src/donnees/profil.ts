@@ -44,6 +44,12 @@ export function completerProfil(p: Partial<Profil>): Profil {
   return complet
 }
 
+// Réponse à une question à trois issues. `null` (pas de réponse) devient « inconnu » à l'écran,
+// parce que le composant de choix ne sait pas porter `null`.
+export type Reponse3 = 'oui' | 'non' | 'inconnu'
+export const versReponse3 = (v: boolean | null): Reponse3 => (v === null ? 'inconnu' : v ? 'oui' : 'non')
+export const depuisReponse3 = (r: Reponse3): boolean | null => (r === 'inconnu' ? null : r === 'oui')
+
 export const COTATIONS_BLOC = ['4', '5A', '5B', '5C', '6A', '6A+', '6B', '6B+', '6C', '6C+', '7A', '7A+', '7B', '7B+', '7C', '7C+', '8A']
 export const COTATIONS_VOIE = ['5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a']
 
