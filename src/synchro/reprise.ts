@@ -1,7 +1,7 @@
 // Lien d'un compte avec les données de l'appareil (architecture § 4).
 // Règle d'or : lier ne supprime rien. Les données de l'appareil et celles du compte se rejoignent
 // par la règle « la plus récente gagne » de `synchroniser`. Seule `effacerDonneesLocales` efface.
-import { avecReprise, base } from '../donnees/base.ts'
+import { avecReprise, base, exporterDonnees } from '../donnees/base.ts'
 import {
   ecrire, ecrireEtat, lireEtat, TABLES_SYNCHRONISEES,
 } from '../donnees/stockage.ts'
@@ -122,11 +122,20 @@ export function masquerEmail(email: string): string {
 
 // ——— Sauvegarde et effacement ———
 
-/** Toutes les tables synchronisées dans un seul fichier JSON (format de `exporterDonnees`, avec les tables du plan en plus). */
-export async function sauvegardeComplete(): Promise<string> {
-  const tables: Record<string, unknown[]> = {}
-  for (const table of TABLES_SYNCHRONISEES) tables[table] = await avecReprise(() => base.table(table).toArray())
-  return JSON.stringify({ version: 1, exporteLe: new Date().toISOString(), tables }, null, 2)
+/** La sauvegarde complète est celle de « Sauvegarder mes données » : un seul format de fichier (`exporterDonnees`). */
+export const sauvegardeComplete = exporterDonnees
+
+/**
+ * Détache l'appareil d'un compte supprimé, sans effacer aucune donnée : le compte n'est plus noté,
+ * et tout ce que l'appareil contient est marqué « à envoyer » pour un éventuel futur compte.
+ */
+export async function delierAppareil(): Promise<void> {
+  await ecrireEtat('compteId', null)
+  await ecrireEtat('compteEmail', null)
+  await ecrireEtat('curseur', null)
+  for (const table of TABLES_SYNCHRONISEES) {
+    await avecReprise(() => base.table(table).toCollection().modify({ aEnvoyer: 1 }))
+  }
 }
 
 /**

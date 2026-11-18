@@ -4,7 +4,8 @@ import type {
   Reglages, ResultatTest, SallePerso, SeancePlanifiee, SeanceRealisee,
 } from './modele.ts'
 import { completerProfil, type Profil } from './profil.ts'
-import { ecrire, lireTous } from './stockage.ts'
+import { decider } from '../synchro/fusion.ts'
+import { ecrire, lireTous, TABLES_SYNCHRONISEES, type TableSynchronisee } from './stockage.ts'
 
 // La base de données de l'app, stockée sur le téléphone (IndexedDB, via Dexie).
 // Le type `SeanceRealisee` vient de `modele.ts` ; les autres fichiers continuent de l'importer d'ici.
@@ -138,27 +139,80 @@ export function lireSeances(): Promise<SeanceRealisee[]> {
 }
 
 // Sauvegarde : toutes les données dans un seul fichier, à garder ou à transférer sur un autre appareil.
-interface Sauvegarde { version: 1; exporteLe: string; tables: { seancesRealisees: SeanceRealisee[]; reglages: (ProfilEnregistre | Reglages)[] } }
+// Un seul format pour toute l'app (la sauvegarde du compte dans `reprise.ts` passe par ici).
+export interface SauvegardeV2 { version: 2; exporteLe: string; tables: Partial<Record<TableSynchronisee, unknown[]>> }
 
+/**
+ * Les 11 tables synchronisées, documents supprimés compris (pour que l'import propage la suppression).
+ * Sans `aEnvoyer` (propre à l'appareil). Ni `etatSynchro` ni `appareil` : la clé API Claude ne sort jamais.
+ */
 export async function exporterDonnees(): Promise<string> {
-  const sauvegarde: Sauvegarde = {
-    version: 1,
-    exporteLe: new Date().toISOString(),
-    tables: { seancesRealisees: await base.seancesRealisees.toArray(), reglages: await base.reglages.toArray() },
+  const tables: SauvegardeV2['tables'] = {}
+  for (const nom of TABLES_SYNCHRONISEES) {
+    const documents = (await avecReprise(() => base.table(nom).toArray())) as Record<string, unknown>[]
+    tables[nom] = documents.map(({ aEnvoyer: _aEnvoyer, ...contenu }) => contenu)
   }
+  const sauvegarde: SauvegardeV2 = { version: 2, exporteLe: new Date().toISOString(), tables }
   return JSON.stringify(sauvegarde, null, 2)
 }
 
-/** Recharge une sauvegarde. Les enregistrements de même identifiant sont remplacés, les autres sont gardés. */
-export async function importerDonnees(texte: string): Promise<number> {
-  const s = JSON.parse(texte) as Partial<Sauvegarde>
-  if (s.version !== 1 || !s.tables || !Array.isArray(s.tables.seancesRealisees)) {
+type DocImporte = Record<string, unknown> & { id: string; modifieLe: string }
+
+/** Complète un document d'un ancien fichier (sans dates ni version) ; `null` s'il n'a pas d'identifiant. */
+function completerImporte(brut: unknown): DocImporte | null {
+  if (typeof brut !== 'object' || brut === null) return null
+  const doc = { ...(brut as Record<string, unknown>) }
+  if (typeof doc.id !== 'string' || doc.id === '') return null
+  if (typeof doc.modifieLe !== 'string' || Number.isNaN(Date.parse(doc.modifieLe))) {
+    // Très ancien fichier : on se rabat sur la date de création, puis sur le jour de la séance, puis sur 1970.
+    const jour = typeof doc.date === 'string' ? `${doc.date}T00:00:00.000Z` : undefined
+    const repli = [doc.creeLe, jour].find((d) => typeof d === 'string' && !Number.isNaN(Date.parse(d)))
+    doc.modifieLe = repli ?? new Date(0).toISOString()
+  }
+  doc.creeLe = typeof doc.creeLe === 'string' ? doc.creeLe : doc.modifieLe
+  doc.versionFormat = 1
+  return doc as DocImporte
+}
+
+/**
+ * Recharge une sauvegarde (version 1 ou 2). Pour chaque document, la version la plus récente gagne :
+ * un document du fichier plus ancien que celui de l'appareil ne l'écrase jamais.
+ * Ce qui est pris dans le fichier repart au serveur à la prochaine synchro (`aEnvoyer: 1`).
+ * Renvoie le nombre de séances et d'autres éléments (non supprimés) contenus dans le fichier.
+ */
+export async function importerDonnees(texte: string): Promise<{ seances: number; autres: number }> {
+  let s: { version?: number; tables?: unknown } | null
+  try { s = JSON.parse(texte) } catch { throw new Error('Ce fichier n’est pas une sauvegarde de l’app.') }
+  const tablesFichier = s?.tables as Record<string, unknown> | undefined
+  const versionConnue = s?.version === 1 || s?.version === 2
+  // Un fichier version 1 contient toujours les séances ; on garde cette vérification pour refuser un mauvais fichier.
+  if (!versionConnue || !tablesFichier || typeof tablesFichier !== 'object'
+    || (s?.version === 1 && !Array.isArray(tablesFichier.seancesRealisees))) {
     throw new Error('Ce fichier n’est pas une sauvegarde de l’app.')
   }
-  // Un fichier exporté avant la version 3 n'a ni `versionFormat` ni `aEnvoyer` : on les complète.
-  const completer = <T extends { modifieLe: string; creeLe?: string }>(doc: T) =>
-    ({ ...doc, versionFormat: 1 as const, creeLe: doc.creeLe ?? doc.modifieLe, aEnvoyer: 1 as const })
-  await base.seancesRealisees.bulkPut(s.tables.seancesRealisees.map(completer))
-  if (Array.isArray(s.tables.reglages)) await base.reglages.bulkPut(s.tables.reglages.map(completer))
-  return s.tables.seancesRealisees.length
+
+  // Les tables inconnues sont ignorées ; les connues sont lues en entier avant d'écrire quoi que ce soit.
+  const aImporter: { nom: TableSynchronisee; docs: DocImporte[] }[] = []
+  for (const nom of TABLES_SYNCHRONISEES) {
+    const brut = tablesFichier[nom]
+    if (!Array.isArray(brut)) continue
+    aImporter.push({ nom, docs: brut.map(completerImporte).filter((d): d is DocImporte => d !== null) })
+  }
+
+  let seances = 0
+  let autres = 0
+  const tables = aImporter.map(({ nom }) => base.table(nom))
+  await avecReprise(() => base.transaction('rw', tables, async () => {
+    seances = 0
+    autres = 0
+    for (const { nom, docs } of aImporter) {
+      const table = base.table(nom)
+      for (const doc of docs) {
+        if (!doc.supprimeLe) { if (nom === 'seancesRealisees') seances++; else autres++ }
+        const local = (await table.get(doc.id)) as { modifieLe: string } | undefined
+        if (decider(local, doc) === 'prendre_distant') await table.put({ ...doc, aEnvoyer: 1 })
+      }
+    }
+  }))
+  return { seances, autres }
 }

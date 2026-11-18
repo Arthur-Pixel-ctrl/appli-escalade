@@ -30,8 +30,8 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
   const importer = async (f: File | undefined) => {
     if (!f) return
     try {
-      const n = await importerDonnees(await f.text())
-      setMessage(`Sauvegarde rechargée : ${n} séance${n > 1 ? 's' : ''}.`)
+      const { seances, autres } = await importerDonnees(await f.text())
+      setMessage(`Sauvegarde rechargée : ${seances} séance${seances > 1 ? 's' : ''} et ${autres} autre${autres > 1 ? 's' : ''} élément${autres > 1 ? 's' : ''}.`)
       onDonneesImportees()
     } catch (e) {
       setMessage(e instanceof Error ? `Import impossible. ${e.message}` : 'Import impossible : fichier illisible.')
@@ -51,7 +51,7 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
           <button className="ligne" onClick={() => fichier.current?.click()}><span>Recharger une sauvegarde</span><span>Choisir un fichier</span></button>
         </div>
         <input ref={fichier} type="file" accept="application/json,.json" hidden aria-label="Fichier de sauvegarde" onChange={(e) => { void importer(e.target.files?.[0]); e.target.value = '' }} />
-        <p className="texte-3" role="status" aria-live="polite">{message || 'Tes données restent sur cet appareil. Fais une sauvegarde de temps en temps : vider les données du navigateur les efface.'}</p>
+        <p className="texte-3" role="status" aria-live="polite">{message || (email ? 'Tes données sont aussi copiées sur ton compte.' : 'Tes données restent sur cet appareil. Fais une sauvegarde de temps en temps : vider les données du navigateur les efface.')}</p>
         <p className="texte-3">Version du {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(__VERSION__))}</p>
       </section>
     </main>

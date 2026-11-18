@@ -92,8 +92,8 @@ describe('migration de la base version 2 vers la version 3', () => {
   it('exporte puis réimporte, et accepte un fichier exporté avant la version 3', async () => {
     const { base, exporterDonnees, importerDonnees } = await import('./base.ts')
     const fichier = await exporterDonnees()
-    expect(JSON.parse(fichier).version).toBe(1)
-    expect(await importerDonnees(fichier)).toBe(3)
+    expect(JSON.parse(fichier).version).toBe(2)
+    expect(await importerDonnees(fichier)).toEqual({ seances: 3, autres: 1 })
 
     // Fichier ancien : séances et profil sans aucun des champs récents.
     const { versionFormat: _v, creeLe: _c, ...sansSuivi } = SEANCE_SOLO
@@ -101,7 +101,7 @@ describe('migration de la base version 2 vers la version 3', () => {
       version: 1, exporteLe: '2026-11-15T10:00:00.000Z',
       tables: { seancesRealisees: [{ ...sansSuivi, id: 'importee-1' }], reglages: [PROFIL_ANCIEN] },
     })
-    expect(await importerDonnees(ancien)).toBe(1)
+    expect(await importerDonnees(ancien)).toEqual({ seances: 1, autres: 1 })
     const importee = await base.seancesRealisees.get('importee-1')
     expect(importee).toMatchObject({ nom: 'Doigts : suspensions', versionFormat: 1, creeLe: SEANCE_SOLO.modifieLe, aEnvoyer: 1 })
     expect(await base.seancesRealisees.count()).toBe(4)

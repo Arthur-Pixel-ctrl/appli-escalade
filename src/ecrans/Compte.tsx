@@ -5,7 +5,7 @@ import { comptesDisponibles, supabase } from '../compte/client.ts'
 import { jourLocal } from '../donnees/base.ts'
 import { lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
 import {
-  effacerDonneesLocales, lierCompte, profilsACompare, resumerAppareil, sauvegardeComplete, situationReprise,
+  delierAppareil, effacerDonneesLocales, lierCompte, profilsACompare, resumerAppareil, sauvegardeComplete, situationReprise,
   type ResumeAppareil,
 } from '../synchro/reprise.ts'
 import { serveurSupabase } from '../synchro/serveurSupabase.ts'
@@ -48,11 +48,15 @@ export function Compte({ onRetour }: { onRetour: () => void }) {
   const [erreur, setErreur] = useState('')
   // Secondes restantes avant de pouvoir redemander un code.
   const [attente, setAttente] = useState(0)
+  // Compte supprimé : cet écran reste affiché même si la session disparaît.
+  const [supprime, setSupprime] = useState(false)
   useEffect(() => {
     if (attente <= 0) return
     const minuteur = setTimeout(() => setAttente((s) => s - 1), 1000)
     return () => clearTimeout(minuteur)
   }, [attente])
+
+  if (supprime) return <CompteSupprime />
 
   const retour = <button className="bouton-discret" onClick={onRetour}>Retour</button>
   const confidentialite = <p className="texte-3">{PHRASE_CONFIDENTIALITE}</p>
@@ -82,7 +86,7 @@ export function Compte({ onRetour }: { onRetour: () => void }) {
   if (session.userId) {
     return (
       <CompteConnecte
-        userId={session.userId} email={session.email ?? ''} enLigne={enLigne}
+        userId={session.userId} onSupprime={() => setSupprime(true)} email={session.email ?? ''} enLigne={enLigne}
         onRetour={onRetour} retour={retour} confidentialite={confidentialite}
       />
     )
@@ -247,9 +251,125 @@ function IndicateurSynchro({ enLigne }: { enLigne: boolean }) {
   )
 }
 
+// Dernier écran, une fois le compte supprimé sur le serveur : garder ou effacer les données de cet appareil.
+// Il vit dans `Compte` (et non dans la vue connectée) : la déconnexion fait disparaître cette dernière.
+function CompteSupprime() {
+  const [confirmeAppareil, setConfirmeAppareil] = useState(false)
+  const [erreur, setErreur] = useState('')
+
+  const effacerAppareil = async () => {
+    setConfirmeAppareil(false)
+    setErreur('')
+    try {
+      // Le compte n'existe plus : les modifications « en attente » n'ont plus de destination, l'utilisateur les a vues dans la confirmation.
+      await effacerDonneesLocales({ enAttenteAcceptees: await compterEnAttente() })
+      window.location.reload()
+    } catch {
+      setErreur('Rien n’a été effacé sur cet appareil : réessaie.')
+    }
+  }
+
+  return (
+    <main className="ecran">
+      <div className="pile-large">
+        <h1 className="titre moyen">Compte supprimé</h1>
+        <p>Ton compte et tes données sur le serveur ont été supprimés. Tes séances et ton plan sont toujours sur cet appareil.</p>
+        <div role="status" aria-live="polite">{erreur && <p className="message-erreur">{erreur}</p>}</div>
+        <button className="bouton principal centre" onClick={() => window.location.reload()}><strong>Garder mes données sur cet appareil</strong></button>
+        <button className="bouton-second" onClick={() => setConfirmeAppareil(true)}>Effacer aussi les données de cet appareil</button>
+      </div>
+      <Confirmation
+        ouverte={confirmeAppareil}
+        titre="Effacer les données de cet appareil ?"
+        texte="Toutes tes séances, ton plan et ton profil seront effacés de cet appareil. Il n’en restera aucune copie, sauf un fichier de sauvegarde."
+        libelleAction="Tout effacer" libelleRester="Garder mes données" danger
+        onRester={() => setConfirmeAppareil(false)}
+        onAction={() => void effacerAppareil()}
+      />
+    </main>
+  )
+}
+
+/** Le champ de confirmation accepte « supprimer » sans tenir compte de la casse ni des espaces autour. */
+function motDeConfirmationValide(texte: string): boolean {
+  return texte.trim().toLowerCase() === 'supprimer'
+}
+
+// Suppression du compte. Deux décisions séparées :
+// 1. le serveur (compte et données du compte) : confirmation, puis fonction SQL `supprimer_mon_compte` ;
+// 2. cet appareil : jamais effacé sans une seconde confirmation, une fois le compte supprimé.
+function SuppressionCompte({ enLigne, onAnnuler, onFait }: { enLigne: boolean; onAnnuler: () => void; onFait: () => void }) {
+  const [mot, setMot] = useState('')
+  const [confirmeServeur, setConfirmeServeur] = useState(false)
+  const [occupe, setOccupe] = useState(false)
+  const [erreur, setErreur] = useState('')
+  const [message, setMessage] = useState('')
+
+  const sauvegarder = async () => {
+    setErreur('')
+    try {
+      telechargerFichier(await sauvegardeComplete())
+      setMessage('Sauvegarde créée dans tes téléchargements.')
+    } catch {
+      setErreur('La sauvegarde n’a pas pu être créée. Rien n’a été supprimé.')
+    }
+  }
+
+  const supprimerSurServeur = async () => {
+    setConfirmeServeur(false)
+    setOccupe(true)
+    setErreur('')
+    try {
+      // Le serveur d'abord : si le réseau échoue, on s'arrête et l'appareil n'a rien perdu.
+      const { error } = await supabase!.rpc('supprimer_mon_compte')
+      if (error) throw error
+    } catch {
+      setErreur('Le compte n’a pas pu être supprimé. Rien n’a été effacé : réessaie quand le réseau revient.')
+      setOccupe(false)
+      return
+    }
+    try { await seDeconnecter() } catch { /* le compte n'existe plus : une erreur ici ne change rien */ }
+    // Le compte n'existe plus : on détache l'appareil, sans toucher à ses données.
+    try { await delierAppareil() } catch { /* sans gravité : le prochain lien repartira de zéro */ }
+    setOccupe(false)
+    onFait()
+  }
+
+  return (
+    <main className="ecran">
+      <button className="bouton-discret" onClick={onAnnuler} disabled={occupe}>Retour</button>
+      <div className="pile-large">
+        <h1 className="titre moyen">Supprimer mon compte</h1>
+        <p>Ton compte et toutes tes données sur le serveur seront supprimés définitivement. Les données de cet appareil ne sont pas touchées : tu choisiras ensuite de les garder ou non. Tu peux d’abord garder une copie dans un fichier.</p>
+        <button className="bouton-second" onClick={() => void sauvegarder()}>Sauvegarder dans un fichier</button>
+        <label className="champ">
+          Tape supprimer pour confirmer
+          <input type="text" autoComplete="off" autoCapitalize="none" value={mot} onChange={(e) => setMot(e.target.value)} />
+        </label>
+        {!enLigne && <p className="texte-3">Il faut du réseau.</p>}
+        <div role="status" aria-live="polite">
+          {message && <p className="texte-2">{message}</p>}
+          {erreur && <p className="message-erreur">{erreur}</p>}
+        </div>
+        <button className="bouton arret centre" disabled={!motDeConfirmationValide(mot) || !enLigne || occupe} onClick={() => setConfirmeServeur(true)}>
+          <strong>Supprimer définitivement</strong>
+        </button>
+      </div>
+      <Confirmation
+        ouverte={confirmeServeur}
+        titre="Supprimer ton compte ?"
+        texte="Ton compte et toutes tes données sur le serveur seront supprimés pour toujours, sans retour possible. Rien ne sera effacé de cet appareil à ce stade."
+        libelleAction="Supprimer définitivement" libelleRester="Annuler" danger
+        onRester={() => setConfirmeServeur(false)}
+        onAction={() => void supprimerSurServeur()}
+      />
+    </main>
+  )
+}
+
 // Vue « connecté » : décide quoi faire des données de l'appareil, puis affiche le compte.
-function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidentialite }: {
-  userId: string; email: string; enLigne: boolean
+function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidentialite, onSupprime }: {
+  userId: string; onSupprime: () => void; email: string; enLigne: boolean
   onRetour: () => void; retour: React.ReactNode; confidentialite: React.ReactNode
 }) {
   const [etape, setEtape] = useState<Etape>({ nom: 'verification' })
@@ -257,6 +377,7 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
   const [erreur, setErreur] = useState('')
   const [confirmeDeconnexion, setConfirmeDeconnexion] = useState(false)
   const [enAttenteDeconnexion, setEnAttenteDeconnexion] = useState(0)
+  const [suppression, setSuppression] = useState(false)
 
   const session = { userId, email }
   const serveur = () => serveurSupabase(supabase!)
@@ -347,6 +468,7 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
     setConfirmeDeconnexion(true)
   }
 
+  if (suppression) return <SuppressionCompte enLigne={enLigne} onAnnuler={() => setSuppression(false)} onFait={onSupprime} />
   if (etape.nom === 'verification') {
     return <main className="ecran">{retour}<p className="texte-3" role="status">Mise en lien de tes données…</p></main>
   }
@@ -408,6 +530,7 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
       )}
       <button className="bouton-second" onClick={() => void demanderDeconnexion()}>Me déconnecter</button>
       {confidentialite}
+      <button className="bouton-texte" onClick={() => setSuppression(true)}>Supprimer mon compte</button>
       <Confirmation
         ouverte={confirmeDeconnexion}
         titre="Te déconnecter ?"
