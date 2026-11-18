@@ -11,10 +11,16 @@ const PEAU: { valeur: 1 | 2 | 3; nom: string }[] = [
 ]
 
 // Fin de séance, premier temps : trois questions, une touche chacune.
-export function Questions({ contexte, onValider, erreur }: { contexte: string; onValider: (r: Reponses) => void; erreur?: string }) {
+// `douleurInitiale` : la douleur est déjà signalée (arrivée par « Stop, ça fait mal »), la question est pré-remplie.
+export function Questions({ contexte, onValider, erreur, douleurInitiale }: {
+  contexte: string
+  onValider: (r: Reponses) => void
+  erreur?: string
+  douleurInitiale?: boolean
+}) {
   const [effort, setEffort] = useState<number | null>(null)
   const [peau, setPeau] = useState<1 | 2 | 3 | null>(null)
-  const [douleur, setDouleur] = useState<boolean | null>(null)
+  const [douleur, setDouleur] = useState<boolean | null>(douleurInitiale ?? null)
   const complet = effort !== null && peau !== null && douleur !== null
 
   return (

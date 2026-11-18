@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useRepos } from '../chrono/useRepos.ts'
+import { Confirmation } from '../composants/Confirmation.tsx'
 import { Avertissement } from '../composants/Avertissement.tsx'
 import { PastillePrise } from '../composants/PastillePrise.tsx'
+import { MisesEnGarde } from './MisesEnGarde.tsx'
 import type { Salle } from '../donnees/salles.ts'
 import {
   annulerDernierBloc, avancement, changerObjectif as changerObjectifMoteur, demarrerSeanceGroupe, noterBloc,
@@ -12,7 +14,8 @@ import type { BlocGrimpe, SeanceGroupe as Seance } from '../moteur/types.ts'
 interface Props {
   seance: Seance
   salle: Salle
-  onTerminer: (blocs: BlocGrimpe[], dureeMin: number) => void
+  // douleur = true quand la séance se termine après « Stop, ça fait mal ».
+  onTerminer: (blocs: BlocGrimpe[], dureeMin: number, douleur?: boolean) => void
   onQuitter: () => void
 }
 
@@ -25,6 +28,8 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
   const [essais, setEssais] = useState(1)
   const [maintenant, setMaintenant] = useState(() => Date.now())
   const repos = useRepos(seance.reposConseilleS)
+  const [gardeOuverte, setGardeOuverte] = useState(false)
+  const [confirmeVide, setConfirmeVide] = useState(false)
 
   useEffect(() => {
     const minuteur = setInterval(() => setMaintenant(Date.now()), 30000)
@@ -45,12 +50,22 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
     setEssais(1)
   }
 
+  // Terminer sans aucun bloc noté : on demande confirmation (spécification T-09).
+  const terminer = () => (blocs.length === 0 ? setConfirmeVide(true) : onTerminer(blocs, minutes))
+
+  // Les mises en garde passent par-dessus : tout l'état de la séance est ici, rien n'est perdu.
+  if (gardeOuverte) {
+    return <MisesEnGarde apresDouleur onFermer={() => setGardeOuverte(false)} onTerminer={() => onTerminer(blocs, minutes, true)} />
+  }
+
   return (
     <main className="ecran serre">
       <div className="entete">
         <button className="bouton-discret" onClick={onQuitter}>Quitter</button>
         <span className="surtitre chiffres">{minutes} min · {blocs.length} {blocs.length > 1 ? 'blocs notés' : 'bloc noté'}</span>
       </div>
+
+      <button className="bouton arret centre stop-seance" onClick={() => setGardeOuverte(true)}>Stop, ça fait mal</button>
 
       <div className="pile">
         <p className="surtitre">Objectif {position + 1} sur {seance.objectifs.length}</p>
@@ -117,7 +132,17 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
         )}
       </div>
 
-      <button className="bouton-texte bas" onClick={() => onTerminer(blocs, minutes)}>Terminer la séance</button>
+      <button className="bouton-texte bas" onClick={terminer}>Terminer la séance</button>
+
+      <Confirmation
+        ouverte={confirmeVide}
+        titre="Aucun bloc noté"
+        texte="Aucun bloc noté. Terminer quand même ?"
+        libelleRester="Revenir à la séance"
+        libelleAction="Terminer quand même"
+        onRester={() => setConfirmeVide(false)}
+        onAction={() => { setConfirmeVide(false); onTerminer(blocs, minutes) }}
+      />
     </main>
   )
 }
