@@ -34,6 +34,9 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | D-03 | Icônes, pastille de prise et encadré d'avertissement (`src/composants/`) | Fait |
 | F2-04 | Base locale version 3 : nouvelles tables, écriture unique `ecrire()`, migration sans perte (`src/donnees/stockage.ts`) | Fait |
 | D-04 | Fenêtre de confirmation et erreur d'enregistrement affichée dans l'écran (`src/composants/Confirmation.tsx`) | Fait |
+| F2-05 | Profil : quatre prérequis facultatifs pour débloquer les exercices exigeants | Fait |
+| F2-08 | Moteur de synchronisation, pas encore branché sur l'app (`src/synchro/`) | Fait |
+| D-05 | Chrono plein écran : préparation sur encre, effort sur craie, repos sur résine | Fait |
 
 ## Ouvrir l'app
 
