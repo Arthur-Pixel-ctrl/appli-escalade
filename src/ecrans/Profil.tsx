@@ -15,7 +15,7 @@ interface Props {
 
 // Onglet Profil : le formulaire, les mises en garde et la sauvegarde des données.
 export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImportees, onCompte }: Props) {
-  const { email } = useSession()
+  const { email, chargement } = useSession()
   const [message, setMessage] = useState('')
   const fichier = useRef<HTMLInputElement>(null)
 
@@ -43,6 +43,13 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
       <ProfilFormulaire initial={profil} titre="Profil" libelleValider="Enregistrer le profil" onValider={onEnregistrer} />
       <section className="pile">
         <h2 className="sous-titre">À savoir et données</h2>
+        {/* Sans compte (et seulement si les comptes existent) : dire ce que ça change, sans insister. */}
+        {comptesDisponibles && !chargement && !email && (
+          <div className="pile">
+            <p className="texte-2">Tu n’as pas de compte. Ton plan d’ordinateur ne peut pas arriver ici.</p>
+            <button className="bouton-second" onClick={onCompte}>Recevoir mon code de connexion</button>
+          </div>
+        )}
         <div>
           {/* Sans configuration Supabase, la ligne n'apparaît pas : l'app reste sans compte. */}
           {comptesDisponibles && <button className="ligne" onClick={onCompte}><span>Compte</span><span>{email ?? 'Pas de compte'}</span></button>}

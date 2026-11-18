@@ -1,3 +1,5 @@
+import { comptesDisponibles } from '../compte/client.ts'
+import { useEnLigne } from '../compte/useEnLigne.ts'
 import { Icone } from '../composants/Icone.tsx'
 import type { Profil as TypeProfil } from '../donnees/profil.ts'
 import { appliquerMiseAJour } from '../miseAJour.ts'
@@ -30,14 +32,19 @@ export function MiseEnPageTelephone({
   onglet, onChoisirOnglet, onSeanceSolo, onSeanceGroupe, profil, majPrete,
   onOuvrirSeance, onEnregistrerProfil, onMisesEnGarde, onCompte, onDonneesImportees,
 }: Props) {
+  const enLigne = useEnLigne()
   return (
     <div className="app">
+      {/* Hors ligne : une simple information en haut, jamais une fenêtre, pour ne rien gêner. Sans comptes, il n'y a rien à envoyer. */}
+      {comptesDisponibles && !enLigne && (
+        <p className="bandeau hors-ligne" role="status">Hors ligne. Tout est gardé sur cet appareil, l’envoi se fera au retour du réseau.</p>
+      )}
       {/* Proposée seulement ici, jamais pendant une séance, pour ne rien faire perdre. */}
       {majPrete && (
         <button className="bandeau" onClick={appliquerMiseAJour}>Nouvelle version disponible · <b>Mettre à jour</b></button>
       )}
       {onglet === 'Aujourd’hui' && (
-        <Aujourdhui grimpeSouventEnGroupe={profil.grimpeSouventEnGroupe} onSeanceSolo={onSeanceSolo} onSeanceGroupe={onSeanceGroupe} />
+        <Aujourdhui grimpeSouventEnGroupe={profil.grimpeSouventEnGroupe} onCompte={onCompte} onSeanceSolo={onSeanceSolo} onSeanceGroupe={onSeanceGroupe} />
       )}
       {onglet === 'Bilans' && <Historique onOuvrir={onOuvrirSeance} />}
       {onglet === 'Programme' && <EnConstruction titre="Programme" />}

@@ -342,6 +342,11 @@ form.pile-large { gap: 24px; }
 .bandeau { width: 100%; min-height: 48px; padding: calc(8px + env(safe-area-inset-top)) 20px 8px; background: var(--accent); color: var(--sur-accent); font-size: 14px; font-weight: 500; text-align: center; }
 .bandeau.hors-ligne { background: var(--texte); color: var(--fond); }
 .bandeau + .ecran { padding-top: 24px; }
+/* Aujourd'hui : mention de synchro à côté de la date ; invitation à créer un compte (dans le flux, masquable, jamais par-dessus une action) */
+.ligne-date { display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: var(--espace-3); }
+.invitation-compte { display: flex; align-items: stretch; border: 2px solid var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface); }
+.invitation-texte { flex: 1; min-height: 48px; padding: var(--espace-2) var(--espace-4); font-size: 15px; font-weight: 600; text-align: left; color: var(--texte); }
+.invitation-fermer { flex: none; width: 48px; min-height: 48px; font-size: 24px; font-weight: 700; color: var(--texte); }
 
 /* Chargement : silhouettes en pierre, jamais de rond qui tourne */
 .silhouette { background: var(--surface-creuse); border-radius: var(--rayon-controle); animation: silhouette 1.2s ease-in-out infinite alternate; }
