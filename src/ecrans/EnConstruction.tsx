@@ -3,6 +3,7 @@ export function EnConstruction({ titre }: { titre: string }) {
   return (
     <main className="ecran">
       <div className="pile">
+        <p className="surtitre">En construction</p>
         <h1 className="titre">{titre}</h1>
         <p className="texte-2">Cet écran arrive dans un prochain lot.</p>
       </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, depuisReponse3, versReponse3, type Profil, type Reponse3 } from '../donnees/profil.ts'
 import { SALLES } from '../donnees/salles.ts'
 
@@ -29,16 +29,25 @@ function Choix<T extends string | number | boolean>({ legende, options, valeur, 
 export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: Props) {
   const [p, setP] = useState<Profil>(initial)
   const [enregistre, setEnregistre] = useState(false)
+  const [prenomManquant, setPrenomManquant] = useState(false)
+  const champPrenom = useRef<HTMLInputElement>(null)
   const modifier = <C extends keyof Profil>(champ: C, valeur: Profil[C]) => { setP((avant) => ({ ...avant, [champ]: valeur })); setEnregistre(false) }
   const basculerDouleur = (zone: Profil['douleursEnCours'][number]) =>
     modifier('douleursEnCours', p.douleursEnCours.includes(zone) ? p.douleursEnCours.filter((z) => z !== zone) : [...p.douleursEnCours, zone])
 
   return (
-    <form className="pile-large" onSubmit={(e) => { e.preventDefault(); onValider(p); setEnregistre(true) }}>
+    <form className="pile-large" noValidate onSubmit={(e) => {
+      e.preventDefault()
+      // Sans prénom, on ne valide pas : message sous le champ et focus dessus.
+      if (p.prenom.trim() === '') { setPrenomManquant(true); champPrenom.current?.focus(); return }
+      onValider(p); setEnregistre(true)
+    }}>
       <h1 className="titre moyen">{titre}</h1>
 
-      <label className="champ">Prénom
-        <input name="prenom" autoComplete="off" value={p.prenom} onChange={(e) => modifier('prenom', e.target.value)} />
+      <label className={prenomManquant ? 'champ erreur' : 'champ'}>Prénom
+        <input ref={champPrenom} name="prenom" autoComplete="off" aria-invalid={prenomManquant} aria-describedby={prenomManquant ? 'erreur-prenom' : undefined} value={p.prenom}
+          onChange={(e) => { modifier('prenom', e.target.value); if (e.target.value.trim() !== '') setPrenomManquant(false) }} />
+        {prenomManquant && <span id="erreur-prenom" className="message-erreur" role="alert">Écris ton prénom pour continuer.</span>}
       </label>
 
       <Choix legende="Tu grimpes surtout" colonnes="deux" valeur={p.disciplinePrincipale} onChange={(v) => modifier('disciplinePrincipale', v)}
@@ -105,7 +114,9 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
         <input name="objectif" autoComplete="off" placeholder="Par exemple 7B en bloc…" value={p.objectif} onChange={(e) => modifier('objectif', e.target.value)} />
       </label>
 
-      <h2 className="sous-titre">Pour débloquer les exercices exigeants</h2>
+      {/* Prérequis (F2-05) : regroupés sur une fiche pour les distinguer du reste du profil. */}
+      <section className="fiche pile-large" aria-labelledby="titre-prerequis">
+      <h2 className="sous-titre" id="titre-prerequis">Pour débloquer les exercices exigeants</h2>
       <p className="texte-3">Si tu ne sais pas, laisse “Je ne sais pas” : par prudence, les exercices concernés ne te seront pas proposés.</p>
 
       <div className="entete">
@@ -126,6 +137,7 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
 
       <Choix<Reponse3> legende="Tu sais grimper et chuter en tête ?" colonnes="trois" valeur={versReponse3(p.grimpeEnTete)} onChange={(v) => modifier('grimpeEnTete', depuisReponse3(v))}
         options={[{ valeur: 'oui', nom: 'Oui' }, { valeur: 'non', nom: 'Non' }, { valeur: 'inconnu', nom: 'Je ne sais pas' }]} />
+      </section>
 
       <button className="bouton principal centre" type="submit"><strong>{libelleValider}</strong></button>
       <p className="texte-3" role="status" aria-live="polite">{enregistre ? 'Profil enregistré.' : ''}</p>
