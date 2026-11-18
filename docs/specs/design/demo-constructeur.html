@@ -135,7 +135,7 @@ h2.t3 { font-family: var(--police-titre); font-weight: 800; font-size: 22px; lin
 <header class="barre">
   <span class="marque" translate="no">
     <svg width="26" height="22" viewBox="0 0 30 24" aria-hidden="true"><path d="M3 15c0-6 5-12 12-12 7 0 12 4 12 9 0 6-6 10-13 10C7 22 3 20 3 15z" fill="#0F5A54" stroke="#1D1C19" stroke-width="2"/><circle cx="15" cy="12.5" r="3" fill="#FBFAF7" stroke="#1D1C19" stroke-width="1.5"/></svg>
-    Appli escalade</span>
+    Get me to 9a</span><!-- consolidation 17/11 : nom de l'app (décision du 18/11) -->
   <nav class="nav" aria-label="Navigation principale">
     <a>Tableau de bord</a><a aria-current="page">Plan</a><a>Bibliothèque</a><a>Bilans</a><a>Profil</a>
   </nav>
@@ -188,17 +188,17 @@ h2.t3 { font-family: var(--police-titre); font-weight: 800; font-size: 22px; lin
     <div class="ligne-titre">
       <div>
         <p class="mention">Cycle hiver · du 3 nov. au 25 janv.</p>
-        <h1 id="t-plan">Bloc 1 · Force des doigts</h1>
+        <h1 id="t-plan">Phase 1 · Force des doigts</h1><!-- consolidation 17/11 : « Phase » pour la période de 4 semaines (décision B9) -->
       </div>
-      <div class="vues" role="group" aria-label="Vue"><button aria-pressed="false">12 semaines</button><button aria-pressed="false">Bloc</button><button aria-pressed="true">Semaine</button></div>
+      <div class="vues" role="group" aria-label="Vue"><button aria-pressed="false">12 semaines</button><button aria-pressed="false">Phase</button><button aria-pressed="true">Semaine</button></div>
     </div>
 
     <div class="cycle" aria-label="Les 12 semaines du cycle">
-      <div class="bloc actuel"><div class="entete-bloc"><b>Bloc 1 · Doigts</b><span class="mention">2 objectifs</span></div>
+      <div class="bloc actuel"><div class="entete-bloc"><b>Phase 1 · Doigts</b><span class="mention">2 objectifs</span></div>
         <div class="semaines"><span class="sem faite">S1</span><span class="sem ouverte" aria-current="true">S2</span><span class="sem">S3</span><span class="sem allegee" title="Semaine allégée">S4</span></div></div>
-      <div class="bloc"><div class="entete-bloc"><b>Bloc 2 · Puissance</b><span class="mention">1 objectif</span></div>
+      <div class="bloc"><div class="entete-bloc"><b>Phase 2 · Puissance</b><span class="mention">1 objectif</span></div>
         <div class="semaines"><span class="sem">S5</span><span class="sem">S6</span><span class="sem">S7</span><span class="sem allegee">S8</span></div></div>
-      <div class="bloc"><div class="entete-bloc"><b>Bloc 3 · Résistance</b><span class="mention">À choisir</span></div>
+      <div class="bloc"><div class="entete-bloc"><b>Phase 3 · Résistance</b><span class="mention">À choisir</span></div>
         <div class="semaines"><span class="sem">S9</span><span class="sem">S10</span><span class="sem">S11</span><span class="sem allegee">S12</span></div></div>
     </div>
 
@@ -254,10 +254,10 @@ h2.t3 { font-family: var(--police-titre); font-weight: 800; font-size: 22px; lin
 
         <div class="element garde">
           <div class="statut"><span class="mention" style="color:var(--accent)">Gardé</span><button class="lien" style="font-size:14px">Annuler</button></div>
-          <p>Lundi : ajouter 10 min de mobilité des épaules après l'échauffement. <sup>1</sup></p>
+          <p>Lundi : ajouter 10 min de mobilité des épaules après l'échauffement.</p>
         </div>
         <div class="element">
-          <p>Déplacer « Puissance au pan » de vendredi à samedi, pour laisser 48 h après jeudi. <sup>1</sup></p>
+          <p>Déplacer « Puissance au pan » de vendredi à samedi, pour laisser 48 h après jeudi. <sup>1, 2</sup></p>
           <div class="choix3"><button class="garde">Garder</button><button>Modifier</button><button>Rejeter</button></div>
         </div>
         <div class="element rejete">
@@ -267,8 +267,9 @@ h2.t3 { font-family: var(--police-titre); font-weight: 800; font-size: 22px; lin
 
         <p class="mention" style="margin-top:4px">Sources</p>
         <ol class="sources">
-          <li>Synthèse théorique du projet : 48 h entre deux séances maximales</li>
-          <li>Escalade Training : les secrets de la planification (Arc, Di Domenico), cité par son titre</li>
+          <!-- consolidation 17/11 : la règle des 48 h ne vient pas d'un livre que nous n'avons pas lu ; sources corrigées -->
+          <li>Synthèse théorique du projet, « Quarante-huit heures entre séances maximales » : pas deux séances maximales de suite</li>
+          <li>Méthode reconnue : López, 48 h entre deux séances sur une même préhension</li>
         </ol>
       </div>
       <p class="annotation" aria-hidden="true">

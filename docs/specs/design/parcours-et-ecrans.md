@@ -6,6 +6,8 @@ Les règles de planification (quotas, 48 h, prérequis), les textes de l'assista
 de l'expert entraînement ; le modèle de données et la navigation technique viennent de l'architecte. Ce document dit
 **où et comment** ces éléments s'affichent ; la section 6 liste les données dont chaque écran a besoin.
 
+> **Consolidation du 17/11** (décisions de `docs/decisions-phase-1.md` appliquées ; chaque correction porte la mention « (consolidation 17/11) ») : l'app s'appelle **« Get me to 9a »** ; connexion par **code à 6 chiffres** reçu par e-mail, jamais par lien (B1), avec **liste d'invités** (B2) ; la période de 4 semaines s'appelle **« Phase »** (B9 : « Phase 1 », « Vue phase », « Objectifs de la phase ») ; **aucune séance ne se lance sur ordinateur** (B12) ; « Forme du jour » gardée et branchée en phase 4 (B10) ; petits ajustements sur téléphone : déplacer ou sauter une séance (B11) ; assistant sur ordinateur seulement, Haiku par défaut, coût estimé affiché avant chaque demande (B5 à B7). Les tâches et leur ordre sont dans `docs/backlog-v2.md`.
+
 Conventions : identifiant d'écran `T-xx` (téléphone) et `O-xx` (ordinateur). Pour chaque écran : **But**, **Contenu**,
 **Action principale** (une seule, en résine), **Autres actions**, **États**, **Adaptation**, **Accessibilité**.
 Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation ni emoji.
@@ -36,8 +38,8 @@ Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation
 | Profil | Profil et réglages |
 | — | Bouton « Assistant » (panneau latéral, toujours à droite) |
 
-Sur ordinateur, les écrans de séance (solo, groupe, chrono) restent accessibles depuis le tableau de bord
-(« Faire la séance ici »), dans une colonne centrée de 480 px. Sur téléphone, les écrans de planification ne sont pas
+(consolidation 17/11, B12) Sur ordinateur, aucune séance ne se lance : le tableau de bord dit « Les séances se lancent
+depuis ton téléphone ». Le débrief et l'aperçu d'un chrono restent consultables, dans une colonne centrée de 480 px. Sur téléphone, les écrans de planification ne sont pas
 proposés : l'onglet Programme montre le plan et dit « Pour modifier ton plan, ouvre l'app sur un ordinateur ».
 
 ### États communs à tous les écrans
@@ -56,10 +58,10 @@ proposés : l'onglet Programme montre le plan et dit « Pour modifier ton plan, 
 ## 1. Parcours clés
 
 ### P1. Premier lancement sur un téléphone neuf
-1. **T-01 Bienvenue** : deux phrases, « Recevoir mon lien de connexion ».
-2. **T-02 E-mail** : champ e-mail, « Recevoir le lien ».
-3. **T-03 Lien envoyé** : « Ouvre le lien reçu sur ce téléphone. » L'utilisateur ouvre sa messagerie, touche le lien,
-   l'app s'ouvre connectée.
+1. **T-01 Bienvenue** : deux phrases, « Recevoir mon code de connexion ». (consolidation 17/11, B1)
+2. **T-02 E-mail** : champ e-mail, « Recevoir mon code de connexion ».
+3. **T-03 Code envoyé** : « Saisis le code reçu. » L'utilisateur lit le code à 6 chiffres dans sa messagerie et le
+   saisit dans l'app, qui se connecte.
 4. Si le compte est vide : **T-05 Profil** (formulaire actuel, plus les prérequis), puis **T-15 Mises en garde** une fois.
 5. **T-06 Aujourd'hui**. S'il n'y a pas encore de plan : état vide qui renvoie vers l'ordinateur et propose une séance libre.
 
@@ -73,7 +75,7 @@ proposés : l'onglet Programme montre le plan et dit « Pour modifier ton plan, 
 Rien n'est jamais effacé du téléphone pendant la reprise.
 
 ### P3. Construire un cycle à la main sur ordinateur
-1. **O-01 Connexion** (même lien e-mail), puis **O-02 Tableau de bord** vide : « Crée ton premier cycle ».
+1. **O-01 Connexion** (même code par e-mail ; consolidation 17/11), puis **O-02 Tableau de bord** vide : « Crée ton premier cycle ».
 2. **O-03 Vue 12 semaines** : date de début, nombre de séances par semaine (2 à 5), accent de chaque bloc,
    jusqu'à 2 objectifs par bloc, réglage de la semaine allégée.
 3. **O-04 Vue bloc** : poser des séances sur les jours de la semaine 1 ; « Recopier sur les semaines 2 et 3 ».
@@ -83,7 +85,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 
 ### P4. Construire ou ajuster avec l'assistant
 1. Bouton « Assistant » : le panneau **O-10** s'ouvre à droite, le plan reste visible.
-2. L'utilisateur écrit sa demande ou choisit une demande toute faite (« Brouillon de cycle », « Brouillon de bloc »,
+2. L'utilisateur écrit sa demande ou choisit une demande toute faite (« Brouillon de cycle », « Brouillon de cette phase » (consolidation 17/11),
    « Ajuster cette semaine »).
 3. L'assistant répond par un **brouillon** : une liste d'éléments (ajouter, retirer, déplacer, remplacer, régler),
    chacun avec sa raison et ses sources. Survoler un élément surligne la case concernée dans le plan.
@@ -100,8 +102,8 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 3. **T-11 Trois questions** puis **T-12 Débrief**. La séance réalisée est rattachée à la séance prévue ;
    elle part au compte au retour du réseau.
 
-### P6. Faire le point en fin de bloc (ordinateur)
-1. Semaine 4 : le tableau de bord rappelle les tests repères du bloc.
+### P6. Faire le point en fin de phase (ordinateur)
+1. Semaine 4 : le tableau de bord rappelle les tests repères de la phase. (consolidation 17/11)
 2. **O-11 Bilans** : courbes par qualité, comparaison avec le bloc précédent, séances faites et prévues.
 3. Retour au plan pour ajuster le bloc suivant, à la main ou avec l'assistant.
 
@@ -111,30 +113,32 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 
 ### T-01 Bienvenue (nouveau, remplace l'actuel `Bienvenue`)
 - **But** : dire en deux phrases ce que fait l'app et lancer la connexion.
-- **Contenu** : titre `affiche` « Ton carnet d'entraînement », deux phrases (« Tu prépares ton plan sur ordinateur,
+- **Contenu** : surtitre « Get me to 9a » (consolidation 17/11 : nom de l'app), titre `affiche` « Ton carnet d'entraînement », deux phrases (« Tu prépares ton plan sur ordinateur,
   tu le suis ici, à la salle, même sans réseau. Tes séances restent à toi. »), une annotation au trait de topo.
-- **Action principale** : « Recevoir mon lien de connexion ».
-- **Autres actions** : bouton discret « Continuer sans compte » (voir question Q2) ; si choisi, l'app reste locale
+- **Action principale** : « Recevoir mon code de connexion » (consolidation 17/11).
+- **Autres actions** : bouton discret « Continuer sans compte » (décision B3) ; si choisi, l'app reste locale
   comme aujourd'hui et Profil rappelle l'intérêt du compte.
 - **États** : hors ligne → bouton principal désactivé, phrase « La connexion demande du réseau. Tu peux commencer sans
   compte et te connecter plus tard. »
 - **Adaptation** : sur ordinateur, même contenu dans une fiche de 480 px centrée.
 
 ### T-02 Saisie de l'e-mail
-- **But** : obtenir l'adresse où envoyer le lien.
+- **But** : obtenir l'adresse où envoyer le code (consolidation 17/11 : code et non lien, B1).
 - **Contenu** : titre « Ton e-mail », champ `type="email"`, `autocomplete="email"`, `spellcheck=false`, aide « On t'envoie
-  un lien. Pas de mot de passe. »
-- **Action principale** : « Recevoir le lien ». Reste active ; pendant l'envoi : « Envoi… ».
+  un code à 6 chiffres. Pas de mot de passe. »
+- **Action principale** : « Recevoir mon code de connexion ». Reste active ; pendant l'envoi : « Envoi… ».
 - **États** : e-mail mal écrit → message sous le champ « Vérifie l'adresse : il manque le @. » et focus sur le champ ;
-  échec réseau → « Le lien n'est pas parti. Vérifie le réseau, puis réessaie. »
+  échec réseau → « Le code n'est pas parti. Vérifie le réseau, puis réessaie. » ; adresse absente de la liste d'invités (B2)
+  → « Cette adresse n'est pas sur la liste d'invités. Demande à Arthur de l'ajouter. »
 
 ### T-03 Lien envoyé
-- **But** : faire patienter et guider vers la messagerie.
-- **Contenu** : « Regarde ta boîte mail », l'adresse en chasse fixe, « Ouvre le lien sur ce téléphone. Il marche
-  pendant 1 h. » (durée réelle donnée par l'architecte), aide « Rien reçu ? Regarde dans les indésirables. »
-- **Action principale** : aucune action résine (on attend) ; bouton second « Renvoyer le lien » (actif après 60 s,
-  avec le décompte affiché) ; discret « Changer d'adresse ».
-- **États** : lien expiré à l'ouverture → écran « Ce lien a expiré » avec « Recevoir un nouveau lien ».
+(consolidation 17/11 : devient « Code envoyé », décision B1 ; réalisé dans l'écran Compte, tâche F2-07)
+- **But** : faire saisir le code reçu.
+- **Contenu** : « Regarde ta boîte mail », l'adresse en chasse fixe, champ code (`inputMode="numeric"`,
+  `autocomplete="one-time-code"`), « Saisis le code reçu. Il est valable 1 h. », aide « Rien reçu ? Regarde dans les indésirables. »
+- **Action principale** : « Me connecter » ; bouton second « Renvoyer le code » (actif après 60 s, avec le décompte
+  affiché) ; discret « Changer d'adresse ».
+- **États** : code faux ou expiré → message sous le champ et « Renvoyer le code ».
 
 ### T-04 Reprise des données (nouveau)
 - **But** : rattacher au compte ce qui existe déjà sur le téléphone, sans rien perdre.
@@ -144,7 +148,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   par défaut le plus récent, date affichée).
 - **Action principale** : « Ajouter à mon compte ».
 - **Autres actions** : discret « Plus tard » (les données restent locales, la question revient dans Profil).
-- **États** : envoi en cours → jauge « 8 séances sur 14 » ; erreur → « La reprise s'est arrêtée à 8 séances sur 14.
+- **États** (consolidation 17/11 : la jauge « n sur N » et la carte « Dans ton compte » sont abandonnées, voir architecture § 3.7 ; réalisé par F2-09) : envoi en cours → « Envoi en cours… » au lieu de la jauge « 8 séances sur 14 » ; erreur → « La reprise s'est arrêtée à 8 séances sur 14.
   Rien n'est perdu : réessaie quand le réseau revient. » ; hors ligne → bouton désactivé avec la raison.
 - **Accessibilité** : la jauge a un `aria-label` qui dit le nombre ; le message final est annoncé (`role="status"`).
 
@@ -162,12 +166,12 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 - **But** : savoir quoi faire aujourd'hui et le commencer en un geste.
 - **Contenu** (voir `demo-aujourdhui.png`) :
   - en-tête en chasse fixe : date, état de synchronisation ;
-  - mention « Bloc 1 · doigts · semaine 2 sur 4 » (et « SEMAINE ALLÉGÉE » si c'est le cas) ;
+  - mention « Phase 1 · doigts · semaine 2 sur 4 » (consolidation 17/11, B9) (et « SEMAINE ALLÉGÉE » si c'est le cas) ;
   - titre `affiche` : nom de la séance ;
   - **fiche de la séance** : étiquette de dureté (facile, moyenne, dure), durée, étapes numérotées avec leur durée ;
   - deux boutons : « Je grimpe seul » (sous-titre « Séance guidée, chrono intégré ») et « Je grimpe en groupe »
     (sous-titre « 2 objectifs, 1 h 30 ») ; le **mode habituel** du profil est le bouton principal, l'autre est second ;
-  - ligne « Forme du jour » (voir Q5) ; la ligne « Assiette du jour » est retirée jusqu'à la phase 7 ;
+  - ligne « Forme du jour » (décision B10 : gardée, branchée en phase 4 sur les contrôles du jour, tâche C-03 ; retirée en phase 2 pour ne pas laisser de bouton sans action) ; la ligne « Assiette du jour » est retirée jusqu'à la phase 7 ;
   - « Cette semaine » : 7 cases (fait, aujourd'hui, prévu, repos) et la phrase « Prochaine : jeudi, technique (facile) ».
 - **Signaux** : si une douleur est déclarée dans le profil, un signal d'arrêt (rubalise brique) en haut :
   « Douleur au coude déclarée. Les exercices à risque sont retirés de ta séance. » avec « Voir les mises en garde ».
@@ -187,13 +191,14 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 
 ### T-07 Programme (adapté)
 - **But** : voir le plan en cours sur le téléphone.
-- **Contenu** : en haut, les 3 blocs en bande (comme la démo du constructeur, version compacte : S1 à S12, semaine
+- **Contenu** : en haut, les 3 phases en bande (consolidation 17/11) (comme la démo du constructeur, version compacte : S1 à S12, semaine
   en cours en encre, semaines allégées hachurées, semaines passées en résine douce) ; dessous, la semaine choisie en
   lignes de jours (comme la vue semaine de l'ordinateur, sans poignées) ; toucher une séance ouvre son aperçu (étapes,
   version solo et version groupe) avec « Faire cette séance maintenant ».
 - **Action principale** : aucune action résine par défaut ; dans l'aperçu d'une séance : « Faire cette séance maintenant ».
-- **Autres actions** : flèches « Semaine précédente », « Semaine suivante » (48 px) ; phrase en bas « Pour modifier
-  ton plan, ouvre l'app sur un ordinateur. »
+- **Autres actions** : flèches « Semaine précédente », « Semaine suivante » (48 px) ; dans l'aperçu d'une séance à venir
+  (consolidation 17/11, B11) : « Déplacer » (un autre jour de la même semaine) et « Sauter cette séance » (avec
+  confirmation) ; phrase en bas « Pour modifier le reste de ton plan, ouvre l'app sur un ordinateur. »
 - **États** : pas de plan → même état vide que T-06 ; plan pas encore arrivé (synchro) → « Ton plan arrive… »,
   puis contenu ; hors ligne → dernière version connue, avec sa date.
 
@@ -254,7 +259,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   synchronisation, « Se déconnecter »), « À savoir » (mises en garde), « Données » (sauvegarde, reprise, version).
 - **Action principale** : « Enregistrer le profil » (dans la section ouverte).
 - **États** : non connecté → section Compte : « Tu n'as pas de compte. Ton plan d'ordinateur ne peut pas arriver ici. »
-  avec « Recevoir mon lien de connexion » ; modification non enregistrée en quittant l'onglet → fenêtre de confirmation.
+  avec « Recevoir mon code de connexion » (consolidation 17/11) ; modification non enregistrée en quittant l'onglet → fenêtre de confirmation.
 
 ### T-15 Mises en garde (style seulement)
 - Les deux listes passent en signal d'arrêt (rubalise brique, « Arrête la séance et consulte ») et en avertissement
@@ -270,8 +275,8 @@ droite et le contenu se resserre ; en dessous de 1280 px, le panneau passe **par
 au lieu de le pousser.
 
 ### O-01 Connexion sur ordinateur
-- Même parcours que T-01 à T-03, dans une fiche centrée de 480 px. Le lien reçu doit être ouvert **sur l'ordinateur**
-  (le texte le dit). Après connexion : tableau de bord.
+- Même parcours que T-01 à T-03, dans une fiche centrée de 480 px : le code reçu se saisit sur l'ordinateur
+  (consolidation 17/11). Après connexion : tableau de bord.
 
 ### O-02 Tableau de bord
 - **But** : voir où on en est et aller au bon endroit.
@@ -279,8 +284,8 @@ au lieu de le pousser.
   - à gauche (8 colonnes) : titre `affiche` « Semaine 6 sur 12 » ; la bande des 12 semaines ; « Cette semaine » en
     lignes de jours avec l'état (faite, prévue, manquée) ; « Avertissements ouverts » (liste de rubalises, cliquables
     vers l'endroit du plan) ;
-  - à droite (4 colonnes) : fiche « Prochaine séance » (avec « Faire la séance ici » en discret) ; « Derniers tests »
-    (chiffres clés en chasse fixe et petite courbe) ; « Objectifs du bloc » (1 ou 2, avec l'avancée).
+  - à droite (4 colonnes) : fiche « Prochaine séance » (en lecture, avec « Les séances se lancent depuis ton téléphone » ; consolidation 17/11, B12) ; « Derniers tests »
+    (chiffres clés en chasse fixe et petite courbe) ; « Objectifs de la phase » (1 ou 2, avec l'avancée).
 - **Action principale** : « Ouvrir la semaine en cours » (vers O-05).
 - **États** :
   - *aucun cycle* : titre « Crée ton premier cycle », trois choix en fiches : « Partir de zéro » (principal),
@@ -293,23 +298,26 @@ au lieu de le pousser.
 - **Contenu** :
   - en-tête : nom du cycle (modifiable en place), dates (date de début choisie, fin calculée), séances par semaine
     (choix 2 à 5) ;
-  - trois **colonnes de blocs**. Chaque bloc : titre « Bloc 1 », **accent** (liste des qualités : doigts, puissance,
-    résistance, endurance, technique…), **objectifs** (deux emplacements, voir ci-dessous), 4 lignes de semaines
+  - trois **colonnes de phases** (consolidation 17/11, B9). Chaque phase : titre « Phase 1 », **accent** (les cinq
+    qualités ou la technique, B13), **objectifs** (deux emplacements, voir ci-dessous), 4 lignes de semaines
     avec le nombre de séances, la dureté (petites étiquettes) et une barre de charge ; la 4e semaine porte
     « ALLÉGÉE » et un réglage d'allègement (choix encre parmi les valeurs données par l'expert, par défaut la plus prudente) ;
-  - chaque semaine est cliquable (ouvre O-05) ; chaque bloc a « Ouvrir le bloc » (O-04).
-- **Objectifs du bloc** : bouton « Choisir un objectif » ouvre une liste courte (proposée par les règles selon
+  - chaque semaine est cliquable (ouvre O-05) ; chaque phase a « Ouvrir la phase » (O-04) ;
+  - (consolidation 17/11) étiquette « BROUILLON » tant que le cycle n'est pas validé, et bouton second « Valider le cycle »
+    (confirmation : « Ton cycle apparaîtra sur ton téléphone. Tu pourras encore le modifier. »).
+- **Objectifs de la phase** : bouton « Choisir un objectif » ouvre une liste courte (proposée par les règles selon
   l'accent et le profil) avec une option « Écrire le mien » ; au plus 2 ; au-delà, le bouton est désactivé avec
-  « Deux objectifs au plus par bloc : retire-en un pour en choisir un autre. »
+  « Deux objectifs au plus par phase : retire-en un pour en choisir un autre. »
 - **Action principale** : « Ouvrir la semaine en cours » (ou « Ouvrir la semaine 1 » avant le début).
 - **Avertissements** : un repère ambre sur la case d'une semaine qui en contient ; un résumé en haut
-  (« 2 avertissements dans le bloc 1 »).
-- **États** : création → les blocs sont vides avec, dans chacun, « Choisis l'accent du bloc » et une annotation
+  (« 2 avertissements dans la phase 1 »).
+- **États** : création → les phases sont vides avec, dans chacune, « Choisis l'accent de la phase » et une annotation
   au trait de topo ; erreur d'enregistrement → bandeau « Changement pas encore enregistré, nouvel essai dans
   quelques secondes » (les changements restent à l'écran).
 
 ### O-04 Plan, vue bloc
-- **But** : répartir les séances sur les 4 semaines d'un bloc.
+(consolidation 17/11 : « Vue phase » à l'écran, B9)
+- **But** : répartir les séances sur les 4 semaines d'une phase.
 - **Contenu** : tableau 4 lignes (semaines) × 7 colonnes (jours) ; chaque case contient 0 ou 1 séance sous forme
   d'étiquette compacte (dureté, nom court, durée, icône solo ou groupe selon la version par défaut) ; ligne de charge
   à droite de chaque semaine ; avertissements en rubalise au-dessus du tableau.
@@ -329,7 +337,7 @@ au lieu de le pousser.
   dont les prérequis ne sont pas remplis est en pointillé avec l'étiquette « PRÉREQUIS » ; elle reste glissable
   (avertir sans bloquer).
 - **Colonne Semaine** :
-  - en-tête : mention du cycle, titre du bloc, choix de vue « 12 semaines / Bloc / Semaine », bande des 12 semaines ;
+  - en-tête : mention du cycle, titre de la phase, choix de vue « 12 semaines / Phase / Semaine », bande des 12 semaines ;
   - ligne « Semaine 2 · 10 au 16 nov. », résumé « 3 séances · 2 dures », **action principale « Ajouter une séance »** ;
   - avertissements de la semaine (rubalise ambre) avec « Pourquoi ? » et une correction en un clic ;
   - 7 lignes de jours. Jour de repos : bande creuse « Repos ». Jour avec séance : **fiche de séance**.
@@ -422,7 +430,7 @@ au lieu de le pousser.
 - **États** : champ obligatoire manquant → message sous le champ, focus sur le premier ; quitter avec des changements →
   confirmation ; réglage de chrono incohérent (0 série) → message sous le champ.
 
-### O-09 Choisir les objectifs d'un bloc (fenêtre légère depuis O-03 ou O-04)
+### O-09 Choisir les objectifs d'une phase (fenêtre légère depuis O-03 ou O-04)
 - **But** : choisir jusqu'à 2 objectifs spécifiques.
 - **Contenu** : liste proposée par les règles (libellé, test repère associé, pourquoi il va avec l'accent), option
   « Écrire le mien » (libellé, test repère facultatif). Compteur « 1 sur 2 ».
@@ -467,21 +475,26 @@ au lieu de le pousser.
   - *réponse illisible* : « La réponse n'a pas pu être lue. Rien n'a été changé dans ton plan. » avec « Réessayer » ;
   - *hors ligne* : champ désactivé, « L'assistant a besoin du réseau. Ton plan reste modifiable à la main. » ;
   - *proposition sur un plan qui a changé depuis* : éléments devenus impossibles grisés avec « Ne s'applique plus ».
-- **Téléphone** : l'assistant n'est pas proposé sur téléphone en v2 (voir Q4).
+- **Coût** (consolidation 17/11, B6) : sous le champ de saisie, « Coût estimé : ≈ 0,01 $ avec Haiku (au plus 0,02 $ s'il faut
+  une relance) », mis à jour avant chaque envoi ; le modèle (Haiku par défaut, Sonnet en option dans les réglages) est nommé.
+- **Sources** (consolidation 17/11) : un livre n'est jamais la source d'une règle ou d'un chiffre ; il s'affiche à part,
+  sous « Lecture conseillée ».
+- **Téléphone** : l'assistant n'est pas proposé sur téléphone (décision B7).
 
 ### O-11 Bilans (ordinateur)
-- **But** : voir sa progression et comparer les blocs.
-- **Onglets** (choix encre, état dans l'adresse) : « Qualités », « Blocs », « Séances ».
+- **But** : voir sa progression et comparer les phases.
+- **Onglets** (choix encre, état dans l'adresse) : « Qualités », « Phases », « Séances » (consolidation 17/11).
   - **Qualités** : 5 petits graphiques côte à côte (doigts, traction et gainage, puissance, résistance, endurance),
-    un par qualité, même échelle de temps ; points des tests repères reliés ; séparation verticale à chaque fin de bloc ;
+    un par qualité, même échelle de temps ; points des tests repères reliés ; séparation verticale à chaque fin de phase ;
     valeur actuelle en `chiffre-cle` au-dessus. Une seule couleur par graphique (encre), la dernière valeur en résine.
     Pas de graphique à 5 couleurs : il concurrencerait les couleurs de prises.
-  - **Blocs** : tableau comparatif (séances prévues, faites, charge totale, charge moyenne par semaine, tests de fin de
-    bloc, objectifs atteints ou non), un bloc par colonne.
+  - **Phases** : tableau comparatif (séances prévues, faites, charge totale, charge moyenne par semaine, tests de fin de
+    phase, objectifs atteints ou non), une phase par colonne. Repère de traction tracé seulement si le profil en a
+    choisi un (B14).
   - **Séances** : tableau de l'historique (date, nom, mode, durée, effort, charge, prévue ou libre), filtrable et
     triable ; ligne cliquable → débrief.
 - **Action principale** : « Saisir un test repère » (fenêtre : qualité, test, valeur, date).
-- **États** : aucun test → « Les courbes apparaissent après tes premiers tests de fin de bloc (semaine 4). » avec
+- **États** : aucun test → « Les courbes apparaissent après tes premiers tests de fin de phase (semaine 4). » avec
   annotation vers « Saisir un test repère » ; une seule mesure → point seul et « Encore un test pour voir une tendance ».
 - **Accessibilité** : chaque graphique a un résumé texte (« Doigts : 32 kg en S4, 35 kg en S8, en hausse ») et un
   tableau caché accessible.
@@ -494,7 +507,7 @@ au lieu de le pousser.
      grimpe en tête, avec une aide par ligne et la date de mise à jour.
   3. **Douleurs en cours** : zones ; aide « Une douleur déclarée écarte les exercices à risque. »
   4. **Ta salle** : salle, couleurs et fourchettes (pastilles de prise), modifiables.
-  5. **Compte** : e-mail, appareils connectés si l'architecte le permet, « Se déconnecter ».
+  5. **Compte** : e-mail, « Se déconnecter » (consolidation 17/11 : la liste des appareils connectés est abandonnée, elle demanderait la clé secrète du serveur).
   6. **Assistant** : champ « Clé API Claude » (`type="password"`, bouton « Afficher », `autocomplete="off"`,
      `spellcheck=false`), aide « Elle reste sur cet appareil. Elle n'est jamais envoyée à notre serveur ni synchronisée.
      Chaque demande à l'assistant est payée avec ta clé. » ; état « Vérifiée le 17 nov. » / « Pas encore vérifiée » /
@@ -532,8 +545,9 @@ Règles d'affichage :
 
 | Situation | Texte |
 |---|---|
-| Bouton de connexion | Recevoir mon lien de connexion |
-| Lien envoyé | Regarde ta boîte mail. Ouvre le lien sur ce téléphone. |
+| Bouton de connexion | Recevoir mon code de connexion (consolidation 17/11) |
+| Code envoyé | Regarde ta boîte mail. Saisis le code reçu. Il est valable 1 h. |
+| Adresse non invitée | Cette adresse n'est pas sur la liste d'invités. Demande à Arthur de l'ajouter. |
 | Reprise | On a trouvé tes séances · Ajouter à mon compte |
 | Reprise faite | 14 séances ajoutées. Elles restent aussi sur ce téléphone. |
 | Hors ligne | Hors ligne. Tout est gardé sur cet appareil, l'envoi se fera au retour du réseau. |
@@ -548,6 +562,8 @@ Règles d'affichage :
 ---
 
 ## 6. Besoins de données
+
+> (consolidation 17/11) Chaque besoin ci-dessous est confronté au modèle dans `docs/architecture-v2.md` § 3.7 (couvert, ajouté, calculé ou abandonné).
 
 Liste pour l'architecte et l'expert entraînement (le gérant consolide). « Calculé » = à ne pas stocker.
 
@@ -620,6 +636,8 @@ Liste pour l'architecte et l'expert entraînement (le gérant consolide). « Cal
 ---
 
 ## 7. Questions pour Arthur
+
+> (consolidation 17/11) Tranchées le 17/11 (`docs/decisions-phase-1.md`) : Q1 oui (A1) ; Q2 oui, usage sans compte conservé (B3) ; Q3 fond clair, thème sombre reporté après la phase 4 (B8) ; Q4 ordinateur seulement (B7) ; Q5 gardée et rendue utile (B10) ; Q6 oui (B6) ; Q7 déplacer ou sauter une séance (B11) ; Q8 « Get me to 9a » (décision du 18/11) ; Q9 « Phase » (B9).
 
 - **Q1** : la direction « Topo » (magnésie, résine, étiquettes vissées, pastilles de prise, rubalise) te plaît-elle,
   et la couleur d'action pétrole (résine) te convient-elle ?

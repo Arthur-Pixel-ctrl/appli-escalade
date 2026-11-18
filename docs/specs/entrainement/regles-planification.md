@@ -20,7 +20,7 @@ Toute valeur chiffrée vient d'une de ces sources. Une valeur marquée `[CDC]` n
 **Vocabulaire**
 - *Qualités* (cinq) : `doigts`, `traction_gainage`, `puissance`, `resistance`, `endurance`.
 - *Volets* (quatre) : technique et tactique ; mental ; antagonistes, mobilité, prévention ; récupération et charge.
-- *Bloc* = mésocycle de 4 semaines. *Cycle* = 3 blocs = 12 semaines.
+- *Bloc* = mésocycle de 4 semaines. *Cycle* = 3 blocs = 12 semaines. **(consolidation 17/11, décision B9)** À l'écran et dans les messages, cette période s'appelle **« phase »** (« Phase 1 ») pour ne pas la confondre avec un bloc d'escalade ; dans le code, `PhaseCycle`. Ce document garde « bloc » au sens de mésocycle.
 - *Séance maximale* : une séance dont au moins une étape porte le marqueur `maximale` (suspensions max, bloc limite, pan Güllich, bloc sans pieds, intervalles de force, tractions lestées, blocages, tests maximaux).
 - *Séance dure* / *légère* : étiquette `durete` de la version de séance [MOD].
 - *Étape nerveuse* : étape dont le protocole porte `maximale`, `poutre_intensive`, `bloc_limite` ou `pan_gullich`.
@@ -37,7 +37,7 @@ Toute valeur chiffrée vient d'une de ces sources. Une valeur marquée `[CDC]` n
 | A1-3 | La semaine allégée est réglable (réduction de 40 à 60 %, 50 % par défaut) et désactivable. Quand elle est désactivée, aucun avertissement « semaine allégée oubliée » n'est émis. | [SYN] (Lattice : 40 à 60 % ; décharge inutile en rééducation, en entretien ou pour un débutant complet), [MOD] (`dechargeReductionPct` 50, plage 40 à 60) |
 | A1-4 | Une semaine de transition est conseillée entre deux cycles : grimpe libre, pas de séance maximale, pas de test. | [SYN] (« une semaine de transition entre cycles ») ; contenu de la semaine : [CDC] |
 | A1-5 | Accent tournant : chaque bloc met en avant **une** qualité (son « accent ») ; les quatre autres sont entretenues chaque semaine de charge (voir A.3). | [PLAN], [SYN] (non linéaire à accent tournant ; Rucci : un objectif mis en avant, les autres entretenus) |
-| A1-6 | Deux priorités au plus en même temps : l'accent du bloc et, éventuellement, un volet mis en avant (technique, mental). | [SYN] (Bechtel : deux priorités non concurrentes au plus) |
+| A1-6 | Deux priorités au plus en même temps : l'accent du bloc et, éventuellement, un volet mis en avant (technique, mental). (consolidation 17/11, décision B13) Une phase peut aussi avoir la **technique** pour accent : c'est souvent ce qui limite autour du 7A. | [SYN] (Bechtel : deux priorités non concurrentes au plus) |
 | A1-7 | Un même protocole d'accent est gardé tout le bloc (pas de changement de méthode au milieu d'un bloc). | [SYN] (López : changer trop tôt coûte ; tendon plus lent que le muscle, maintien d'un même protocole plusieurs semaines) |
 
 ### Mode « objectif daté »
@@ -71,7 +71,7 @@ Règle générale : force en premier, puissance ensuite, résistance en dernier,
 **Notes**
 - Les repères de force sont des moyennes de population, pas des seuils : écarts-types de 14 à 19 points [VER 3]. L'app les affiche comme « repère », jamais comme objectif à atteindre.
 - Repères doigts disponibles : en voie, suspension maximale 7 s sur 20 mm, charge totale de 124 % (7a), 134 % (7b+), 138 % (7c) du poids du corps ; en bloc, seulement des tranches larges (lest moyen de 24,2 kg pour V5–V7, 38,4 kg pour V8–V11) [SYN]. Sans test, le profil est traité comme « sous le repère ».
-- Repère traction : charge totale (corps + lest) sur 2 répétitions, en % du poids du corps : environ 145 % pour les hommes V7–V8, repère de rendements décroissants 165 % (hommes) et 135 % (femmes) [VER 3]. Le sexe n'est pas dans le profil : voir la question Q2 du compte rendu.
+- Repère traction : charge totale (corps + lest) sur 2 répétitions, en % du poids du corps : environ 145 % pour les hommes V7–V8, repère de rendements décroissants 165 % (hommes) et 135 % (femmes) [VER 3]. Le sexe n'est pas dans le profil. (consolidation 17/11, décision B14) Le repère n'est pas affiché par défaut ; chacun peut choisir dans son profil « aucun », « repère hommes » ou « repère femmes » (`Profil.repereTraction`).
 
 ### Cycles suivants : règle de décision
 
@@ -273,7 +273,7 @@ Une séance planifiée a deux versions prêtes, solo et groupe ; le mode se choi
 | A6-1 | Même qualité dominante, même dureté. | [CDC] |
 | A6-2 | Mêmes marqueurs à quota (`maximale`, `poutre_intensive`, `bloc_limite`, `pan_gullich`, `poutre`). Les marqueurs de la version groupe se déduisent de ses objectifs et de son mini-bloc, ils ne se saisissent pas. | [CDC] ; « rien de calculable n'est stocké » : CLAUDE.md |
 | A6-3 | 1 à 3 objectifs globaux. | [MOD], [PLAN] |
-| A6-4 | Chaque objectif borne le volume : nombre de blocs **et** nombre d'essais maximum par bloc, ou nombre de passages. Exemple : « 5 blocs durs à réglettes, 5 essais max chacun ». | [CDC] (exemple repris de la séance de groupe existante) |
+| A6-4 | Chaque objectif borne le volume : nombre de blocs **et** nombre d'essais maximum par bloc, ou nombre de passages. Exemple : « 3 blocs durs à réglettes, 4 essais max chacun » (consolidation 17/11 : l'ancien exemple à 5 × 5 est ramené à 3 × 4, décision B20). | [CDC] |
 | A6-5 | Chaque objectif reprend la difficulté et le repos de la fiche solo correspondante, exprimés en écart de cotation et en minutes. Bloc limite : 1 à 2 cotations au-dessus du niveau après travail, 4 min de repos conseillé (3 à 5). Intervalles de force : 1 à 2 cotations sous le maximum, 3 min. Blocs triplés : niveau flash, 1 min entre passages, 3 min entre séries. | [SYN] (fiches et minuteurs : 4 min entre essais de bloc limite, plage 3 à 5) |
 | A6-6 | Le repos pris pendant l'essai des autres compte, mais le chrono de repos conseillé reste affiché pour les objectifs maximaux. | [AUD, couverture groupe] |
 | A6-7 | Ce qui ne se fait pas à plusieurs (poutre, tractions lestées, chronos individuels) va dans un mini-bloc solo de 10 à 15 min, avant la grimpe pour la poutre (doigts frais), après pour les antagonistes. | [MOD] (`miniBloc` 10 à 15 min, `moment`), placement : [SYN] (travail intense à frais) |
@@ -303,7 +303,7 @@ Correspondances entre fiches solo et objectifs de groupe : voir `seances-types.m
 | Bidoigts | `doigts-abrahangs` (10 min ; 8 tenues sur 20 en bidoigts) | Jour léger, au moins 6 h après ou avant toute autre séance | Charges faibles seulement : les bidoigts exposent les lombricaux [SYN] ; jamais de bidoigt lesté | Partiel : pas de module bidoigts dédié |
 | Arqués | Aucune fiche courte à faible charge | — | Hörst proscrit l'arqué complet sur poutre ; force sur A2 multipliée par environ 31,5 ; flexion de l'articulation moyenne sous 80 à 90° [SYN] | **Trou** : ne pas créer sans source |
 | Traction à un bras | `traction-prises-decalees` (15 min, 10 tractions strictes) | Séance dure, après la grimpe | Hörst : 2 à 3 jours par semaine, décalage augmenté dès 5 répétitions propres [SYN] | Disponible (15 min) |
-| Planche | Aucune | — | — | **Trou**, et sens à confirmer (Q3) |
+| Planche | Aucune | — | — | **Trou** ; il s'agit de la planche de gymnastique (full planche), décision B15 (consolidation 17/11) |
 | Front lever | Aucune | — | Gainage au sol : travail de soutien, pas un levier principal [SYN] | **Trou** |
 | Souplesse de hanches | `mobilite-etirements-du-soir` (20 min), `mobilite-grand-ecart-lattice` (25 min, séance séparée) | Fin de séance ou jour léger | Les deux dépassent 15 min ; 8 à 12 semaines avant un progrès mesurable [SYN] | Partiel : manque une fiche de 10 à 15 min |
 | Peur de la chute | `mental-ecole-de-vol` (voie, tête, assureur formé) | Séance en voie | Formation à l'assurage dynamique et à la chute en tête exigée [SYN] | Voie : disponible. Bloc : **trou** (rien de sourcé [SYN]) |

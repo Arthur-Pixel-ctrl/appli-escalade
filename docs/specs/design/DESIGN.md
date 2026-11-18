@@ -1,6 +1,6 @@
 ---
 version: 1.0
-name: Topo, système de design de l'Appli escalade
+name: Topo, système de design de Get me to 9a
 description: |
   Un carnet de salle d'escalade. Fond « magnésie » gris craie à grain de poudre, encre presque noire,
   une seule couleur d'action, la « résine » (vert pétrole sombre), qui ne ressemble à aucune couleur de prise.
@@ -290,7 +290,9 @@ components:
     minHeight: 72px
 ---
 
-# Topo, le système de design de l'Appli escalade
+# Topo, le système de design de Get me to 9a
+
+> (consolidation 17/11) L'app s'appelle « Get me to 9a » (décision du 18/11) : marque de la barre du haut, titre, icône. Fond clair validé, thème sombre du soir reporté après la phase 4 (B8). La période de 4 semaines s'appelle « Phase » (B9).
 
 Ce document décrit l'identité visuelle de l'app : couleurs, polices, tailles, formes, composants et règles.
 Il fait foi pour tout écran. Les valeurs de l'en-tête deviennent les variables de `src/index.css`.
@@ -635,4 +637,4 @@ Le nom, le logo et les textes de Sisyf ne sont repris nulle part.
   posait problème, le chrono passerait en Atkinson Hyperlegible Mono 800 (un peu moins haut à largeur égale).
 - Google Fonts n'a pas pu être joint depuis l'espace de conception : les captures des démos utilisent les mêmes polices,
   tirées des paquets `@fontsource`. Les pages HTML, elles, chargent Google Fonts.
-- Pas de thème sombre en v2 : le chrono garde son plein écran contrasté. Un thème sombre complet est une question pour Arthur.
+- Pas de thème sombre en v2 : le chrono garde son plein écran contrasté. (consolidation 17/11) Thème sombre du soir reporté après la phase 4 (B8).

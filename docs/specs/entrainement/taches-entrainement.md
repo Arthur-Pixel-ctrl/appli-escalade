@@ -4,6 +4,8 @@ Expert entraînement, 17 novembre 2026. Tâches autonomes pour des développeurs
 
 ## À lire par le gérant avant de distribuer
 
+> **(consolidation 17/11)** L'ordre de distribution et les amendements de chaque tâche sont dans `docs/backlog-v2.md`, qui prime sur ce fichier. Points principaux : le dossier est déjà dans le dépôt ; les emplacements `src/regles/`, `src/assistant/`, `src/donnees/` sont confirmés ; l'**adaptateur stockage → vue** est la tâche **C-01** (phase 3), et le catalogue des objectifs spécifiques la tâche **C-02** ; `ZoneDouleur` (avec `'autre'`) s'importe de `src/donnees/profil.ts` ; la période de 4 semaines s'appelle « phase » à l'écran (B9) mais les noms internes du moteur restent ; les questions Q1 à Q10 ci-dessous sont tranchées (voir le tableau en fin de fichier).
+
 - **Copier ce dossier** (`/home/claude/v2/specs/entrainement/`) dans le dépôt sous `docs/specs/entrainement/` : les tâches citent ces chemins.
 - Emplacements proposés : `src/regles/` (moteur), `src/assistant/` (assistant), `src/donnees/` (catalogue). L'architecte peut les déplacer ; il suffit alors de changer les chemins dans les tâches.
 - Le moteur ne dépend **pas** du modèle de données v2 : il lit une « vue » (`SeanceVerif`, `PlanVerif`…) définie ici. Un adaptateur stockage → vue sera écrit quand le modèle v2 sera figé (hors de ce lot, voir « Besoins de données »).
@@ -39,14 +41,14 @@ Expert entraînement, 17 novembre 2026. Tâches autonomes pour des développeurs
 
 **Étapes**
 1. Dans `types.ts`, recopier les interfaces de B.1 et B.3 : `ProfilVerif`, `FicheVerif`, `EtapeVerif`, `ObjectifGroupeVerif`, `VersionVerif`, `SeanceVerif`, `SemaineVerif`, `ObjectifPersoVerif`, `PlanVerif`, `DouleurVerif`, `FormeVerif`, `ResultatTestVerif`, `ContexteVerif`, `Regles`, `Avertissement`, et le type `Jour = string`.
-2. Importer `Qualite`, `Marqueur`, `Prerequis`, `Contexte` depuis `src/donnees/bibliotheque/types.ts` au lieu de les redéfinir. `ZoneDouleur` : redéfinir localement en ajoutant `'autre'` (`'doigts' | 'poignet' | 'coude' | 'epaule' | 'genou' | 'dos' | 'autre'`), car `profil.ts` ne l'a pas encore.
+2. Importer `Qualite`, `Marqueur`, `Prerequis`, `Contexte` depuis `src/donnees/bibliotheque/types.ts` au lieu de les redéfinir. `ZoneDouleur` : (consolidation 17/11) l'importer de `src/donnees/profil.ts`, qui contient `'autre'` depuis la tâche F2-02.
 3. Ajouter `type Niveau = 'information' | 'fort'` et l'utiliser dans `Avertissement`.
 4. Dans `reglesParDefaut.ts`, exporter :
    - `REGLES_PAR_DEFAUT: Regles` avec exactement : `heuresEntreSeancesMax: 48`, `poutreIntensiveParSemaine: 2`, `blocLimiteParSemaine: 2`, `poutreParSemaine: 3`, `joursDoigtsMaxParSemaine: 4`, `reposEffortMaxS: 180`, `dechargeActive: true`, `dechargeReductionPct: 50`, `seuilSommeilH: 7`, `hausseChargeMaxPct: 10`, `dureeBlocNerveuxMaxMin: 60`, `toleranceDechargePts: 10`, `seuilDechargeOublieePct: 90`, `joursSansPoutreAvantObjectif: 3`. Un commentaire d'une ligne par valeur avec sa source (copier la colonne de commentaire de B.1).
    - `QUALITES_PHYSIQUES`, `MARQUEURS_NERVEUX`, `MARQUEURS_QUOTA`, `MARQUEURS_RISQUE_DOULEUR` (valeurs en B.2).
    - `NOMS_QUALITES: Record<Qualite, string>` : doigts « force des doigts », traction_gainage « traction et gainage », puissance « puissance », resistance « résistance », endurance « endurance », technique « technique », mental « mental », antagonistes « antagonistes », mobilite « mobilité », echauffement « échauffement ».
    - `NOMS_ZONES: Record<ZoneDouleur, string>` : doigts « doigts », poignet « poignet », coude « coude », epaule « épaule », genou « genou », dos « dos », autre « autre zone ».
-   - `EFFORT_PREVU_PAR_DEFAUT = { dure: 7, legere: 4 }` avec le commentaire « choix de l'app, à confirmer par Arthur ».
+   - `EFFORT_PREVU_PAR_DEFAUT = { dure: 7, legere: 4 }` avec le commentaire « décidé par Arthur le 17/11 (B17) » (consolidation 17/11).
 
 **Critères d'acceptation**
 - `npm run build` passe ; aucun `any`.
@@ -632,6 +634,8 @@ Mêmes champs qu'une fiche, pour être vérifiés comme elle : `qualite`, `duree
 ---
 
 # Questions pour Arthur
+
+> **(consolidation 17/11)** Tranchées le 17/11 (`docs/decisions-phase-1.md`) : Q1 → une phase de technique est possible (B13) ; Q2 → repère facultatif au choix dans le profil, aucun par défaut (B14) ; Q3 → planche de gymnastique (B15) ; Q4 → oui, 5e séance sans grimpe (B16) ; Q5 → 7 et 4, modifiables (B17) ; Q6 → mêmes séances à volume réduit (proposition gardée) ; Q7 → information (B18) ; Q8 → oui (B19) ; Q9 → oui, 3 blocs × 4 essais (B20) ; Q10 → recherche ciblée avant la phase 3 (B21).
 
 Référencées dans les autres documents par leur numéro.
 

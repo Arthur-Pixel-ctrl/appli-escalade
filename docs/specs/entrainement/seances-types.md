@@ -43,7 +43,7 @@ Chaque objectif reprend la difficulté, le volume et le repos d'une fiche solo [
 
 Les marqueurs ne sont pas saisis : ils viennent de la fiche de référence (A6-2). OG-03 et OG-12 n'ont pas de fiche de référence (trou T-05) : marqueurs vides.
 
-**Note sur l'exemple existant** « 5 blocs durs à réglettes, 5 essais max chacun » (séance de groupe d'exemple) : il représente jusqu'à 25 essais durs, plus du double de la fiche solo de bloc limite. OG-01 le ramène à l'intention de la fiche. Question à Arthur (Q9).
+**Note sur l'exemple existant** « 5 blocs durs à réglettes, 5 essais max chacun » (séance de groupe d'exemple) : il représente jusqu'à 25 essais durs, plus du double de la fiche solo de bloc limite. OG-01 le ramène à l'intention de la fiche. (consolidation 17/11) Décidé par Arthur (B20) : l'exemple devient « 3 blocs durs à réglettes, 4 essais max chacun » (tâche F2-01).
 
 ---
 
@@ -435,6 +435,8 @@ Mêmes séances que la semaine 3 du bloc, avec : séries divisées par deux, min
 ---
 
 ## C.4 Trous de la bibliothèque
+
+> (consolidation 17/11, décision B21) Une recherche ciblée, vérifiée et auditée comblera T-01, T-02, T-03, T-04, T-06, T-08 (planche de gymnastique et front lever, B15), T-09 et T-10 avant la phase 3. Tâches qui en dépendent : `docs/backlog-v2.md`, dernière section.
 
 Classés par effet sur la qualité des séances. Aucun n'est comblé ici : il faut une recherche sourcée avant d'écrire une fiche.
 

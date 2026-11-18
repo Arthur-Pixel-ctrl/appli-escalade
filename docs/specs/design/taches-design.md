@@ -6,6 +6,8 @@ fichiers que la tâche cite.**
 
 ## Avant de distribuer (pour le gérant)
 
+> **(consolidation 17/11)** L'ordre réel, les dépendances avec les vrais identifiants et les amendements de chaque tâche sont dans `docs/backlog-v2.md`, qui prime sur ce fichier. Points 1 à 3 ci-dessous : faits (les documents sont dans `docs/specs/design/`, et non `docs/design/` : lire ces chemins ainsi ; `CLAUDE.md` est aligné ; les dépendances sont reliées dans le tableau). Décisions appliquées : nom de l'app « Get me to 9a » (titre, manifeste, en-tête ordinateur, icône, accueil) ; « Phase » pour la période de 4 semaines (B9) ; connexion par code (B1), réalisée en phase 2 par F2-07 et F2-09, D-21 étant réduite ; D-10 fusionnée avec F2-14 ; aucune séance lancée sur ordinateur (B12) ; « Forme du jour » revient en phase 4 (B10, C-03).
+
 1. Copier dans le dépôt, dossier `docs/design/` : `DESIGN.md`, `parcours-et-ecrans.md`, `audit-redesign.md`,
    les trois `demo-*.html` et leurs `demo-*.png`. Les tâches citent ces chemins.
 2. Mettre à jour la ligne « Design » de `CLAUDE.md` : la règle « un seul accent » devient « un rôle par couleur ;
@@ -16,7 +18,7 @@ fichiers que la tâche cite.**
 4. Ordre conseillé : D-01 → D-02 → D-03 → D-04, puis D-05 à D-09 (une à la fois : elles touchent toutes
    `src/index.css`), puis D-10, puis la phase 3. Jamais deux tâches en parallèle sur `src/index.css` ou `src/App.tsx`.
 
-| Id | Titre | Phase | Modèle | Dépend de |
+| Id | Titre | Phase | Modèle | Dépend de (consolidation 17/11 : vrais identifiants) |
 |---|---|---|---|---|
 | D-01 | Polices et jetons de couleur | 2 | Sonnet | — |
 | D-02 | Composants de base en CSS | 2 | Sonnet | D-01 |
@@ -24,24 +26,24 @@ fichiers que la tâche cite.**
 | D-04 | Fenêtre de confirmation et erreurs en ligne | 2 | Sonnet | D-02 |
 | D-05 | Chrono plein écran à trois phases | 2 | Sonnet | D-02, D-03 |
 | D-06 | Barre d'onglets et écran Aujourd'hui | 2 | Sonnet | D-03 |
-| D-07 | Séance solo et séance en groupe | 2 | Sonnet | D-03, D-04 |
+| D-07 | Séance solo et séance en groupe | 2 | Sonnet | D-03, D-04, F2-01 |
 | D-08 | Trois questions, débrief, bilans, mises en garde | 2 | Sonnet | D-03, D-04 |
-| D-09 | Profil, bienvenue, erreur, chargement, icône de l'app | 2 | Haiku | D-02 |
-| D-10 | Coquille « bureau » (≥ 1024 px) | 2 | Sonnet | D-06, [archi] navigation |
-| D-11 | Bibliothèque filtrable | 3 | Sonnet | D-10, [entraînement] prérequis |
+| D-09 | Profil, bienvenue, erreur, chargement, icône de l'app | 2 | Haiku | D-02, F2-05 |
+| D-10 | Coquille « bureau » (≥ 1024 px) | 2 | Sonnet | **fusionnée dans F2-14** (F2-05, F2-10, D-06, D-09) |
+| D-11 | Bibliothèque filtrable | 3 | Sonnet | F2-14, C-01 (prérequis : E-03) |
 | D-12 | Fiche protocole en panneau latéral | 3 | Sonnet | D-11 |
-| D-13 | Création d'un exercice personnel | 3 | Sonnet | D-12, [archi] exercices personnels |
-| D-14 | Plan : vue 12 semaines | 3 | Sonnet | D-10, [archi] plan |
-| D-15 | Plan : vue bloc | 3 | Sonnet | D-14 |
-| D-16 | Plan : vue semaine et éditeur de séance | 3 | Sonnet | D-15, D-12 |
+| D-13 | Création d'un exercice personnel | 3 | Sonnet | D-12, F2-12 |
+| D-14 | Plan : vue 12 semaines | 3 | Sonnet | F2-12, F2-14, C-02 |
+| D-15 | Plan : vue phase (« vue bloc ») | 3 | Sonnet | D-14 |
+| D-16 | Plan : vue semaine et éditeur de séance | 3 | Sonnet | D-15, D-12, C-01, E-10 |
 | D-17 | Plan : glisser-déposer et alternatives clavier | 3 | Sonnet | D-16 |
-| D-18 | Avertissements de sécurité en direct (affichage) | 3 | Sonnet | D-16, [entraînement] règles |
-| D-19 | Tableau de bord | 3 | Sonnet | D-14, D-18 |
-| D-20 | Profil et réglages sur ordinateur, clé de l'assistant | 3 | Sonnet | D-10, [archi] profil v2 et clé |
-| D-21 | Connexion par lien e-mail et reprise des données | 4 | Sonnet | D-04, [archi] comptes |
-| D-22 | Aujourd'hui et Programme branchés sur le plan | 4 | Sonnet | D-06, D-07, D-14, [archi] plan |
-| D-23 | Panneau de l'assistant | 5 | Sonnet | D-16, D-18, D-20, [entraînement] assistant |
-| D-24 | Bilans sur ordinateur et téléphone | 6 | Sonnet | D-10, [archi] tests repères |
+| D-18 | Avertissements de sécurité en direct (affichage) | 3 | Sonnet | D-17, E-09, C-01 |
+| D-19 | Tableau de bord | 3 | Sonnet | D-14, D-18, F2-12 |
+| D-20 | Profil et réglages sur ordinateur, clé de l'assistant | 3 | Sonnet | F2-14, F2-05, D-09 |
+| D-21 | Compte, bienvenue et états réseau (réduite ; connexion par code) | **2** | Sonnet | F2-11, F2-14 (F2-07, F2-09 font les écrans T-02 à T-04) |
+| D-22 | Aujourd'hui et Programme branchés sur le plan | 4 | Sonnet | D-06, D-07, D-14, F2-12, F2-14, C-01, E-09 |
+| D-23 | Panneau de l'assistant | 5 | Sonnet | D-16, D-18, D-20, E-13, E-14, E-15, C-06, C-07 |
+| D-24 | Bilans sur ordinateur et téléphone | 6 | Sonnet | F2-14, C-08 |
 
 ---
 
@@ -97,6 +99,9 @@ Adapter l'adresse ou les clics pour atteindre l'écran de la tâche. Pour une ca
 - **Étapes** :
   1. `npm uninstall @fontsource-variable/geist` puis
      `npm install @fontsource-variable/big-shoulders-display @fontsource-variable/atkinson-hyperlegible-next @fontsource-variable/atkinson-hyperlegible-mono @fontsource/gochi-hand`.
+  1 bis. (consolidation 17/11) Nom de l'app : `index.html` → `<title>Get me to 9a</title>` et
+     `<meta name="apple-mobile-web-app-title" content="Get me to 9a" />` ; manifeste de `vite.config.ts` → `name` et
+     `short_name` « Get me to 9a ». Ne renommer ni le dépôt, ni l'adresse, ni la base Dexie `appli-escalade`.
   2. Dans `src/main.tsx`, remplacer l'import de Geist par :
      ```ts
      import '@fontsource-variable/big-shoulders-display/wght.css'
@@ -333,13 +338,13 @@ Adapter l'adresse ou les clics pour atteindre l'écran de la tâche. Pour une ca
 - **Étapes** :
   1. Onglets : icône 24 px au-dessus du nom (`Icone` : aujourdhui, programme, bilans, profil), libellé 14 px.
   2. Aujourd'hui : en-tête `.mention` avec la **date du jour** (`Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })`),
-     mention « Bloc 1 · doigts · semaine 2 sur 4 », titre `.titre` (44 px), **fiche de la séance** (`.fiche` avec deux
+     mention « Phase 1 · doigts · semaine 2 sur 4 » (consolidation 17/11, B9), titre `.titre` (44 px), **fiche de la séance** (`.fiche` avec deux
      `.vis`, `.etiquette` de dureté, durée en `.donnee`, liste des étapes de `SEANCE_EXEMPLE` avec `.repere` et durée).
   3. Deux boutons : le **mode habituel** est principal. Passer `profil.grimpeSouventEnGroupe` à `Aujourdhui` : si vrai,
      « Je grimpe en groupe » est principal et « Je grimpe seul » second ; sinon l'inverse. Icône `suivant` dans le
      principal, `groupe` ou `solo` dans le second.
   4. Supprimer les lignes « Forme du jour » et « Assiette du jour » (boutons sans action). Laisser un commentaire :
-     « Forme du jour : en attente de la décision d'Arthur (Q5). »
+     « Forme du jour : revient en phase 4, utile aux contrôles du jour (tâche C-03, décision B10). » (consolidation 17/11)
   5. « Cette semaine » : titre de section en `<h2 className="mention">` ; 7 cases (L, M, M, J, V, S, D) en grille de
      7 colonnes : fait (fond `--accent-doux`, coche), aujourd'hui (bord 2 px `--accent`, carré résine), prévu (carré
      contour encre), repos (bord pointillé, fond creux, tiret). Chaque case a un `aria-label` complet (« Jeudi, technique »).
@@ -401,6 +406,8 @@ Adapter l'adresse ou les clics pour atteindre l'écran de la tâche. Pour une ca
   3. Chargement : remplacer « Chargement… » par une silhouette de titre et deux de lignes (`.silhouette`), après 400 ms (garder l'animation d'apparition).
   4. `favicon.svg` : carré arrondi fond `#F1EFE9`, une prise (forme irrégulière) en `#0F5A54` bordée de `#1D1C19` (3 px à
      l'échelle 512), avec son trou de vis `#FBFAF7` ; commentaire XML qui nomme les variables correspondantes.
+     (consolidation 17/11) L'app s'appelle « Get me to 9a » : ajouter « 9a » en tracés `#FBFAF7` sous le trou de vis,
+     lisible à 48 px, et `<title>Get me to 9a</title>`. Le manifeste et le titre de page sont renommés par D-01.
 - **Critères d'acceptation** : envoyer un profil sans prénom affiche l'erreur et ne passe pas à l'écran suivant ; l'icône
   se voit sur fond clair et foncé ; outil de taille : rien sous 48 px sur Profil.
 - **Pièges** : `onValider` ne doit pas être appelé si le prénom est vide (Bienvenue l'utilise pour le premier lancement).
@@ -413,7 +420,9 @@ Adapter l'adresse ou les clics pour atteindre l'écran de la tâche. Pour une ca
   §0 (navigation) et §3 (mise en page commune) ; ouvrir `docs/design/demo-constructeur.html` (barre du haut).
 - **Étapes** :
   1. Détecter la largeur avec `matchMedia('(min-width: 1024px)')` (écouter les changements).
-  2. Au-dessus de 1024 px : barre du haut de 64 px (fond `--fond`, filet bas 2 px `--texte`) : marque « Appli escalade »
+  0. (consolidation 17/11) Tâche fusionnée avec F2-14 (fichiers `src/miseEnPage/`) : voir `docs/backlog-v2.md`. Rubrique
+     « Tableau de bord » : pas l'écran Aujourd'hui (il lance des séances, B12) mais un écran « En construction ».
+  2. Au-dessus de 1024 px : barre du haut de 64 px (fond `--fond`, filet bas 2 px `--texte`) : marque « Get me to 9a » (consolidation 17/11)
      (`--police-titre` 900, 26 px, icône `prise`), liens « Tableau de bord », « Plan », « Bibliothèque », « Bilans »,
      « Profil » (gras, 48 px de haut, actif souligné résine 3 px, `aria-current="page"`), à droite un emplacement pour
      l'état de synchronisation et le bouton « Assistant » (`.bouton-second` petit, désactivé pour l'instant avec
@@ -491,6 +500,8 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
 - **Dépend de** : D-10 ; [archi] lecture et écriture du cycle, des blocs (mésocycles) et de leurs objectifs. **Modèle** : Sonnet.
 - **Fichiers** : créer `src/ecrans/bureau/Plan.tsx` (sélecteur de vue), `src/ecrans/bureau/VueCycle.tsx`,
   `src/composants/BandeSemaines.tsx` (la bande S1 à S12, réutilisée par le téléphone en D-22) ; `src/index.css`.
+- (consolidation 17/11) « Phase » au lieu de « Bloc » (B9), accent technique possible (B13), bouton « Valider le cycle »
+  (le cycle reste brouillon, invisible sur le téléphone, jusque-là).
 - **Étapes** : en-tête (nom modifiable en place, date de début, séances par semaine en choix 2 à 5) ; trois colonnes de
   blocs (accent en liste, deux emplacements d'objectifs → fenêtre O-09, 4 semaines avec étiquettes de dureté et barre de
   charge, 4e semaine hachurée « ALLÉGÉE » avec son réglage) ; sélecteur de vue « 12 semaines / Bloc / Semaine » (encre) ;
@@ -503,6 +514,8 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
 - **Objectif** : écran O-04.
 - **Dépend de** : D-14. **Modèle** : Sonnet.
 - **Fichiers** : créer `src/ecrans/bureau/VueBloc.tsx` ; `src/index.css`.
+- (consolidation 17/11) Fichier `VuePhase.tsx` et libellés « Phase » (B9) ; la recopie de la semaine 1 est une copie
+  identique (aucune fonction de progression n'existe), l'écran le dit.
 - **Étapes** : tableau 4 × 7 (`<table>` avec en-têtes de lignes et colonnes), étiquettes compactes de séance, charge par
   semaine, bouton « Recopier la semaine 1 sur les semaines 2 et 3 » (la progression est appliquée par la fonction
   [entraînement] si elle existe, et l'écran le dit), menu de case (Ajouter, Copier, Coller, Vider), bouton « Déplacer »
@@ -553,7 +566,8 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
 - **Objectif** : écran O-02. **Dépend de** : D-14, D-18. **Modèle** : Sonnet.
 - **Fichiers** : créer `src/ecrans/bureau/TableauDeBord.tsx` ; `src/App.tsx` (remplace Aujourd'hui sur ordinateur).
 - **Étapes** : grille 8/4 de O-02 ; états « aucun cycle » (trois fiches de départ) et « cycle terminé » ; action principale
-  « Ouvrir la semaine en cours » ; « Faire la séance ici » en discret.
+  « Ouvrir la semaine en cours » ; (consolidation 17/11, B12) pas de « Faire la séance ici » : « Les séances se lancent
+  depuis ton téléphone ».
 - **Critères d'acceptation** : les trois états s'affichent avec des données d'essai ; une seule action en résine.
 
 ### D-20 · Profil et réglages sur ordinateur, clé de l'assistant
@@ -572,6 +586,9 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
 ## Phases 4 à 6
 
 ### D-21 · Connexion par lien e-mail et reprise des données
+- **(consolidation 17/11)** Connexion par **code** (B1), dès la phase 2 : les écrans T-02, T-03, T-04 et O-01 sont faits
+  par F2-07 (écran Compte) et F2-09 (écran Reprise) avec les textes de `parcours-et-ecrans.md` ; D-21 est réduite à
+  l'accueil T-01, au bandeau P2, à la section Compte du profil et aux états réseau. Texte qui fait foi : `docs/backlog-v2.md`.
 - **Objectif** : écrans T-01 à T-04 et O-01. **Dépend de** : D-04 ; [archi] comptes (envoi du lien, session, reprise).
   **Modèle** : Sonnet.
 - **Fichiers** : créer `src/ecrans/Connexion.tsx`, `src/ecrans/LienEnvoye.tsx`, `src/ecrans/Reprise.tsx` ; modifier
@@ -599,6 +616,8 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
   [archi] appel du modèle depuis le navigateur. **Modèle** : Sonnet.
 - **Fichiers** : créer `src/ecrans/bureau/Assistant.tsx`, `src/composants/ElementProposition.tsx` ; `VueSemaine.tsx`
   (surlignage de la case visée) ; `BarreBureau.tsx` (activer le bouton).
+- (consolidation 17/11) Coût estimé affiché avant chaque demande et modèle nommé (Haiku par défaut, B5, B6) ; ordinateur
+  seulement (B7) ; un livre s'affiche sous « Lecture conseillée », jamais comme source d'une règle.
 - **Étapes** : panneau de 404 px (par-dessus le contenu sous 1280 px, avec voile) ; messages ; étiquette sépia
   « BROUILLON » et compteur ; éléments avec Garder (encre plein), Modifier, Rejeter, statut et « Annuler » ; « Garder tout
   ce qui reste » en discret ; sources numérotées (livres par leur titre seulement) ; avertissements dans l'élément ;
@@ -611,7 +630,7 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
 - **Objectif** : écrans O-11 et T-13. **Dépend de** : D-10 ; [archi] tests repères. **Modèle** : Sonnet.
 - **Fichiers** : créer `src/ecrans/bureau/Bilans.tsx`, `src/composants/PetitGraphique.tsx` (SVG fait main, sans
   bibliothèque) ; `Historique.tsx`.
-- **Étapes** : onglets Qualités / Blocs / Séances (état dans l'adresse) ; 5 petits graphiques (une couleur : encre, dernière
+- **Étapes** : onglets Qualités / Phases / Séances (consolidation 17/11) (état dans l'adresse) ; 5 petits graphiques (une couleur : encre, dernière
   valeur en résine, séparations de blocs en pointillé `--filet-fort`), résumé texte et tableau accessible par graphique ;
   tableau comparatif des blocs ; historique triable ; « Saisir un test repère » ; états vides de O-11.
 - **Critères d'acceptation** : aucun graphique multicolore ; chaque graphique a un résumé lisible par un lecteur d'écran ;

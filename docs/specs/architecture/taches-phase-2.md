@@ -5,6 +5,8 @@ Phase 2 : comptes, synchronisation, modèle de données v2, reprise des données
 
 ## Mode d'emploi pour le gérant
 
+> **(consolidation 17/11)** L'ordre réel (12 vagues mêlées aux tâches du design) et les amendements de chaque tâche sont dans `docs/backlog-v2.md`, qui prime sur ce fichier. Principaux changements : `docs/architecture-v2.md` est déjà dans le dépôt et a été consolidé (§ 3) ; `Mesocycle` devient `PhaseCycle` (table `phases`, champ `phaseId`) et l'écran dit « Phase » (B9) ; trois tables de suivi (`formes`, `douleurs`, `resultatsTests`) s'ajoutent à la version 3 ; liste d'invités dans le SQL (B2) ; Gmail dédiée (A3) ; seuil de la mise en page bureau à 1 024 px, F2-14 fusionnée avec D-10 ; app nommée « Get me to 9a » sans rien renommer d'autre ; la note sur `CLAUDE.md` et les modèles est réglée.
+
 - **Avant de distribuer F2-01**, copier `architecture.md` dans le dépôt sous `docs/architecture-v2.md` (un commit « Architecture v2 »). Plusieurs tâches y renvoient par numéro de section.
 - Donner à chaque développeur : `CLAUDE.md` (il est lu automatiquement), le bloc **« Règles communes »** ci-dessous, puis **une seule tâche**. Rien d'autre n'est nécessaire.
 - Les étapes 1 à 8 d'Arthur (`docs/architecture-v2.md` § 9) doivent être faites **après F2-03 et avant F2-07**.
