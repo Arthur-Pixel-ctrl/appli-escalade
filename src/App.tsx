@@ -46,6 +46,8 @@ export default function App() {
   }, [])
   const [majPrete, setMajPrete] = useState(false)
   useEffect(() => surMiseAJourDisponible(() => setMajPrete(true)), [])
+  // Erreur d'enregistrement, affichée dans l'écran Questions (les réponses restent gardées).
+  const [erreurEnregistrement, setErreurEnregistrement] = useState<string | undefined>(undefined)
   const accueil = () => { setErreurEnregistrement(undefined); setVue({ nom: 'onglets' }) }
   // Quitter une séance demande confirmation ; la séance reste affichée (donc intacte) derrière la fenêtre.
   const [confirmeQuitter, setConfirmeQuitter] = useState(false)
@@ -61,8 +63,6 @@ export default function App() {
       onAction={() => { setConfirmeQuitter(false); accueil() }}
     />
   )
-  // Erreur d'enregistrement, affichée dans l'écran Questions (les réponses restent gardées).
-  const [erreurEnregistrement, setErreurEnregistrement] = useState<string | undefined>(undefined)
 
   if (erreurDemarrage) return <Erreur message={erreurDemarrage} />
   if (profil === undefined) return <Chargement />
