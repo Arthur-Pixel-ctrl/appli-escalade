@@ -277,7 +277,9 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .chiffres-cles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .chiffres-cles b { display: block; font-family: var(--police-fixe); font-size: 32px; font-weight: 700; line-height: 1; }
 .chiffres-cles b.accent { color: var(--accent); }
-.chiffres-cles span { display: block; margin-top: 4px; font-size: 14px; color: var(--texte-3); }
+.chiffres-cles span { display: block; margin-top: 4px; font-family: var(--police); font-size: 14px; color: var(--texte-3); }
+/* Petit écran : « 12/12 » doit tenir dans sa colonne. */
+@media (max-width: 360px) { .chiffres-cles { gap: 8px; } .chiffres-cles b { font-size: 26px; } }
 .tableau { width: 100%; border-collapse: collapse; font-size: 15px; }
 .tableau th, .tableau td { padding: 12px 0; text-align: right; border-top: 1px solid var(--filet); font-weight: 400; }
 .tableau thead th { padding: 0 0 8px; border-top: 0; }
@@ -303,6 +305,11 @@ form.pile-large { gap: 24px; }
 .avertissement::before, .signal-arret::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 12px; background: repeating-linear-gradient(-45deg, var(--rubalise-avertissement) 0 6px, var(--texte) 6px 12px); }
 .signal-arret { background: var(--arret-fond); }
 .signal-arret::before { background: repeating-linear-gradient(-45deg, var(--rubalise-arret) 0 6px, var(--surface) 6px 12px); }
+
+/* Dans un écran qui défile, un avertissement ne doit jamais être écrasé (overflow: hidden le rendrait rétractable). */
+.avertissement, .signal-arret { flex-shrink: 0; }
+/* Valeur à droite d'une ligne : elle passe à la ligne plutôt que de déborder. */
+.ligne span:last-child { flex: 0 1 auto; min-width: 0; }
 
 /* Contenu des avertissements (composant Avertissement) */
 .avertissement-tete { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: var(--texte); }
@@ -338,6 +345,9 @@ form.pile-large { gap: 24px; }
 
 /* Chargement : silhouettes en pierre, jamais de rond qui tourne */
 .silhouette { background: var(--surface-creuse); border-radius: var(--rayon-controle); animation: silhouette 1.2s ease-in-out infinite alternate; }
+/* Tailles des silhouettes : une grande zone, ou une ligne */
+.silhouette.grande { height: 120px; }
+.silhouette.ligne-silhouette { height: 56px; }
 @keyframes silhouette { from { opacity: 0.6; } to { opacity: 1; } }
 .ecran.chargement { justify-content: center; align-items: center; animation: apparition 0.2s 0.6s both; }
 @keyframes apparition { from { opacity: 0; } to { opacity: 1; } }

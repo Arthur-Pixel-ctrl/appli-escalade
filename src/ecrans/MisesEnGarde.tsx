@@ -1,3 +1,5 @@
+import { Avertissement } from '../composants/Avertissement.tsx'
+
 // Mises en garde : les douleurs à repérer. Page de référence, consultable à tout moment
 // depuis le profil, et affichée quand on appuie sur « Stop, ça fait mal ».
 // Contenu tiré de la synthèse théorique (consignes de cliniciens). Ce n'est pas un avis médical.
@@ -29,13 +31,17 @@ export function MisesEnGarde({ onFermer, apresDouleur = false, libelleFermer }: 
 
       <section className="pile">
         <h2 className="sous-titre">Arrête la séance et consulte</h2>
-        <ul className="liste-simple">{ARRET.map((s) => <li key={s}>{s}</li>)}</ul>
+        <Avertissement niveau="arret" titre="Signaux d’arrêt">
+          <ul className="liste-simple">{ARRET.map((s) => <li key={s}>{s}</li>)}</ul>
+        </Avertissement>
         <p className="texte-3">Pour un doigt, vois un professionnel qui connaît l’escalade : le diagnostic se fait à l’échographie.</p>
       </section>
 
       <section className="pile">
         <h2 className="sous-titre">Allège pendant 1 à 2 semaines</h2>
-        <ul className="liste-simple">{REDUCTION.map((s) => <li key={s}>{s}</li>)}</ul>
+        <Avertissement niveau="avertissement" titre="Signes à prendre au sérieux">
+          <ul className="liste-simple">{REDUCTION.map((s) => <li key={s}>{s}</li>)}</ul>
+        </Avertissement>
         <p className="texte-3">Retire les arqués, le pan Güllich, les trous et les efforts maximaux. Garde de la grimpe facile et sans douleur. Sans nette amélioration en 14 jours, consulte.</p>
       </section>
 

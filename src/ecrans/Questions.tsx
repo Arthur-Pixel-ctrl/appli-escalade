@@ -52,15 +52,19 @@ export function Questions({ contexte, onValider, erreur }: { contexte: string; o
       </fieldset>
 
       {/* Les réponses ne sont pas perdues : elles restent dans l'état de l'écran. */}
-      {erreur && <div className="bas"><Avertissement niveau="arret" titre={erreur} /></div>}
-
-      <button
-        className={`bouton principal centre${erreur ? '' : ' bas'}`}
-        disabled={!complet}
-        onClick={() => complet && onValider({ effortPercu: effort, peau, douleur })}
-      >
-        <strong>{erreur ? 'Réessayer l’enregistrement' : 'Enregistrer et voir le débrief'}</strong>
-      </button>
+      <div className="pile bas">
+        {erreur && <Avertissement niveau="arret" titre={erreur} />}
+        <button
+          className="bouton principal centre"
+          disabled={!complet}
+          aria-describedby={complet ? undefined : 'aide-questions'}
+          onClick={() => complet && onValider({ effortPercu: effort, peau, douleur })}
+        >
+          <strong>{erreur ? 'Réessayer l’enregistrement' : 'Enregistrer et voir le débrief'}</strong>
+        </button>
+        {/* Dit pourquoi le bouton est grisé ; disparaît dès que tout est rempli. */}
+        {!complet && <p id="aide-questions" className="texte-3">Réponds aux trois questions pour continuer.</p>}
+      </div>
     </main>
   )
 }
