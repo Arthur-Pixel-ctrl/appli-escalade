@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRepos } from '../chrono/useRepos.ts'
+import { Avertissement } from '../composants/Avertissement.tsx'
+import { PastillePrise } from '../composants/PastillePrise.tsx'
 import type { Salle } from '../donnees/salles.ts'
 import {
   annulerDernierBloc, avancement, changerObjectif as changerObjectifMoteur, demarrerSeanceGroupe, noterBloc,
@@ -21,14 +23,14 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
   const { blocs, position } = etat // position = objectif affiché
   const [couleur, setCouleur] = useState(seance.objectifs[0].couleurConseillee ?? salle.couleurs[0].nom)
   const [essais, setEssais] = useState(1)
-  const [, rafraichir] = useState(0)
+  const [maintenant, setMaintenant] = useState(() => Date.now())
   const repos = useRepos(seance.reposConseilleS)
 
   useEffect(() => {
-    const minuteur = setInterval(() => rafraichir((n) => n + 1), 30000)
+    const minuteur = setInterval(() => setMaintenant(Date.now()), 30000)
     return () => clearInterval(minuteur)
   }, [])
-  const minutes = minutesEcoulees(etat, Date.now())
+  const minutes = minutesEcoulees(etat, maintenant)
 
   const objectif = seance.objectifs[position]
   const fait = avancement(objectif, position, blocs)
@@ -53,23 +55,25 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
       <div className="pile">
         <p className="surtitre">Objectif {position + 1} sur {seance.objectifs.length}</p>
         <h1 className="titre moyen">{objectif.libelle}</h1>
+        {/* Borne de sécurité : on la rappelle sans jamais empêcher d'ajouter un essai. */}
+        {objectif.essaisMaxParBloc !== undefined && (
+          <p className="mention">{objectif.essaisMaxParBloc} {objectif.essaisMaxParBloc > 1 ? 'ESSAIS MAX' : 'ESSAI MAX'} PAR BLOC</p>
+        )}
         <div className="jauge" role="img" aria-label={`${Math.min(fait, objectif.cible)} sur ${objectif.cible}`}>
           {Array.from({ length: objectif.cible }, (_, i) => <span key={i} className={i < fait ? 'actif' : ''} />)}
         </div>
       </div>
 
-      <section className="carte pile-large">
-        <h2 className="sous-titre">Noter un bloc</h2>
+      <section className="fiche pile-large" aria-labelledby="titre-noter">
+        <span className="vis g" aria-hidden="true" /><span className="vis d" aria-hidden="true" />
+        <h2 className="sous-titre titre-fiche" id="titre-noter">Noter un bloc</h2>
 
-        <div className="pile">
-          <p className="surtitre">Couleur</p>
-          <div className="couleurs">
-            {salle.couleurs.map((c) => (
-              <button key={c.nom} className="pastille" aria-pressed={c.nom === couleur} onClick={() => setCouleur(c.nom)}>
-                <span aria-hidden="true" style={{ background: c.hex }} />{c.nom}
-              </button>
-            ))}
-          </div>
+        <div className="couleurs" role="group" aria-label="Couleur du bloc">
+          {salle.couleurs.map((c) => (
+            <button key={c.nom} className="choix-couleur" aria-pressed={c.nom === couleur} onClick={() => setCouleur(c.nom)}>
+              <PastillePrise couleur={c.hex} nom={c.nom} />{c.nom}
+            </button>
+          ))}
         </div>
 
         <div className="entete">
@@ -81,9 +85,16 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
           </div>
         </div>
 
-        <div className="pile">
-          <button className="bouton principal centre" onClick={() => noter(true)}><strong>{essais === 1 ? 'Flashé' : 'Enchaîné'}</strong></button>
+        {objectif.essaisMaxParBloc !== undefined && essais > objectif.essaisMaxParBloc && (
+          <Avertissement niveau="avertissement" titre={`Plus de ${objectif.essaisMaxParBloc} essais`}>
+            Au-delà, la fatigue des doigts augmente le risque de blessure. Passe au bloc suivant si tu peux.
+          </Avertissement>
+        )}
+
+        {/* Côte à côte : le second à gauche, le principal à droite, plus facile d'une main. */}
+        <div className="deux-boutons egaux">
           <button className="bouton-second" onClick={() => noter(false)}>Pas encore</button>
+          <button className="bouton principal centre" onClick={() => noter(true)}><strong>{essais === 1 ? 'Flashé' : 'Enchaîné'}</strong></button>
         </div>
       </section>
 

@@ -234,25 +234,32 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .jauge span.actif { background: var(--accent); border-color: var(--accent); }
 .jauge span.passe { background: repeating-linear-gradient(-45deg, var(--surface-creuse) 0 3px, var(--filet-fort) 3px 4px); }
 .etapes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
-.etape { min-height: 52px; padding: 12px 0; border-top: 1px solid var(--filet); display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
-.etape span:last-child { font-family: var(--police-fixe); font-size: 14px; font-weight: 400; color: var(--texte-3); white-space: nowrap; }
-.etape.traitee span:first-child { color: var(--texte-3); }
+.etape { min-height: 52px; padding: 12px 0; border-top: 1px solid var(--filet); display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
+.etape-titre { flex: 1; min-width: 0; }
+.etape .donnee { font-size: 14px; font-weight: 400; color: var(--texte-3); white-space: nowrap; }
+.etape.traitee .etape-titre { color: var(--texte-3); }
+.repere.en-cours { background: var(--accent); color: var(--sur-accent); }
+.etiquette-etape { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.etape.ouverte .entete { flex-wrap: wrap; justify-content: flex-start; row-gap: 4px; }
+.etape.ouverte .entete .surtitre { margin-left: auto; }
 .etape.ouverte { display: flex; flex-direction: column; align-items: stretch; gap: 12px; margin: 8px 0; padding: 16px; border: 2px solid var(--accent); border-radius: var(--rayon-carte); background: var(--surface); }
-.etape.ouverte h2 { font-family: var(--police-titre); font-size: 24px; line-height: 1.1; }
 .etape.ouverte .etiquette { background: transparent; border-color: var(--accent); color: var(--accent); align-self: flex-start; }
 .deux-boutons { display: flex; gap: 10px; }
+/* Boutons de séance : 64 px au moins, deux colonnes égales quand ils sont côte à côte */
+.deux-boutons .bouton-second, .essais .bouton-second { min-height: 64px; }
+.deux-boutons.egaux > * { flex: 1; min-width: 0; }
+.deux-boutons.egaux .bouton { padding: 10px 8px; }
 .ecran .bas { margin-top: auto; }
 .essais { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .essais .bouton-second { grid-column: 1 / -1; }
 .grand-chiffre { font-family: var(--police-fixe); font-size: 30px; font-weight: 700; line-height: 1.1; }
 
 /* Séance en groupe */
+.titre-fiche { padding: 0 14px; }
 .couleurs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.pastille, .choix button { min-height: 52px; border: 2px solid var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface); color: var(--texte); font-size: 15px; font-weight: 600; text-align: center; }
-.pastille { padding: 0 10px; display: flex; align-items: center; gap: 8px; text-align: left; }
-.pastille span { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--texte); flex: none; }
+.choix button { min-height: 52px; border: 2px solid var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface); color: var(--texte); font-size: 15px; font-weight: 600; text-align: center; }
 /* Sélectionné = encre pleine (la résine est réservée à l'action principale) */
-.pastille[aria-pressed='true'], .choix button[aria-pressed='true'] { background: var(--texte); color: var(--fond); border-color: var(--texte); font-weight: 700; }
+.choix button[aria-pressed='true'] { background: var(--texte); color: var(--fond); border-color: var(--texte); font-weight: 700; }
 .compteur { display: flex; align-items: center; gap: 14px; }
 .compteur button { width: 56px; height: 56px; font-size: 26px; font-weight: 500; }
 .compteur p { min-width: 28px; text-align: center; font-family: var(--police-fixe); font-size: 30px; font-weight: 700; }
@@ -277,7 +284,7 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .tableau th:first-child { text-align: left; font-weight: 500; }
 .tableau tbody tr:last-child > * { border-bottom: 1px solid var(--filet); }
 .tableau td, .tableau thead th + th { padding-left: 20px; }
-.carre { display: inline-block; width: 12px; height: 12px; margin-right: 8px; border-radius: 3px; border: 1px solid var(--texte); }
+.tableau .prise { margin-right: 8px; vertical-align: middle; }
 
 /* Formulaires */
 .champ { display: flex; flex-direction: column; gap: 8px; font-size: 16px; font-weight: 600; min-width: 0; }
@@ -318,8 +325,9 @@ form.pile-large { gap: 24px; }
 .prise.petite::after { width: 4px; height: 4px; margin: -2px 0 0 -2px; }
 
 /* Choix de couleur : sélection = bord encre épais et coin encre à coche, jamais un changement de la pastille */
-.choix-couleur { position: relative; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 10px; border: 2px solid var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface); color: var(--texte); font-size: 15px; font-weight: 600; text-align: left; overflow-wrap: anywhere; }
-.choix-couleur[aria-pressed='true'] { border: 3px solid var(--texte); padding: 0 9px; }
+.choix-couleur { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 68px; padding: 6px 4px; border: 2px solid var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface); color: var(--texte); font-size: 15px; font-weight: 600; text-align: center; }
+/* Pastille au-dessus du nom : le nom reste entier même à 320 px de large ou avec un nom de couleur long. */
+.choix-couleur[aria-pressed='true'] { border: 3px solid var(--texte); padding: 5px 3px; }
 .choix-couleur[aria-pressed='true']::after { content: ''; position: absolute; top: -3px; right: -3px; width: 18px; height: 18px; background: var(--texte); border-radius: 0 var(--rayon-controle) 0 var(--rayon-controle); }
 .choix-couleur[aria-pressed='true']::before { content: ''; position: absolute; z-index: 1; top: 3px; right: 6px; width: 4px; height: 8px; border: solid var(--fond); border-width: 0 2px 2px 0; transform: rotate(45deg); }
 

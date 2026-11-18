@@ -20,18 +20,17 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
   const [etat, setEtat] = useState(() => demarrerSeanceSolo(seance, Date.now()))
   const [chronoOuvert, setChronoOuvert] = useState(false)
   const [gardeOuverte, setGardeOuverte] = useState(false)
-  const [, rafraichir] = useState(0)
-
-  // Met à jour la durée affichée une fois par minute.
+  // L'heure est un état : elle se met à jour toutes les 30 s, donc la durée affichée aussi.
+  const [maintenant, setMaintenant] = useState(() => Date.now())
   useEffect(() => {
-    const minuteur = setInterval(() => rafraichir((n) => n + 1), 30000)
+    const minuteur = setInterval(() => setMaintenant(Date.now()), 30000)
     return () => clearInterval(minuteur)
   }, [])
 
   const { statuts } = etat
   const enCours = etapeEnCours(etat) // -1 si tout est fait
   const etape: EtapeSeance | undefined = seance.etapes[enCours]
-  const minutes = minutesEcoulees(etat, Date.now())
+  const minutes = minutesEcoulees(etat, maintenant)
   const marquer = (statut: 'faite' | 'passee') => setEtat((avant) => marquerEtape(avant, statut))
   const terminer = () => onTerminer(bilanEtapes(seance, etat).map((e) => e.statut), minutes)
 
@@ -65,7 +64,7 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
         <h1 className="titre moyen">{seance.nom}</h1>
         <div className="jauge" role="img" aria-label={`${statuts.filter((s) => s !== 'a_faire').length} étapes traitées sur ${statuts.length}`}>
           {statuts.map((s, i) => (
-            <span key={i} className={i === enCours ? 'actif' : s !== 'a_faire' ? 'fait' : ''} />
+            <span key={i} className={i === enCours ? 'actif' : s === 'passee' ? 'passe' : s === 'faite' ? 'fait' : ''} />
           ))}
         </div>
       </div>
@@ -75,10 +74,10 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
           i === enCours ? (
             <li key={e.id} className="etape ouverte">
               <div className="entete">
-                <span className="etiquette">{i + 1} · En cours</span>
+                <span className="etiquette-etape"><span className="repere en-cours">{i + 1}</span><span className="etiquette">En cours</span></span>
                 {'preuve' in e && <span className="surtitre">{e.preuve}</span>}
               </div>
-              <h2>{e.titre}</h2>
+              <h2 className="titre moyen">{e.titre}</h2>
               <p className="texte-2">{e.consigne}</p>
 
               {e.forme === 'liste' && (
@@ -95,8 +94,9 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
             </li>
           ) : (
             <li key={e.id} className={statuts[i] === 'a_faire' ? 'etape' : 'etape traitee'}>
-              <span>{i + 1} · {e.titre}</span>
-              <span>{statuts[i] === 'faite' ? 'Fait' : statuts[i] === 'passee' ? 'Passée' : e.resume}</span>
+              <span className="repere" aria-hidden="true">{i + 1}</span>
+              <span className="etape-titre">{e.titre}</span>
+              <span className="donnee">{statuts[i] === 'faite' ? 'Fait' : statuts[i] === 'passee' ? 'Passée' : e.resume}</span>
             </li>
           ),
         )}
