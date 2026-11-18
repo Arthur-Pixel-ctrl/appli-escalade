@@ -1,0 +1,1250 @@
+[
+  {
+    "nom": "repetition_unique",
+    "config": {
+      "gabarit": "repetition_unique",
+      "effortS": 10,
+      "series": 3,
+      "reposSeriesS": 180
+    },
+    "preparationS": 5,
+    "phases": [
+      {
+        "type": "preparation",
+        "dureeS": 5,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "repos",
+        "dureeS": 180,
+        "serie": 1,
+        "repetition": 1,
+        "entreSeries": true,
+        "totalSeries": 3,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "repos",
+        "dureeS": 180,
+        "serie": 2,
+        "repetition": 1,
+        "entreSeries": true,
+        "totalSeries": 3,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 1
+      }
+    ]
+  },
+  {
+    "nom": "depart_minute",
+    "config": {
+      "gabarit": "depart_minute",
+      "effortS": 10,
+      "creneauS": 60,
+      "repetitions": 5,
+      "series": 2,
+      "reposSeriesS": 180
+    },
+    "preparationS": 5,
+    "phases": [
+      {
+        "type": "preparation",
+        "dureeS": 5,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 3,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 1,
+        "repetition": 3,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 4,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 1,
+        "repetition": 4,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 5,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 180,
+        "serie": 1,
+        "repetition": 5,
+        "entreSeries": true,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 3,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 2,
+        "repetition": 3,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 4,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "repos",
+        "dureeS": 50,
+        "serie": 2,
+        "repetition": 4,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 5,
+        "totalSeries": 2,
+        "totalRepetitions": 5
+      }
+    ]
+  },
+  {
+    "nom": "intermittent",
+    "config": {
+      "gabarit": "intermittent",
+      "effortS": 7,
+      "reposRepetitionsS": 3,
+      "repetitions": 6,
+      "series": 3,
+      "reposSeriesS": 180
+    },
+    "preparationS": 5,
+    "phases": [
+      {
+        "type": "preparation",
+        "dureeS": 5,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 1,
+        "repetition": 3,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 1,
+        "repetition": 3,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 1,
+        "repetition": 4,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 1,
+        "repetition": 4,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 1,
+        "repetition": 5,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 1,
+        "repetition": 5,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 1,
+        "repetition": 6,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 180,
+        "serie": 1,
+        "repetition": 6,
+        "entreSeries": true,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 2,
+        "repetition": 3,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 2,
+        "repetition": 3,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 2,
+        "repetition": 4,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 2,
+        "repetition": 4,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 2,
+        "repetition": 5,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 2,
+        "repetition": 5,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 2,
+        "repetition": 6,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 180,
+        "serie": 2,
+        "repetition": 6,
+        "entreSeries": true,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 3,
+        "repetition": 2,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 3,
+        "repetition": 2,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 3,
+        "repetition": 3,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 3,
+        "repetition": 3,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 3,
+        "repetition": 4,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 3,
+        "repetition": 4,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 3,
+        "repetition": 5,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "repos",
+        "dureeS": 3,
+        "serie": 3,
+        "repetition": 5,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      },
+      {
+        "type": "effort",
+        "dureeS": 7,
+        "serie": 3,
+        "repetition": 6,
+        "totalSeries": 3,
+        "totalRepetitions": 6
+      }
+    ]
+  },
+  {
+    "nom": "echelle_sans_repos_entre_paliers",
+    "config": {
+      "gabarit": "echelle",
+      "dureesS": [
+        5,
+        10,
+        15
+      ],
+      "creneauS": 30,
+      "series": 4,
+      "reposSeriesS": 15
+    },
+    "preparationS": 5,
+    "phases": [
+      {
+        "type": "preparation",
+        "dureeS": 5,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 5,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 25,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 20,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 15,
+        "serie": 1,
+        "repetition": 3,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 1,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 5,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 25,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 20,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 15,
+        "serie": 2,
+        "repetition": 3,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 2,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 5,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 25,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 3,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 20,
+        "serie": 3,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 15,
+        "serie": 3,
+        "repetition": 3,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 3,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 5,
+        "serie": 4,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 25,
+        "serie": 4,
+        "repetition": 1,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 4,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 20,
+        "serie": 4,
+        "repetition": 2,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 15,
+        "serie": 4,
+        "repetition": 3,
+        "totalSeries": 4,
+        "totalRepetitions": 3
+      }
+    ]
+  },
+  {
+    "nom": "echelle_avec_repos_entre_paliers",
+    "config": {
+      "gabarit": "echelle",
+      "dureesS": [
+        3,
+        6,
+        9
+      ],
+      "creneauS": 45,
+      "reposEntrePaliersS": 6,
+      "series": 9,
+      "reposSeriesS": 0
+    },
+    "preparationS": 5,
+    "phases": [
+      {
+        "type": "preparation",
+        "dureeS": 5,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 1,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 1,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 1,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 2,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 2,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 2,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 3,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 3,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 3,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 3,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 3,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 4,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 4,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 4,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 4,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 4,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 4,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 5,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 5,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 5,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 5,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 5,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 5,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 6,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 6,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 6,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 6,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 6,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 6,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 7,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 7,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 7,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 7,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 7,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 7,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 8,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 8,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 8,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 8,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 8,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 15,
+        "serie": 8,
+        "repetition": 3,
+        "entreSeries": true,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 3,
+        "serie": 9,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 9,
+        "repetition": 1,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 6,
+        "serie": 9,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "repos",
+        "dureeS": 6,
+        "serie": 9,
+        "repetition": 2,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      },
+      {
+        "type": "effort",
+        "dureeS": 9,
+        "serie": 9,
+        "repetition": 3,
+        "totalSeries": 9,
+        "totalRepetitions": 3
+      }
+    ]
+  },
+  {
+    "nom": "sans_preparation",
+    "config": {
+      "gabarit": "repetition_unique",
+      "effortS": 10,
+      "series": 2,
+      "reposSeriesS": 120
+    },
+    "preparationS": 0,
+    "phases": [
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 1,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "repos",
+        "dureeS": 120,
+        "serie": 1,
+        "repetition": 1,
+        "entreSeries": true,
+        "totalSeries": 2,
+        "totalRepetitions": 1
+      },
+      {
+        "type": "effort",
+        "dureeS": 10,
+        "serie": 2,
+        "repetition": 1,
+        "totalSeries": 2,
+        "totalRepetitions": 1
+      }
+    ]
+  }
+]

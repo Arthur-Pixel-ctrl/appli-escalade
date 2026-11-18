@@ -1,0 +1,52 @@
+{
+  "id": "4a7b9c1d-2e3f-4a50-8b61-7c8d9e0f1a77",
+  "versionFormat": 1,
+  "creeLe": "2026-11-17T19:32:00.000Z",
+  "modifieLe": "2026-11-17T19:32:00.000Z",
+  "date": "2026-11-17",
+  "mode": "groupe",
+  "nom": "Doigts et bloc limite",
+  "durete": "dure",
+  "dureeMin": 87,
+  "effortPercu": 8,
+  "peau": 3,
+  "douleur": false,
+  "etapes": [],
+  "objectifs": [
+    {
+      "libelle": "3 blocs durs à réglettes, 4 essais max chacun",
+      "cible": 3,
+      "fait": 2
+    },
+    {
+      "libelle": "Flasher 3 violets",
+      "cible": 3,
+      "fait": 1
+    }
+  ],
+  "blocs": [
+    {
+      "couleur": "Rouge",
+      "essais": 3,
+      "resultat": "enchaine",
+      "objectif": 0
+    },
+    {
+      "couleur": "Rouge",
+      "essais": 4,
+      "resultat": "enchaine",
+      "objectif": 0
+    },
+    {
+      "couleur": "Violet",
+      "essais": 1,
+      "resultat": "flash",
+      "objectif": 1
+    }
+  ],
+  "seancePlanifieeId": "9e8d7c6b-5a49-4382-b1f0-e2d3c4b5a666",
+  "qualite": "doigts",
+  "marqueurs": [
+    "bloc_limite"
+  ]
+}
