@@ -4,7 +4,7 @@
 
 Application d'entraînement à l'escalade : séances guidées avec chrono, séances en groupe à objectifs, programme par blocs de 4 semaines, mobilité et repères de nutrition.
 
-Elle s'installe sur le téléphone comme une app (PWA) et fonctionne hors ligne. Les données restent sur l'appareil et fonctionnent hors ligne. Avec un compte (facultatif), elles se synchronisent entre téléphone et ordinateur.
+Elle s'installe sur le téléphone comme une app (PWA) et fonctionne hors ligne. Les données restent sur l'appareil. Avec un compte (facultatif), elles se synchronisent entre téléphone et ordinateur.
 
 Les contenus d'entraînement, de nutrition et de mobilité sont des repères généraux, pas un avis médical.
 

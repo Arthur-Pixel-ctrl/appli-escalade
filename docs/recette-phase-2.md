@@ -9,7 +9,7 @@ Cette recette n'a encore été faite par personne. Les cases sont toutes vides.
 - [ ] **Fais une sauvegarde.** Onglet **Profil**, touche **Sauvegarder mes données**. Le message « Sauvegarde créée dans tes téléchargements. » doit apparaître. Garde le fichier.
 - [ ] **Ne réinstalle jamais l'app sans sauvegarde récente.** Supprimer l'icône de l'app efface les données du téléphone.
 - [ ] **En cas de souci, recharge la sauvegarde.** Dans **Profil**, touche **Recharger une sauvegarde**. Sur l'écran d'accueil, touche **J'ai une sauvegarde**.
-- [ ] **Le nouveau nom sur l'écran d'accueil** (« Get me to 9a ») ne s'affiche qu'après une réinstallation. Ne réinstalle que lorsque la synchronisation a été vérifiée (partie B).
+- **À savoir : le nouveau nom sur l'écran d'accueil** (« Get me to 9a ») ne s'affiche qu'après une réinstallation. Ne réinstalle que lorsque la synchronisation a été vérifiée (partie B).
 
 ## Résultats des contrôles automatiques
 
