@@ -109,6 +109,8 @@ Chaque phase se termine par un audit et un test réel par Arthur.
 - Chaque agent démarre sans mémoire de la conversation : une tâche doit contenir tout ce qu'il faut pour être faite seule.
 - Les concepteurs en effort élevé coûtent cher : ils travaillent au début de chaque phase. L'exécution passe par Sonnet et Haiku.
 
-## 8. Décisions du 17/11/2026
+## 8. Décisions
 
-DA propre, inspirée de sisyf.com sans rien reprendre, construite avec la bibliothèque DESIGN.md et un audit « redesign » · comptes et synchronisation · clé API IA fournie par chaque utilisateur · cycle de 12 semaines en 3 blocs de 4 semaines · Apple Watch reportée mais prévue dans l'architecture · livres papier cités sans être recopiés, en complément des connaissances déjà réunies · concepteurs Opus (effort élevé), exécutants Sonnet et Haiku, audit Fable.
+**18/11/2026** : l'app s'appelle « Get me to 9a ». Questions de fin de phase 1 tranchées : voir `docs/decisions-phase-1.md`.
+
+**17/11/2026** : DA propre, inspirée de sisyf.com sans rien reprendre, construite avec la bibliothèque DESIGN.md et un audit « redesign » · comptes et synchronisation · clé API IA fournie par chaque utilisateur · cycle de 12 semaines en 3 blocs de 4 semaines · Apple Watch reportée mais prévue dans l'architecture · livres papier cités sans être recopiés, en complément des connaissances déjà réunies · concepteurs Opus (effort élevé), exécutants Sonnet et Haiku, audit Fable.
