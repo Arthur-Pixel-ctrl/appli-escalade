@@ -54,6 +54,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-21 | Bienvenue avec compte ou sans compte, « J'ai une sauvegarde » avant de créer le profil, bandeau hors ligne | Fait |
 | F2-16 | Recette de fin de phase 2 et README (`docs/recette-phase-2.md`) | Fait |
 | Audit 2 | Audit de fin de phase 2 (`docs/audits/audit-phase-2.md`) : 0 bloquant, 2 importants et 11 mineurs, tous corrigés | Fait |
+| B21 | Recherche sur les trous de la bibliothèque, auditée (`docs/recherche-b21/`) ; 27 fiches ajoutées à la banque d'exercices (9 proposables, 18 hors génération jusqu'à validation), zones de douleur « hanche » et « cheville » | Fait |
 
 ## Ouvrir l'app
 
