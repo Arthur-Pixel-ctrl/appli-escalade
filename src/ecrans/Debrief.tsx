@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { lireSeances, type SeanceRealisee } from '../donnees/base.ts'
 import { chargeSeance, chiffresBlocs, parCouleur, precedente, prochaineSeanceDurePossible, resume, seancesDeLaSemaine } from '../donnees/debrief.ts'
+import { PastillePrise } from '../composants/PastillePrise.tsx'
 import type { Salle } from '../donnees/salles.ts'
 
 const dateLongue = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -94,7 +95,7 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
             <tbody>
               {couleurs.map((l) => (
                 <tr key={l.couleur}>
-                  <th scope="row"><span aria-hidden="true" className="carre" style={{ background: hex(l.couleur) }} />{l.couleur}</th>
+                  <th scope="row"><PastillePrise taille="petite" couleur={hex(l.couleur) ?? 'var(--surface-creuse)'} nom={l.couleur} />{l.couleur}</th>
                   <td>{l.tentes}</td><td>{l.flashs}</td><td>{l.enchaines}</td>
                 </tr>
               ))}
