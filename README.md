@@ -29,6 +29,9 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | F2-02 | Modèle de données v2 : types, exemples, profil complété (`src/donnees/modele.ts`) | Fait |
 | F2-06 | Client Supabase, sans effet tant que le projet n'est pas configuré (`src/compte/client.ts`) | Fait |
 | D-02 | Composants de base « Topo » en CSS (fiches, étiquettes, avertissements, signaux d'arrêt) | Fait |
+| F2-13 | Format de séance documenté pour une future montre (`docs/format-seance.md`) | Fait |
+| F2-15 | Réveil automatique du projet Supabase, lundi et jeudi (`.github/workflows/reveil-supabase.yml`) | Fait |
+| D-03 | Icônes, pastille de prise et encadré d'avertissement (`src/composants/`) | Fait |
 
 ## Ouvrir l'app
 
