@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ConfigChrono } from '../chrono/sequence.ts'
 import { useChrono } from '../chrono/useChrono.ts'
 
@@ -15,20 +15,55 @@ function duree(s: number) {
   return s >= 60 ? `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')}` : `${s} s`
 }
 
-// Écran de chrono plein écran : fond accent pendant l'effort, sombre le reste du temps.
+// Durée dite à voix haute pour le lecteur d'écran : « 7 secondes », « 2 minutes ».
+function dureeParlee(s: number) {
+  const minutes = Math.floor(s / 60)
+  const reste = s % 60
+  const mots = (n: number, unite: string) => `${n} ${unite}${n > 1 ? 's' : ''}`
+  if (minutes === 0) return mots(reste, 'seconde')
+  return reste === 0 ? mots(minutes, 'minute') : `${mots(minutes, 'minute')} ${mots(reste, 'seconde')}`
+}
+
+// Big Shoulders n'a pas de chiffres de même largeur : chaque chiffre a sa case pour que le nombre ne bouge pas.
+function decouperChiffres(texte: string) {
+  return [...texte].map((caractere, i) =>
+    caractere === ':'
+      ? <span key={i} className="dp">:</span>
+      : <span key={i} className="c">{caractere}</span>,
+  )
+}
+
+// Écran de chrono plein écran : un fond par phase (préparation sur encre, effort sur craie, repos sur résine).
 export function Chrono({ titre, detail, mot, config, onQuitter }: Props) {
-  const CONSIGNE = { preparation: 'PRÊT', effort: mot, repos: 'REPOS' }
+  const CONSIGNE = { preparation: 'Prêt', effort: mot, repos: 'Repos' }
   const chrono = useChrono(config)
   const { etat, marche } = chrono
   const phase = etat.phase
-  const enEffort = phase?.type === 'effort' && marche === 'en_cours'
+  const typePhase = phase?.type
+  const dureePhase = phase?.dureeS ?? 0
+  const enAction = marche === 'en_cours' || marche === 'en_pause'
 
-  // La barre du haut du téléphone prend la couleur de l'écran (jaune pendant l'effort).
+  // La barre du haut du téléphone prend la couleur du fond de la phase, lue dans le CSS (pas de couleur en dur).
   useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]')
-    meta?.setAttribute('content', enEffort ? '#E9F55B' : '#0C0D0E')
-    return () => meta?.setAttribute('content', '#0C0D0E')
-  }, [enEffort])
+    const variable = enAction && typePhase ? `--chrono-${typePhase}-fond` : '--fond'
+    const couleur = getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', couleur)
+  }, [enAction, typePhase])
+  useEffect(() => () => {
+    const fond = getComputedStyle(document.documentElement).getPropertyValue('--fond').trim()
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', fond)
+  }, [])
+
+  // Annonce pour lecteur d'écran : seulement quand le type de phase change (pas à chaque seconde).
+  const [annonce, setAnnonce] = useState('')
+  const dureePhaseRef = useRef(dureePhase)
+  useEffect(() => { dureePhaseRef.current = dureePhase }, [dureePhase])
+  useEffect(() => {
+    if (!typePhase || !enAction) return
+    setAnnonce(typePhase === 'preparation'
+      ? 'Préparation'
+      : `${typePhase === 'effort' ? 'Effort' : 'Repos'}, ${dureeParlee(dureePhaseRef.current)}`)
+  }, [typePhase, enAction])
 
   if (marche === 'pret') {
     return (
@@ -62,35 +97,47 @@ export function Chrono({ titre, detail, mot, config, onQuitter }: Props) {
 
   // Au-delà d'une minute on affiche « 9:56 » : le texte est plus long, donc écrit plus petit.
   const texteReste = etat.resteS >= 60 ? `${Math.floor(etat.resteS / 60)}:${String(etat.resteS % 60).padStart(2, '0')}` : String(etat.resteS)
-  const taille = texteReste.length >= 5 ? 'tres-long' : texteReste.length >= 3 ? 'long' : ''
+  const taille = texteReste.length >= 6 ? 'extra-long' : texteReste.length >= 5 ? 'tres-long' : texteReste.length >= 3 ? 'long' : ''
+  const enPause = marche === 'en_pause'
   return (
-    <main className={enEffort ? 'chrono effort' : 'chrono'}>
+    <main className={`chrono ${phase.type}${enPause ? ' en-pause' : ''}`}>
+      {enPause && <div className="chrono-rubalise" aria-hidden="true" />}
+      <p className="pour-lecteur" aria-live="assertive">{annonce}</p>
+
       <div className="chrono-tete">
         <span>{titre}</span>
-        <span className="chiffres">Série {phase.serie} sur {phase.totalSeries}</span>
+        <span>Série {phase.serie} sur {phase.totalSeries}</span>
+      </div>
+      {/* Une case par série : pleine si la série est faite. */}
+      <div className="chrono-jauge" aria-hidden="true">
+        {Array.from({ length: phase.totalSeries }, (_, i) => <span key={i} className={i < phase.serie - 1 ? 'fait' : ''} />)}
       </div>
 
       <div className="chrono-centre" aria-live="off">
-        <p className="chrono-consigne">{marche === 'en_pause' ? 'EN PAUSE' : CONSIGNE[phase.type]}</p>
-        <p className={`chrono-nombre chiffres ${taille}`}>{texteReste}</p>
+        <p className={enPause ? 'chrono-pause-mot' : 'chrono-consigne'}>{enPause ? 'En pause' : CONSIGNE[phase.type]}</p>
+        <p className={`chrono-nombre ${taille}`}>{decouperChiffres(texteReste)}</p>
         <p className="chrono-sous">
-          {phase.totalRepetitions > 1 ? `Répétition ${phase.repetition} sur ${phase.totalRepetitions}` : detail}
+          {enPause
+            ? 'Reprends quand tu es prêt'
+            : phase.totalRepetitions > 1 ? `Répétition ${phase.repetition} sur ${phase.totalRepetitions}` : detail}
         </p>
       </div>
 
-      <p className="chrono-suite">
-        {etat.suivante
-          ? `Ensuite : ${etat.suivante.type === 'effort' ? 'effort' : 'repos'} de ${duree(etat.suivante.dureeS)}`
-          : 'Dernier effort'}
-      </p>
+      {!enPause && (
+        <p className="chrono-suite">
+          {etat.suivante
+            ? `Ensuite : ${etat.suivante.type === 'effort' ? 'effort' : 'repos'} de ${duree(etat.suivante.dureeS)}`
+            : 'Dernier effort'}
+        </p>
+      )}
 
       <div className="chrono-actions">
-        {marche === 'en_cours'
-          ? <button className="bouton-chrono large" onClick={chrono.pause}>Pause</button>
-          : <button className="bouton-chrono large" onClick={chrono.reprendre}>Reprendre</button>}
-        <button className="bouton-chrono contour" onClick={() => onQuitter('douleur')}>Stop,<br />ça fait mal</button>
+        {enPause
+          ? <button className="bouton-chrono" onClick={chrono.reprendre}>Reprendre</button>
+          : <button className="bouton-chrono" onClick={chrono.pause}>Pause</button>}
+        <button className="bouton arret centre" onClick={() => onQuitter('douleur')}>Stop, ça fait mal</button>
       </div>
-      {marche === 'en_pause' && (
+      {enPause && (
         <button className="bouton-texte" onClick={() => onQuitter('abandon')}>Quitter l’exercice</button>
       )}
     </main>

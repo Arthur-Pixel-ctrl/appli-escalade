@@ -169,21 +169,44 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .etiquette.attente { background: transparent; border: 1.5px dashed var(--filet-fort); color: var(--texte-3); }
 .repere { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: none; background: var(--texte); color: var(--fond); border-radius: var(--rayon-etiquette); font-family: var(--police-fixe); font-size: 13px; font-weight: 700; }
 
-/* Écran de chrono */
-.chrono { flex: 1; display: flex; flex-direction: column; gap: 20px; padding: calc(24px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom)); background: var(--fond); color: var(--texte); }
-.chrono.effort { background: var(--accent); color: var(--sur-accent); }
+/* Écran de chrono : trois phases, trois fonds (préparation sur encre, effort sur craie, repos sur résine). */
+/* Les écrans « prêt » et « terminé » restent sur le fond normal. */
+.chrono { position: relative; flex: 1; display: flex; flex-direction: column; gap: 14px; padding: calc(24px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom)); background: var(--fond); color: var(--texte); }
+.chrono.preparation { --phase-fond: var(--chrono-preparation-fond); --phase-texte: var(--chrono-preparation-texte); }
+.chrono.effort { --phase-fond: var(--chrono-effort-fond); --phase-texte: var(--chrono-effort-texte); }
+.chrono.repos { --phase-fond: var(--chrono-repos-fond); --phase-texte: var(--chrono-repos-texte); }
+.chrono.preparation, .chrono.effort, .chrono.repos { background: var(--phase-fond); color: var(--phase-texte); }
+/* Anneau de focus clair sur les fonds sombres (la phase effort garde l'anneau résine, bien visible sur la craie). */
+.chrono.preparation :focus-visible, .chrono.repos :focus-visible { outline-color: var(--focus-sur-sombre); }
 .chrono .bas { margin-top: auto; }
-.chrono-tete { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; }
-.chrono-centre { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; }
-.chrono-consigne { font-size: 30px; font-weight: 700; letter-spacing: 0.04em; }
-.chrono-nombre { font-size: min(56vw, 220px); font-weight: 700; line-height: 1; }
-.chrono-sous { font-size: 18px; font-weight: 600; }
-.chrono-suite { text-align: center; font-size: 15px; font-weight: 500; }
-.chrono-actions { display: flex; gap: 10px; }
-.bouton-chrono { flex: 1; min-height: 72px; border-radius: var(--rayon-carte); font-size: 15px; font-weight: 700; line-height: 1.25; text-align: center; border: 2px solid currentColor; }
-.bouton-chrono.large { flex: 2; font-size: 20px; background: var(--surface-haute); border-color: var(--surface-haute); color: var(--texte); }
-.chrono.effort .bouton-chrono.large { background: var(--sur-accent); border-color: var(--sur-accent); }
-.chrono.effort button:focus-visible { outline-color: var(--sur-accent); }
+.chrono-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-family: var(--police-fixe); font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.chrono-tete span:last-child { white-space: nowrap; }
+.chrono-jauge { display: flex; gap: 4px; }
+.chrono-jauge span { flex: 1; height: 8px; border: 1.5px solid currentColor; border-radius: 1px; }
+.chrono-jauge span.fait { background: currentColor; }
+.chrono-centre { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.chrono-consigne, .chrono-pause-mot { font-family: var(--police-titre); font-weight: 900; font-size: 44px; line-height: 1; letter-spacing: 0.04em; }
+.chrono-consigne { text-transform: uppercase; }
+.chrono-nombre { font-family: var(--police-titre); font-weight: 900; line-height: 0.85; font-size: min(76vw, 300px); white-space: nowrap; }
+/* Big Shoulders n'a pas de chiffres de même largeur : chaque chiffre a sa case pour que le nombre ne bouge pas. */
+.chrono-nombre .c { display: inline-block; width: 0.5em; text-align: center; }
+.chrono-nombre .dp { display: inline-block; width: 0.24em; text-align: center; }
+/* Petit écran (320 × 568) : le grand chiffre ne doit pas pousser les boutons hors de l'écran, surtout en pause. */
+@media (max-height: 640px) { .chrono-nombre:not(.long):not(.tres-long):not(.extra-long) { font-size: min(76vw, 34vh); } }
+.chrono-nombre.long { font-size: min(48vw, 190px); }       /* « 9:59 » */
+.chrono-nombre.tres-long { font-size: min(38vw, 150px); }  /* « 59:59 » */
+.chrono-nombre.extra-long { font-size: min(30vw, 120px); } /* « 100:00 » et plus */
+.chrono-sous { font-size: 20px; font-weight: 700; }
+.chrono-suite { text-align: center; font-family: var(--police-fixe); font-size: 16px; font-weight: 600; }
+.chrono-actions { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; padding-bottom: 4px; }
+/* Pause / Reprendre : couleurs de la phase inversées. « Stop » est le bouton .arret commun, identique dans les trois phases. */
+.bouton-chrono { min-height: 76px; border-radius: var(--rayon-bouton); font-size: 22px; font-weight: 700; text-align: center; border: 2px solid var(--phase-texte, var(--texte)); background: var(--phase-texte, var(--texte)); color: var(--phase-fond, var(--fond)); }
+.chrono-actions .bouton.arret { min-height: 76px; padding: 8px; font-size: 16px; font-weight: 700; line-height: 1.2; }
+/* Pause : rubalise de 14 px en haut de l'écran, le décor ne porte pas le sens (le mot « En pause » est écrit). */
+.chrono-rubalise { position: absolute; top: 0; left: 0; right: 0; height: 14px; background: repeating-linear-gradient(-45deg, var(--rubalise-avertissement) 0 12px, var(--texte) 12px 24px); }
+.chrono.en-pause { padding-top: calc(36px + env(safe-area-inset-top)); }
+/* Texte pour lecteur d'écran seulement */
+.pour-lecteur { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Séance guidée */
 .ecran.serre { gap: 16px; padding-top: calc(20px + env(safe-area-inset-top)); }
@@ -206,8 +229,6 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .essais { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .essais .bouton-second { grid-column: 1 / -1; }
 .grand-chiffre { font-family: var(--police-fixe); font-size: 30px; font-weight: 700; line-height: 1.1; }
-.chrono-nombre.long { font-size: min(34vw, 150px); }      /* « 9:56 » */
-.chrono-nombre.tres-long { font-size: min(27vw, 120px); } /* « 10:00 » */
 
 /* Séance en groupe */
 .couleurs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
