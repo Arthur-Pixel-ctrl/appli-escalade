@@ -299,3 +299,14 @@ form.pile-large { gap: 24px; }
 .detail-erreur { font-family: var(--police-fixe); font-size: 14px; overflow-wrap: anywhere; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Fenêtre de confirmation (D-04) */
+.confirmation { width: calc(100% - 40px); max-width: 420px; margin: auto; padding: 0; border: 0; background: transparent; color: var(--texte); overscroll-behavior: contain; }
+/* Voile : encre (#1D1C19) à 50 %, le navigateur n'y lit pas les variables. */
+.confirmation::backdrop { background: rgb(29 28 25 / 0.5); overscroll-behavior: contain; }
+.confirmation .fiche { box-shadow: var(--ombre-flottante); }
+/* Sur téléphone, les deux boutons sont empilés ; « Rester » vient en premier, le plus facile à atteindre. */
+.confirmation-actions { display: flex; flex-direction: column; gap: 12px; }
+.confirmation-actions .bouton-second { min-height: 56px; }
+.confirmation-actions .bouton { min-height: 56px; }
+.confirmation .signal-arret { margin: 0; }

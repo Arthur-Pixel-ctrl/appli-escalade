@@ -14,6 +14,7 @@ import { Chargement, Erreur } from './ecrans/Erreur.tsx'
 import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
 import { Profil } from './ecrans/Profil.tsx'
+import { Confirmation } from './composants/Confirmation.tsx'
 import { Questions } from './ecrans/Questions.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
 import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
@@ -45,10 +46,23 @@ export default function App() {
   }, [])
   const [majPrete, setMajPrete] = useState(false)
   useEffect(() => surMiseAJourDisponible(() => setMajPrete(true)), [])
-  const accueil = () => setVue({ nom: 'onglets' })
-  const quitter = () => {
-    if (window.confirm('Quitter la séance ? Elle ne sera pas enregistrée.')) accueil()
-  }
+  const accueil = () => { setErreurEnregistrement(undefined); setVue({ nom: 'onglets' }) }
+  // Quitter une séance demande confirmation ; la séance reste affichée (donc intacte) derrière la fenêtre.
+  const [confirmeQuitter, setConfirmeQuitter] = useState(false)
+  const quitter = () => setConfirmeQuitter(true)
+  const fenetreQuitter = (
+    <Confirmation
+      ouverte={confirmeQuitter}
+      titre="Quitter la séance ?"
+      texte="Elle ne sera pas enregistrée."
+      libelleAction="Quitter la séance"
+      danger
+      onRester={() => setConfirmeQuitter(false)}
+      onAction={() => { setConfirmeQuitter(false); accueil() }}
+    />
+  )
+  // Erreur d'enregistrement, affichée dans l'écran Questions (les réponses restent gardées).
+  const [erreurEnregistrement, setErreurEnregistrement] = useState<string | undefined>(undefined)
 
   if (erreurDemarrage) return <Erreur message={erreurDemarrage} />
   if (profil === undefined) return <Chargement />
@@ -87,6 +101,7 @@ export default function App() {
             })
           }
         />
+        {fenetreQuitter}
       </div>
     )
   }
@@ -109,6 +124,7 @@ export default function App() {
             })
           }
         />
+        {fenetreQuitter}
       </div>
     )
   }
@@ -119,14 +135,16 @@ export default function App() {
       <div className="app">
         <Questions
           contexte={`${brouillon.nom} · ${brouillon.mode === 'groupe' ? 'en groupe' : 'seul'}`}
+          erreur={erreurEnregistrement}
           onValider={async (reponses) => {
             let seanceId: string
             try {
               seanceId = await enregistrerSeance(brouillon, reponses)
             } catch {
-              window.alert('La séance n’a pas pu être enregistrée. Ferme complètement l’app, rouvre-la, puis réessaie.')
+              setErreurEnregistrement('La séance n’a pas pu être enregistrée. Tes réponses sont gardées : réessaie.')
               return
             }
+            setErreurEnregistrement(undefined)
             // En cas de douleur, on montre d'abord les repères, puis le débrief.
             setVue(reponses.douleur ? { nom: 'mises_en_garde', puisDebrief: seanceId } : { nom: 'debrief', seanceId })
           }}

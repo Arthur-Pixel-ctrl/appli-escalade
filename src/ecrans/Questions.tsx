@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { SeanceRealisee } from '../donnees/base.ts'
+import { Avertissement } from '../composants/Avertissement.tsx'
 
 type Reponses = Pick<SeanceRealisee, 'effortPercu' | 'peau' | 'douleur'>
 
@@ -10,7 +11,7 @@ const PEAU: { valeur: 1 | 2 | 3; nom: string }[] = [
 ]
 
 // Fin de séance, premier temps : trois questions, une touche chacune.
-export function Questions({ contexte, onValider }: { contexte: string; onValider: (r: Reponses) => void }) {
+export function Questions({ contexte, onValider, erreur }: { contexte: string; onValider: (r: Reponses) => void; erreur?: string }) {
   const [effort, setEffort] = useState<number | null>(null)
   const [peau, setPeau] = useState<1 | 2 | 3 | null>(null)
   const [douleur, setDouleur] = useState<boolean | null>(null)
@@ -50,12 +51,15 @@ export function Questions({ contexte, onValider }: { contexte: string; onValider
         </div>
       </fieldset>
 
+      {/* Les réponses ne sont pas perdues : elles restent dans l'état de l'écran. */}
+      {erreur && <div className="bas"><Avertissement niveau="arret" titre={erreur} /></div>}
+
       <button
-        className="bouton principal centre bas"
+        className={`bouton principal centre${erreur ? '' : ' bas'}`}
         disabled={!complet}
         onClick={() => complet && onValider({ effortPercu: effort, peau, douleur })}
       >
-        <strong>Enregistrer et voir le débrief</strong>
+        <strong>{erreur ? 'Réessayer l’enregistrement' : 'Enregistrer et voir le débrief'}</strong>
       </button>
     </main>
   )
