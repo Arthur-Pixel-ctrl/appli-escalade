@@ -1,10 +1,12 @@
-# Appelle chaque lundi une petite fonction du projet Supabase (elle ne lit aucune donnée),
+# Appelle le lundi et le jeudi une petite fonction du projet Supabase (elle ne lit aucune donnée),
 # pour éviter que l'offre gratuite ne mette le projet en pause après 7 jours sans activité.
+# Deux fois par semaine plutôt qu'une : GitHub retarde parfois les tâches planifiées, et un
+# seul appel par semaine tomberait pile sur la limite des 7 jours.
 name: Réveil Supabase
 
 on:
   schedule:
-    - cron: '17 6 * * 1' # chaque lundi à 6 h 17 (heure universelle)
+    - cron: '17 6 * * 1,4' # lundi et jeudi à 6 h 17 (heure universelle)
   workflow_dispatch: # permet aussi de le lancer à la main (onglet « Actions »)
 
 permissions:
