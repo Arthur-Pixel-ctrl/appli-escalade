@@ -39,6 +39,8 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | D-05 | Chrono plein écran : préparation sur encre, effort sur craie, repos sur résine | Fait |
 | F2-12 | Accès au plan : dates des phases, statut des séances, fin du cycle, calculés à la lecture (`src/donnees/plan.ts`) | Fait |
 | D-06 | Barre d'onglets avec icônes et nouvel écran Aujourd'hui (données d'exemple jusqu'à D-22) | Fait |
+| F2-07 | Connexion par code reçu par e-mail, visible seulement une fois Supabase configuré (`src/ecrans/Compte.tsx`) | Fait, essai réel à faire |
+| D-07 | Séance solo et séance en groupe au style « Topo », avertissement au-delà de 4 essais | Fait |
 
 ## Ouvrir l'app
 
