@@ -8,6 +8,7 @@ import { SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
 import { bilanObjectifs } from './moteur/seanceGroupe.ts'
 import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
 import { Bienvenue } from './ecrans/Bienvenue.tsx'
+import { Compte } from './ecrans/Compte.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
 import { EnConstruction } from './ecrans/EnConstruction.tsx'
 import { Chargement, Erreur } from './ecrans/Erreur.tsx'
@@ -38,6 +39,7 @@ type Vue =
   | { nom: 'questions'; brouillon: Brouillon }
   | { nom: 'mises_en_garde'; puisDebrief?: string; premierLancement?: boolean }
   | { nom: 'debrief'; seanceId: string }
+  | { nom: 'compte' }
 
 export default function App() {
   const [onglet, setOnglet] = useState<Onglet>('Aujourd’hui')
@@ -171,6 +173,10 @@ export default function App() {
     )
   }
 
+  if (vue.nom === 'compte') {
+    return <div className="app"><Compte onRetour={accueil} /></div>
+  }
+
   if (vue.nom === 'debrief') {
     return <div className="app"><Debrief seanceId={vue.seanceId} salle={salle} onFermer={accueil} /></div>
   }
@@ -191,6 +197,7 @@ export default function App() {
           profil={profil}
           onEnregistrer={async (p) => { await enregistrerProfil(p); setProfil(p) }}
           onMisesEnGarde={() => setVue({ nom: 'mises_en_garde' })}
+          onCompte={() => setVue({ nom: 'compte' })}
           onDonneesImportees={() => void lireProfil().then((p) => p && setProfil(p)).catch(() => {})}
         />
       )}
