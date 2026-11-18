@@ -5,7 +5,9 @@ import type {
 } from './modele.ts'
 import { completerProfil, type Profil } from './profil.ts'
 import { decider } from '../synchro/fusion.ts'
-import { ecrire, lireTous, TABLES_SYNCHRONISEES, type TableSynchronisee } from './stockage.ts'
+import {
+  ecrire, lireTous, lireUn, signalerDonneesChangees, signalerEcriture, TABLES_SYNCHRONISEES, type TableSynchronisee,
+} from './stockage.ts'
 
 // La base de données de l'app, stockée sur le téléphone (IndexedDB, via Dexie).
 // Le type `SeanceRealisee` vient de `modele.ts` ; les autres fichiers continuent de l'importer d'ici.
@@ -124,7 +126,8 @@ if (typeof document !== 'undefined') {
 }
 
 export async function lireProfil(): Promise<Profil | null> {
-  const enregistre = await avecReprise(() => base.reglages.get('profil'))
+  // Par `lireUn` : un profil supprimé (suppression douce) n'existe plus.
+  const enregistre = await lireUn<Local<ProfilEnregistre>>('reglages', 'profil')
   // Un profil enregistré avant la v2 n'a pas les champs récents : on les complète.
   return enregistre ? completerProfil(enregistre as Partial<Profil>) : null
 }
@@ -156,6 +159,17 @@ export async function exporterDonnees(): Promise<string> {
   return JSON.stringify(sauvegarde, null, 2)
 }
 
+// Limites du script SQL du serveur (supabase/migrations/0001_documents.sql) : un document qui les dépasse
+// serait refusé à l'envoi. On l'écarte dès l'import plutôt que de le garder « à envoyer » pour toujours.
+export const LONGUEUR_MAX_ID = 100
+export const TAILLE_MAX_DOCUMENT = 200_000
+
+/** Vrai si le serveur accepterait ce document. */
+function acceptableParLeServeur(doc: { id: string }): boolean {
+  if (doc.id.length > LONGUEUR_MAX_ID) return false
+  return new TextEncoder().encode(JSON.stringify(doc)).length < TAILLE_MAX_DOCUMENT
+}
+
 type DocImporte = Record<string, unknown> & { id: string; modifieLe: string }
 
 /** Complète un document d'un ancien fichier (sans dates ni version) ; `null` s'il n'a pas d'identifiant. */
@@ -178,9 +192,10 @@ function completerImporte(brut: unknown): DocImporte | null {
  * Recharge une sauvegarde (version 1 ou 2). Pour chaque document, la version la plus récente gagne :
  * un document du fichier plus ancien que celui de l'appareil ne l'écrase jamais.
  * Ce qui est pris dans le fichier repart au serveur à la prochaine synchro (`aEnvoyer: 1`).
+ * Les documents que le serveur refuserait (identifiant trop long, contenu trop gros) sont écartés et comptés dans `ecartes`.
  * Renvoie le nombre de séances et d'autres éléments (non supprimés) contenus dans le fichier.
  */
-export async function importerDonnees(texte: string): Promise<{ seances: number; autres: number }> {
+export async function importerDonnees(texte: string): Promise<{ seances: number; autres: number; ecartes: number }> {
   let s: { version?: number; tables?: unknown } | null
   try { s = JSON.parse(texte) } catch { throw new Error('Ce fichier n’est pas une sauvegarde de l’app.') }
   const tablesFichier = s?.tables as Record<string, unknown> | undefined
@@ -193,26 +208,34 @@ export async function importerDonnees(texte: string): Promise<{ seances: number;
 
   // Les tables inconnues sont ignorées ; les connues sont lues en entier avant d'écrire quoi que ce soit.
   const aImporter: { nom: TableSynchronisee; docs: DocImporte[] }[] = []
+  let ecartes = 0
   for (const nom of TABLES_SYNCHRONISEES) {
     const brut = tablesFichier[nom]
     if (!Array.isArray(brut)) continue
-    aImporter.push({ nom, docs: brut.map(completerImporte).filter((d): d is DocImporte => d !== null) })
+    const valides = brut.map(completerImporte).filter((d): d is DocImporte => d !== null)
+    const acceptes = valides.filter(acceptableParLeServeur)
+    ecartes += valides.length - acceptes.length
+    aImporter.push({ nom, docs: acceptes })
   }
 
   let seances = 0
   let autres = 0
+  let ecrits = 0
   const tables = aImporter.map(({ nom }) => base.table(nom))
   await avecReprise(() => base.transaction('rw', tables, async () => {
     seances = 0
     autres = 0
+    ecrits = 0
     for (const { nom, docs } of aImporter) {
       const table = base.table(nom)
       for (const doc of docs) {
         if (!doc.supprimeLe) { if (nom === 'seancesRealisees') seances++; else autres++ }
         const local = (await table.get(doc.id)) as { modifieLe: string } | undefined
-        if (decider(local, doc) === 'prendre_distant') await table.put({ ...doc, aEnvoyer: 1 })
+        if (decider(local, doc) === 'prendre_distant') { await table.put({ ...doc, aEnvoyer: 1 }); ecrits++ }
       }
     }
   }))
-  return { seances, autres }
+  // Comme une écriture normale : une synchro est demandée et les écrans se relisent.
+  if (ecrits > 0) { signalerEcriture(); signalerDonneesChangees() }
+  return { seances, autres, ecartes }
 }

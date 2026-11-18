@@ -23,6 +23,20 @@ export async function ecrire<T extends { id: string }>(table: TableSynchronisee,
     await t.put({ ...doc, versionFormat: 1, creeLe, modifieLe: maintenant, aEnvoyer: 1 })
   })
   prevenir(abonnesEcriture)
+  void demanderPersistance()
+}
+
+// Le navigateur peut effacer les données d'un site quand il manque de place. On lui demande de les garder.
+let persistanceDemandee = false
+
+/** Demande `navigator.storage.persist()` une fois. Ne fait jamais échouer un enregistrement : tout échec est avalé. */
+async function demanderPersistance(): Promise<void> {
+  try {
+    const persist = typeof navigator !== 'undefined' ? navigator.storage?.persist : undefined
+    if (persistanceDemandee || typeof persist !== 'function') return
+    persistanceDemandee = true
+    await navigator.storage.persist()
+  } catch { /* pas de persistance : l'app marche quand même */ }
 }
 
 /** Suppression douce : le document reste dans la table, masqué, pour que la suppression soit envoyée. */
@@ -87,6 +101,11 @@ export function surEcriture(rappel: () => void): () => void {
 export function surDonneesChangees(rappel: () => void): () => void {
   abonnesDonnees.add(rappel)
   return () => { abonnesDonnees.delete(rappel) }
+}
+
+/** Une écriture a eu lieu sans passer par `ecrire` (import d'une sauvegarde) : lance une synchro. */
+export function signalerEcriture(): void {
+  prevenir(abonnesEcriture)
 }
 
 export function signalerDonneesChangees(): void {

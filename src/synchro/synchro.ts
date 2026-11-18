@@ -34,6 +34,12 @@ export interface ServeurDocuments {
 
 export interface BilanSynchro { envoyes: number; recus: number; appliques: number }
 
+/** Un document que le serveur a refusé (identifiant trop long, contenu trop gros…). Il reste « à envoyer » sur l'appareil. */
+export interface DocumentRefuse { table: TableSynchronisee; id: string }
+
+/** Clé de `etatSynchro` qui garde la liste des documents refusés au dernier envoi. */
+export const CLE_REFUSES = 'refuses'
+
 const TAILLE_PAQUET_ENVOI = 100
 const TAILLE_PAGE_RECEPTION = 500
 
@@ -50,16 +56,24 @@ export function synchroniser(serveur: ServeurDocuments | null, userId: string): 
   if (!serveur) return Promise.resolve({ envoyes: 0, recus: 0, appliques: 0 })
   if (enCours) return enCours
   enCours = (async () => {
+    // L'envoi et la réception sont indépendants : un envoi qui échoue n'empêche pas de recevoir.
+    let erreurEnvoi: unknown = null
+    let envoyes = 0
     try {
-      const envoyes = await pousser(serveur, userId)
+      envoyes = await pousser(serveur, userId)
+    } catch (erreur) {
+      erreurEnvoi = erreur
+    }
+    try {
       const { recus, appliques } = await tirer(serveur)
+      if (appliques > 0) signalerDonneesChangees()
+      if (erreurEnvoi) throw erreurEnvoi
       await ecrireEtat('derniereSynchro', new Date().toISOString())
       await ecrireEtat('derniereErreur', null)
-      if (appliques > 0) signalerDonneesChangees()
       return { envoyes, recus, appliques }
     } catch (erreur) {
-      await ecrireEtat('derniereErreur', erreur instanceof Error ? erreur.message : String(erreur)).catch(() => {})
-      throw erreur
+      await ecrireEtat('derniereErreur', messageEnFrancais(erreurEnvoi ?? erreur)).catch(() => {})
+      throw erreurEnvoi ?? erreur
     } finally {
       enCours = null
     }
@@ -76,17 +90,60 @@ export async function compterEnAttente(): Promise<number> {
   return total
 }
 
-/** Envoie les documents « à envoyer ». Renvoie le nombre de documents envoyés. */
+/** Erreur du réseau ou de la session : tout le monde échoue pareil, aucun document n'est « refusé » en particulier. */
+function estErreurGenerale(erreur: unknown): boolean {
+  const texte = (erreur instanceof Error ? `${erreur.name} ${erreur.message}` : String(erreur)).toLowerCase()
+  return /failed to fetch|network|load failed|timeout|offline|réseau|jwt|not authenticated|fetch failed/.test(texte)
+}
+
+/** Traduit une erreur technique du serveur en phrase française, pour l'indicateur de synchronisation. */
+export function messageEnFrancais(erreur: unknown): string {
+  const texte = erreur instanceof Error ? erreur.message : String(erreur)
+  if (estErreurGenerale(erreur) && /failed to fetch|network|load failed|fetch failed|timeout|offline/i.test(texte)) {
+    return 'Pas de réseau ou serveur injoignable'
+  }
+  if (/jwt|not authenticated/i.test(texte)) return 'Ta connexion au compte a expiré : reconnecte-toi'
+  // Un message déjà en français (écrit par l'app) est gardé tel quel ; un message technique du serveur est remplacé.
+  if (/[éèêàùç’]|réseau/i.test(texte)) return texte
+  return 'Le serveur n’a pas pu enregistrer certaines données'
+}
+
+/**
+ * Envoie les documents « à envoyer ». Renvoie le nombre de documents envoyés.
+ * Un paquet refusé est renvoyé document par document : un document refusé est noté (`refuses`) et ne bloque pas les autres.
+ * Il garde sa marque « à envoyer » : rien n'est jamais retiré à un document que le serveur n'a pas pris.
+ */
 async function pousser(serveur: ServeurDocuments, userId: string): Promise<number> {
   let envoyes = 0
-  for (const table of TABLES_SYNCHRONISEES) {
-    const aEnvoyer = (await avecReprise(() => base.table(table).where('aEnvoyer').equals(1).toArray())) as DocLocal[]
-    for (let i = 0; i < aEnvoyer.length; i += TAILLE_PAQUET_ENVOI) {
-      const paquet = aEnvoyer.slice(i, i + TAILLE_PAQUET_ENVOI)
-      await serveur.envoyer(paquet.map((doc) => versLigne(userId, table, doc)))
-      await marquerEnvoyes(table, paquet)
-      envoyes += paquet.length
+  const refuses: DocumentRefuse[] = []
+  try {
+    for (const table of TABLES_SYNCHRONISEES) {
+      const aEnvoyer = (await avecReprise(() => base.table(table).where('aEnvoyer').equals(1).toArray())) as DocLocal[]
+      for (let i = 0; i < aEnvoyer.length; i += TAILLE_PAQUET_ENVOI) {
+        const paquet = aEnvoyer.slice(i, i + TAILLE_PAQUET_ENVOI)
+        try {
+          await serveur.envoyer(paquet.map((doc) => versLigne(userId, table, doc)))
+          await marquerEnvoyes(table, paquet)
+          envoyes += paquet.length
+        } catch (erreur) {
+          if (estErreurGenerale(erreur)) throw erreur
+          // Le serveur a refusé quelque chose : on cherche quel document, un par un.
+          for (const doc of paquet) {
+            try {
+              await serveur.envoyer([versLigne(userId, table, doc)])
+              await marquerEnvoyes(table, [doc])
+              envoyes++
+            } catch (erreurDoc) {
+              if (estErreurGenerale(erreurDoc)) throw erreurDoc
+              refuses.push({ table, id: doc.id })
+            }
+          }
+        }
+      }
     }
+  } finally {
+    // La liste est mise à jour même si l'envoi s'arrête en route.
+    await ecrireEtat(CLE_REFUSES, refuses).catch(() => {})
   }
   return envoyes
 }

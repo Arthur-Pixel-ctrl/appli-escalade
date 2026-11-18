@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react'
 import { Confirmation } from '../composants/Confirmation.tsx'
 import { Avertissement } from '../composants/Avertissement.tsx'
 import { comptesDisponibles, supabase } from '../compte/client.ts'
-import { jourLocal } from '../donnees/base.ts'
-import { lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
+import { ecrireEtat, lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
 import {
-  delierAppareil, effacerDonneesLocales, lierCompte, profilsACompare, resumerAppareil, sauvegardeComplete, situationReprise,
-  type ResumeAppareil,
+  effacerDonneesLocales, lierCompte, profilsACompare, resumerAppareil, situationReprise, type ResumeAppareil,
 } from '../synchro/reprise.ts'
+import {
+  CLE_DETACHEMENT, creerFichierDeSauvegarde, detacherAppareilApresSuppression, terminerDetachementEnSuspens, texteQuestionFichier,
+} from './Compte.outils.ts'
 import { serveurSupabase } from '../synchro/serveurSupabase.ts'
-import { compterEnAttente } from '../synchro/synchro.ts'
+import { CLE_REFUSES, compterEnAttente, type DocumentRefuse } from '../synchro/synchro.ts'
 import {
   depuisQuand, signalerCompteLie, surEtatSynchro, synchroEnCours, synchroniserMaintenant,
 } from '../synchro/automatique.ts'
@@ -49,14 +50,14 @@ export function Compte({ onRetour }: { onRetour: () => void }) {
   // Secondes restantes avant de pouvoir redemander un code.
   const [attente, setAttente] = useState(0)
   // Compte supprimé : cet écran reste affiché même si la session disparaît.
-  const [supprime, setSupprime] = useState(false)
+  const [supprime, setSupprime] = useState<false | 'complet' | 'a_finir'>(false)
   useEffect(() => {
     if (attente <= 0) return
     const minuteur = setTimeout(() => setAttente((s) => s - 1), 1000)
     return () => clearTimeout(minuteur)
   }, [attente])
 
-  if (supprime) return <CompteSupprime />
+  if (supprime) return <CompteSupprime detachementAFinir={supprime === 'a_finir'} />
 
   const retour = <button className="bouton-discret" onClick={onRetour}>Retour</button>
   const confidentialite = <p className="texte-3">{PHRASE_CONFIDENTIALITE}</p>
@@ -86,7 +87,7 @@ export function Compte({ onRetour }: { onRetour: () => void }) {
   if (session.userId) {
     return (
       <CompteConnecte
-        userId={session.userId} onSupprime={() => setSupprime(true)} email={session.email ?? ''} enLigne={enLigne}
+        userId={session.userId} onSupprime={(detache) => setSupprime(detache ? 'complet' : 'a_finir')} email={session.email ?? ''} enLigne={enLigne}
         onRetour={onRetour} retour={retour} confidentialite={confidentialite}
       />
     )
@@ -187,7 +188,7 @@ type Etape =
   | { nom: 'verification' }
   | { nom: 'premier_lien'; resume: ResumeAppareil }
   | { nom: 'choix_profil'; resume: ResumeAppareil; appareil: InfosProfil; compte: InfosProfil }
-  | { nom: 'autre_compte'; resume: ResumeAppareil; emailAutre: string | null; enAttente: number }
+  | { nom: 'autre_compte'; resume: ResumeAppareil; emailAutre: string | null; enAttente: number; fichierCree: boolean }
   | { nom: 'fin'; message: string; recharger: boolean }
   // `nonLie` : connecté, mais les données de l'appareil ne sont pas (encore) reliées au compte.
   | { nom: 'normal'; nonLie: boolean; message?: string }
@@ -200,17 +201,8 @@ function infosProfil(doc: Record<string, unknown>): InfosProfil {
   }
 }
 
-/** Même geste que « Sauvegarder mes données » de l'écran Profil, avec toutes les tables. */
-function telechargerFichier(contenu: string): void {
-  const lien = document.createElement('a')
-  lien.href = URL.createObjectURL(new Blob([contenu], { type: 'application/json' }))
-  lien.download = `appli-escalade-sauvegarde-${jourLocal()}.json`
-  lien.click()
-  URL.revokeObjectURL(lien.href)
-}
-
 interface EtatIndicateur {
-  enAttente: number; derniereSynchro: string | null; derniereErreur: string | null; enCours: boolean
+  enAttente: number; derniereSynchro: string | null; derniereErreur: string | null; enCours: boolean; refuses: number
   lueLe: Date // l'instant de la lecture, pour « il y a 2 min »
 }
 
@@ -223,8 +215,9 @@ function IndicateurSynchro({ enLigne }: { enLigne: boolean }) {
     const relire = () => {
       Promise.all([
         compterEnAttente(), lireEtat<string | null>('derniereSynchro'), lireEtat<string | null>('derniereErreur'),
-      ]).then(([enAttente, derniereSynchro, derniereErreur]) => {
-        if (actif) setEtat({ enAttente, derniereSynchro: derniereSynchro ?? null, derniereErreur: derniereErreur ?? null, enCours: synchroEnCours(), lueLe: new Date() })
+        lireEtat<DocumentRefuse[]>(CLE_REFUSES),
+      ]).then(([enAttente, derniereSynchro, derniereErreur, refuses]) => {
+        if (actif) setEtat({ enAttente, derniereSynchro: derniereSynchro ?? null, derniereErreur: derniereErreur ?? null, enCours: synchroEnCours(), refuses: refuses?.length ?? 0, lueLe: new Date() })
       }).catch(() => {})
     }
     relire()
@@ -237,6 +230,7 @@ function IndicateurSynchro({ enLigne }: { enLigne: boolean }) {
   if (etat) {
     if (!enLigne) texte = 'Hors ligne. Tes données sont sur l’appareil et partiront au retour du réseau.'
     else if (etat.derniereErreur) texte = `La dernière synchronisation a échoué : ${etat.derniereErreur}. Nouvel essai automatique.`
+    else if (etat.refuses > 0) texte = `${etat.refuses} élément${etat.refuses > 1 ? 's ont été refusés' : ' a été refusé'} par le serveur (trop long ou trop gros). ${etat.refuses > 1 ? 'Ils restent' : 'Il reste'} sur cet appareil ; le reste se synchronise normalement.`
     else if (etat.enAttente > 0) texte = `${etat.enAttente} modification${etat.enAttente > 1 ? 's' : ''} en attente d’envoi.`
     else texte = etat.derniereSynchro ? `À jour, ${depuisQuand(etat.derniereSynchro, etat.lueLe)}` : 'À jour.'
   }
@@ -253,7 +247,7 @@ function IndicateurSynchro({ enLigne }: { enLigne: boolean }) {
 
 // Dernier écran, une fois le compte supprimé sur le serveur : garder ou effacer les données de cet appareil.
 // Il vit dans `Compte` (et non dans la vue connectée) : la déconnexion fait disparaître cette dernière.
-function CompteSupprime() {
+function CompteSupprime({ detachementAFinir }: { detachementAFinir: boolean }) {
   const [confirmeAppareil, setConfirmeAppareil] = useState(false)
   const [erreur, setErreur] = useState('')
 
@@ -274,6 +268,7 @@ function CompteSupprime() {
       <div className="pile-large">
         <h1 className="titre moyen">Compte supprimé</h1>
         <p>Ton compte et tes données sur le serveur ont été supprimés. Tes séances et ton plan sont toujours sur cet appareil.</p>
+        {detachementAFinir && <p className="texte-2">Cet appareil n’a pas pu être détaché de ton ancien compte tout de suite. Ce sera fait à la prochaine ouverture de l’écran Compte : tes données ne sont pas touchées.</p>}
         <div role="status" aria-live="polite">{erreur && <p className="message-erreur">{erreur}</p>}</div>
         <button className="bouton principal centre" onClick={() => window.location.reload()}><strong>Garder mes données sur cet appareil</strong></button>
         <button className="bouton-second" onClick={() => setConfirmeAppareil(true)}>Effacer aussi les données de cet appareil</button>
@@ -298,7 +293,7 @@ function motDeConfirmationValide(texte: string): boolean {
 // Suppression du compte. Deux décisions séparées :
 // 1. le serveur (compte et données du compte) : confirmation, puis fonction SQL `supprimer_mon_compte` ;
 // 2. cet appareil : jamais effacé sans une seconde confirmation, une fois le compte supprimé.
-function SuppressionCompte({ enLigne, onAnnuler, onFait }: { enLigne: boolean; onAnnuler: () => void; onFait: () => void }) {
+function SuppressionCompte({ enLigne, onAnnuler, onFait }: { enLigne: boolean; onAnnuler: () => void; onFait: (detache: boolean) => void }) {
   const [mot, setMot] = useState('')
   const [confirmeServeur, setConfirmeServeur] = useState(false)
   const [occupe, setOccupe] = useState(false)
@@ -308,8 +303,8 @@ function SuppressionCompte({ enLigne, onAnnuler, onFait }: { enLigne: boolean; o
   const sauvegarder = async () => {
     setErreur('')
     try {
-      telechargerFichier(await sauvegardeComplete())
-      setMessage('Sauvegarde créée dans tes téléchargements.')
+      await creerFichierDeSauvegarde()
+      setMessage('Fichier proposé au téléchargement : vérifie qu’il est bien dans tes fichiers.')
     } catch {
       setErreur('La sauvegarde n’a pas pu être créée. Rien n’a été supprimé.')
     }
@@ -320,19 +315,22 @@ function SuppressionCompte({ enLigne, onAnnuler, onFait }: { enLigne: boolean; o
     setOccupe(true)
     setErreur('')
     try {
+      // Noté avant : si l'app se ferme entre la suppression et le détachement, le détachement se termine à l'ouverture suivante.
+      await ecrireEtat(CLE_DETACHEMENT, true)
       // Le serveur d'abord : si le réseau échoue, on s'arrête et l'appareil n'a rien perdu.
       const { error } = await supabase!.rpc('supprimer_mon_compte')
       if (error) throw error
     } catch {
+      await ecrireEtat(CLE_DETACHEMENT, null).catch(() => {})
       setErreur('Le compte n’a pas pu être supprimé. Rien n’a été effacé : réessaie quand le réseau revient.')
       setOccupe(false)
       return
     }
     try { await seDeconnecter() } catch { /* le compte n'existe plus : une erreur ici ne change rien */ }
     // Le compte n'existe plus : on détache l'appareil, sans toucher à ses données.
-    try { await delierAppareil() } catch { /* sans gravité : le prochain lien repartira de zéro */ }
+    const detache = await detacherAppareilApresSuppression()
     setOccupe(false)
-    onFait()
+    onFait(detache)
   }
 
   return (
@@ -369,7 +367,7 @@ function SuppressionCompte({ enLigne, onAnnuler, onFait }: { enLigne: boolean; o
 
 // Vue « connecté » : décide quoi faire des données de l'appareil, puis affiche le compte.
 function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidentialite, onSupprime }: {
-  userId: string; onSupprime: () => void; email: string; enLigne: boolean
+  userId: string; onSupprime: (detache: boolean) => void; email: string; enLigne: boolean
   onRetour: () => void; retour: React.ReactNode; confidentialite: React.ReactNode
 }) {
   const [etape, setEtape] = useState<Etape>({ nom: 'verification' })
@@ -416,16 +414,19 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
 
   // Au passage : que faut-il faire des données de l'appareil ?
   const verifier = async (plusTard = false) => {
+    await terminerDetachementEnSuspens()
     const resume = await resumerAppareil()
     const situation = situationReprise(await lireEtat<string | null>('compteId'), userId)
     if (situation === 'autre_compte') {
       setEtape({
         nom: 'autre_compte', resume, enAttente: await compterEnAttente(),
-        emailAutre: (await lireEtat<string | null>('compteEmail')) ?? null,
+        emailAutre: (await lireEtat<string | null>('compteEmail')) ?? null, fichierCree: false,
       })
     } else if (situation === 'meme_compte') {
       // Déjà lié : la synchro automatique de l'app rattrape ce qui n'est pas parti ; on la relance simplement.
       setEtape({ nom: 'normal', nonLie: false })
+      // Après un premier lien interrompu, la synchro automatique n'a jamais démarré : on la démarre d'abord.
+      signalerCompteLie()
       void synchroniserMaintenant()
     } else if (resume.nbSeances > 0 && !plusTard) {
       setEtape({ nom: 'premier_lien', resume })
@@ -442,12 +443,26 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
-  const sauvegarderPuisEffacer = async (e: Extract<Etape, { nom: 'autre_compte' }>) => {
+  // Temps 1 : créer le fichier, sans rien effacer. Puis la question « as-tu bien le fichier ? ».
+  const creerFichier = async (e: Extract<Etape, { nom: 'autre_compte' }>) => {
     setOccupe(true)
     setErreur('')
     try {
-      // Le fichier d'abord : si la sauvegarde échoue, rien n'est effacé.
-      telechargerFichier(await sauvegardeComplete())
+      await creerFichierDeSauvegarde()
+      setEtape({ ...e, fichierCree: true })
+    } catch {
+      setErreur('Le fichier n’a pas pu être créé. Rien n’a été effacé : réessaie.')
+    } finally {
+      setOccupe(false)
+    }
+  }
+
+  // Temps 2 : seulement si l'utilisateur répond « Oui, effacer cet appareil ».
+  const effacerApresFichier = async (e: Extract<Etape, { nom: 'autre_compte' }>) => {
+    setOccupe(true)
+    setErreur('')
+    setEtape({ ...e, fichierCree: false })
+    try {
       // On n'efface que ce que l'utilisateur a vu dans la confirmation.
       await effacerDonneesLocales({ enAttenteAcceptees: e.enAttente })
     } catch {
@@ -491,12 +506,23 @@ function CompteConnecte({ userId, email, enLigne, onRetour, retour, confidential
   }
   if (etape.nom === 'autre_compte') {
     return (
-      <RepriseAutreCompte
-        emailAutre={etape.emailAutre} nouvelEmail={email} resume={etape.resume} enAttente={etape.enAttente}
-        enLigne={enLigne} occupe={occupe} erreur={erreur}
-        onSauvegarderEfface={() => void sauvegarderPuisEffacer(etape)}
-        onAnnuler={() => void annulerChangement()}
-      />
+      <>
+        <RepriseAutreCompte
+          emailAutre={etape.emailAutre} nouvelEmail={email} resume={etape.resume} enAttente={etape.enAttente}
+          enLigne={enLigne} occupe={occupe} erreur={erreur}
+          onSauvegarderEfface={() => void creerFichier(etape)}
+          onAnnuler={() => void annulerChangement()}
+        />
+        {/* Le choix sûr (« Non ») reçoit le focus : Confirmation le place toujours sur le bouton de gauche. */}
+        <Confirmation
+          ouverte={etape.fichierCree}
+          titre="As-tu bien le fichier dans Fichiers > Téléchargements ?"
+          texte={texteQuestionFichier(etape.enAttente)}
+          libelleAction="Oui, effacer cet appareil" libelleRester="Non, garder mes données" danger
+          onRester={() => setEtape({ ...etape, fichierCree: false })}
+          onAction={() => void effacerApresFichier(etape)}
+        />
+      </>
     )
   }
   if (etape.nom === 'fin') {

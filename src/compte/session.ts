@@ -68,7 +68,7 @@ export async function verifierCode(email: string, code: string): Promise<void> {
 export async function seDeconnecter(): Promise<void> {
   const client = clientOuErreur()
   try {
-    const { error } = await client.auth.signOut()
+    const { error } = await client.auth.signOut({ scope: 'local' }) // seulement cet appareil : les autres restent connectés
     if (error) throw error
   } catch (e) {
     throw new Error(messageErreur(e))
