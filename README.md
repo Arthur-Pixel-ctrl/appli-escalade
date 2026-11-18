@@ -46,6 +46,8 @@ npm run test    # lance les tests
 npm run build   # construit la version à mettre en ligne (dossier dist/)
 ```
 
+Pour tester les comptes, copier `.env.exemple` en `.env.local` et y mettre les valeurs du projet Supabase (voir `docs/supabase.md`). Sans ce fichier, l'app fonctionne sans compte.
+
 ## Où trouver quoi
 
 | Dossier ou fichier | Rôle |
