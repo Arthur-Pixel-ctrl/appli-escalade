@@ -365,3 +365,8 @@ form.pile-large { gap: 24px; }
 .confirmation-actions .bouton-second { min-height: 56px; }
 .confirmation-actions .bouton { min-height: 56px; }
 .confirmation .signal-arret { margin: 0; }
+
+/* Lignes « libellé · valeur » (débrief, bilans) : le libellé garde une largeur lisible
+   (« Ce soir » ne se coupe pas) et la valeur, alignée à droite, se répartit sur des lignes équilibrées. */
+.ligne > span:first-child { min-width: 7em; }
+.ligne > span:last-child { text-align: right; text-wrap: balance; }
