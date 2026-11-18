@@ -41,6 +41,8 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | D-06 | Barre d'onglets avec icônes et nouvel écran Aujourd'hui (données d'exemple jusqu'à D-22) | Fait |
 | F2-07 | Connexion par code reçu par e-mail, visible seulement une fois Supabase configuré (`src/ecrans/Compte.tsx`) | Fait, essai réel à faire |
 | D-07 | Séance solo et séance en groupe au style « Topo », avertissement au-delà de 4 essais | Fait |
+| F2-09 | Lien du compte et reprise des séances déjà sur l'appareil, sans rien effacer (`src/synchro/reprise.ts`) | Fait, essai réel à faire |
+| D-08 | Trois questions, débrief, bilans par semaine et mises en garde au style « Topo » | Fait |
 
 ## Ouvrir l'app
 
