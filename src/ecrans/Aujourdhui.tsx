@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { comptesDisponibles } from '../compte/client.ts'
+import { useSession } from '../compte/session.ts'
+import { useEnLigne } from '../compte/useEnLigne.ts'
 import { Icone } from '../composants/Icone.tsx'
 import { SEANCE_EXEMPLE } from '../donnees/seanceExemple.ts'
+import { lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
+import { etatSynchroCourt, surEtatSynchro, synchroEnCours } from '../synchro/automatique.ts'
+import { compterEnAttente } from '../synchro/synchro.ts'
 
 // Données d'exemple : remplacé par le plan réel en D-22.
 const EXEMPLE = {
@@ -31,11 +37,41 @@ function formaterDuree(minutes: number): string {
 
 const majuscule = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 
-export function Aujourdhui({ grimpeSouventEnGroupe, onSeanceSolo, onSeanceGroupe }: {
+// Le bandeau « crée ton compte » masqué par le « × » le reste jusqu'à la fermeture de l'app (pas d'un onglet à l'autre).
+let invitationMasquee = false
+
+// La mention « À JOUR », « HORS LIGNE »… : seulement si l'appareil est lié à un compte (sinon rien n'est envoyé).
+function useMentionSynchro(userId: string | null): string | null {
+  const enLigne = useEnLigne()
+  const [lie, setLie] = useState(false)
+  const [enAttente, setEnAttente] = useState(0)
+  const [enCours, setEnCours] = useState(synchroEnCours())
+  useEffect(() => {
+    if (!comptesDisponibles || !userId) return
+    let actif = true
+    const relire = () => {
+      setEnCours(synchroEnCours())
+      lireEtat<string | null>('compteId').then((id) => { if (actif) setLie(id === userId) }).catch(() => {})
+      compterEnAttente().then((n) => { if (actif) setEnAttente(n) }).catch(() => {})
+    }
+    relire()
+    const arrets = [surEtatSynchro(relire), surEcriture(relire), surDonneesChangees(relire)]
+    return () => { actif = false; arrets.forEach((arreter) => arreter()) }
+  }, [userId])
+  if (!comptesDisponibles || !userId || !lie) return null
+  return etatSynchroCourt({ enLigne, enCours, enAttente })
+}
+
+export function Aujourdhui({ grimpeSouventEnGroupe, onCompte, onSeanceSolo, onSeanceGroupe }: {
   grimpeSouventEnGroupe: boolean
+  onCompte: () => void
   onSeanceSolo: () => void
   onSeanceGroupe: () => void
 }) {
+  const session = useSession()
+  const mentionSynchro = useMentionSynchro(session.userId)
+  const [invitationVisible, setInvitationVisible] = useState(!invitationMasquee)
+  const afficherInvitation = comptesDisponibles && !session.chargement && session.userId === null && invitationVisible
   // Lue une seule fois à l'ouverture de l'écran.
   const [maintenant] = useState(() => new Date())
   const date = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(maintenant)
@@ -72,8 +108,17 @@ export function Aujourdhui({ grimpeSouventEnGroupe, onSeanceSolo, onSeanceGroupe
 
   return (
     <main className="ecran" aria-labelledby="titre-jour">
+      {afficherInvitation && (
+        <div className="invitation-compte">
+          <button className="invitation-texte" onClick={onCompte}>Crée ton compte pour retrouver ton plan sur ordinateur</button>
+          <button className="invitation-fermer" aria-label="Masquer cette invitation" onClick={() => { invitationMasquee = true; setInvitationVisible(false) }}>×</button>
+        </div>
+      )}
       <div className="pile">
-        <p className="mention">{majuscule(date)}</p>
+        <div className="ligne-date">
+          <p className="mention">{majuscule(date)}</p>
+          {mentionSynchro && <p className="mention" role="status" aria-live="polite">{mentionSynchro}</p>}
+        </div>
         <p className="mention">{EXEMPLE.phase}</p>
         <h1 className="titre" id="titre-jour">{SEANCE_EXEMPLE.nom}</h1>
       </div>

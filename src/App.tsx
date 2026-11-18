@@ -105,14 +105,20 @@ export default function App() {
 
   // Premier lancement : le profil, puis les mises en garde, une seule fois.
   if (profil === null) {
+    // Connexion depuis l'accueil : « Retour » ramène à l'accueil. Si la reprise ramène un profil, l'app se recharge.
+    if (vue.nom === 'compte') return <div className="app"><Compte onRetour={accueil} /></div>
+    const apresProfil = () => setVue({ nom: 'mises_en_garde', premierLancement: true })
     return (
       <div className="app">
         <Bienvenue
           onValider={async (p) => {
             await enregistrerProfil(p)
             setProfil(p)
-            setVue({ nom: 'mises_en_garde', premierLancement: true })
+            apresProfil()
           }}
+          // Profil venu d'une sauvegarde rechargée : mêmes mises en garde que pour un profil créé ici.
+          onProfilRetrouve={(p) => { setProfil(p); apresProfil() }}
+          onCompte={() => setVue({ nom: 'compte' })}
         />
       </div>
     )
