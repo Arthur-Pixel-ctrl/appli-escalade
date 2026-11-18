@@ -800,3 +800,53 @@ debrief(s) = {
 ### 7.6 Tables Dexie
 
 Ajouter la table `objectifsPerso` (index : `id`, `famille`). La table des réglages stocke désormais `Profil`. Total : 18 tables.
+
+## 8. Modèle v2 (17 novembre 2026)
+
+Cette section **fait foi** en cas de contradiction avec les sections 1 à 7. Le détail complet (types, schéma du serveur, exemples) est dans `docs/architecture-v2.md` § 3 ; les types TypeScript sont dans `src/donnees/modele.ts` et `src/donnees/profil.ts`.
+
+**Vocabulaire (décision B9, règle R-2).** La période de 4 semaines s'appelle « Phase » à l'écran. Dans le code : type `PhaseCycle`, table `phases`, champ `phaseId` (l'ancien « mésocycle » n'existe plus ; `Phase` seul reste le nom d'une phase du chrono). « Bloc » ne désigne plus qu'un bloc d'escalade.
+
+### Ce qui vit où
+
+| Donnée | Où | Synchronisée |
+|---|---|---|
+| Bibliothèque des 60 protocoles, catalogues (séances types, objectifs, tests repères), salles préréglées | Code, versionnés | Non |
+| Profil (prérequis, jours disponibles, repère de traction) | Dexie `reglages`, id `profil` | Oui |
+| Réglages (règles de sécurité réglables, modèle d'IA) | Dexie `reglages`, id `reglages` | Oui |
+| Cycles, phases, séances planifiées | Dexie `cycles`, `phases`, `seancesPlanifiees` | Oui |
+| Objectifs spécifiques d'une phase | Dexie `objectifsSpecifiques` | Oui |
+| Exercices personnels | Dexie `exercicesPerso` | Oui |
+| Salles personnelles (ou préréglage modifié) | Dexie `salles` | Oui |
+| Séances réalisées | Dexie `seancesRealisees` | Oui |
+| Forme du jour, douleurs déclarées, résultats des tests repères | Dexie `formes`, `douleurs`, `resultatsTests` | Oui |
+| État de la synchronisation | Dexie `etatSynchro` | Jamais |
+| Clé API Claude, préférences de l'appareil | Dexie `appareil` | Jamais |
+
+Les trois tables de suivi (`formes`, `douleurs`, `resultatsTests`) sont créées dès la version 3 de la base, vides : elles seront remplies en phases 4 et 6, sans nouvelle version de Dexie.
+
+### Tables Dexie, version 3
+
+`seancesRealisees`, `reglages`, `cycles`, `phases`, `seancesPlanifiees`, `objectifsSpecifiques`, `exercicesPerso`, `salles`, `formes`, `douleurs`, `resultatsTests`, plus deux tables jamais synchronisées : `etatSynchro` et `appareil`. Les 11 premières sont synchronisées et portent un index `aEnvoyer` (0 ou 1). Le nom de la base (`appli-escalade`) et ses versions 1 et 2 ne changent pas.
+
+### Calculé, jamais stocké
+
+| Valeur | Comment on l'obtient |
+|---|---|
+| Statut d'une séance planifiée | Faite (une séance réalisée la référence), sautée (`sauteeLe`), manquée (date passée), sinon aujourd'hui ou à venir |
+| Date de début d'une phase et d'une semaine | `cycle.debut + (ordre − 1) × 28 j + (semaine − 1) × 7 j` |
+| Cycle, phase et semaine en cours ; cycle terminé | Cycle validé, non abandonné, qui couvre la date du jour |
+| Mode du cycle | « objectif daté » si `objectif.date` existe, sinon « accent tournant » |
+| Durée d'une version de séance | Solo : somme des `dureeMin` des étapes ; groupe : `dureeMin` annoncée |
+| Marqueurs d'une version de séance | Union des marqueurs des fiches citées par `origine.refId` |
+| Origine d'un plan pour les règles | Paramètre du moteur de vérification |
+| Objectifs spécifiques d'une phase | Documents dont `phaseId` est celui de la phase |
+| Charge, monotonie, 48 h, quotas | Formules de la section 4 et moteur de vérification |
+| Prérequis remplis pour un protocole | Calculé sur le profil ; `null` compte comme non rempli |
+| Avertissements de sécurité d'un plan | Recalculés à chaque affichage ; seules les clés des avertissements gardés sont enregistrées (`Cycle.avertissementsGardes`) |
+| État d'envoi d'une séance réalisée | `aEnvoyer` local |
+| Salle effective | Salle personnelle de même id si elle existe, sinon préréglage |
+
+### La séance planifiée recopie ses étapes
+
+Une séance planifiée garde une copie complète de ses étapes, comme une photocopie datée : modifier la bibliothèque ne réécrit jamais le passé. Une future montre peut ainsi lire une séance sans connaître la bibliothèque, et le téléphone peut jouer une séance créée sur l'ordinateur avec une version plus récente de l'app. Seuls les marqueurs ne sont pas recopiés : ils servent aux règles, qui tournent sur l'appareil avec la bibliothèque.

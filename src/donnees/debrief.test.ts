@@ -3,7 +3,7 @@ import type { SeanceRealisee } from './base.ts'
 import { chargeSeance, chiffresBlocs, lundiDe, parCouleur, precedente, resume, seancesDeLaSemaine } from './debrief.ts'
 
 const seance = (plus: Partial<SeanceRealisee>): SeanceRealisee => ({
-  id: 'a', creeLe: '2026-11-16T19:00:00.000Z', modifieLe: '2026-11-16T19:00:00.000Z', date: '2026-11-16',
+  id: 'a', versionFormat: 1, creeLe: '2026-11-16T19:00:00.000Z', modifieLe: '2026-11-16T19:00:00.000Z', date: '2026-11-16',
   mode: 'groupe', nom: 'Test', durete: 'dure', dureeMin: 95, effortPercu: 7, peau: 2, douleur: false,
   etapes: [], objectifs: [], blocs: [], ...plus,
 })
