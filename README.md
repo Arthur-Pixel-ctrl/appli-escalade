@@ -37,6 +37,8 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | F2-05 | Profil : quatre prérequis facultatifs pour débloquer les exercices exigeants | Fait |
 | F2-08 | Moteur de synchronisation, pas encore branché sur l'app (`src/synchro/`) | Fait |
 | D-05 | Chrono plein écran : préparation sur encre, effort sur craie, repos sur résine | Fait |
+| F2-12 | Accès au plan : dates des phases, statut des séances, fin du cycle, calculés à la lecture (`src/donnees/plan.ts`) | Fait |
+| D-06 | Barre d'onglets avec icônes et nouvel écran Aujourd'hui (données d'exemple jusqu'à D-22) | Fait |
 
 ## Ouvrir l'app
 
