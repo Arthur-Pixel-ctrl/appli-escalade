@@ -60,7 +60,7 @@ describe('import', () => {
         reglages: [{ id: 'profil', versionFormat: 1, creeLe: '2026-11-01T08:00:00.000Z', modifieLe: '2026-11-05T09:00:00.000Z', prenom: 'Arthur' }],
       },
     })
-    expect(await importerDonnees(ancien)).toEqual({ seances: 2, autres: 1 })
+    expect(await importerDonnees(ancien)).toEqual({ seances: 2, autres: 1, ecartes: 0 })
     expect(await base.seancesRealisees.get('s1')).toMatchObject({ nom: 'A', modifieLe: '2026-11-10T18:30:00.000Z', aEnvoyer: 1 })
     expect(await base.seancesRealisees.get('s2')).toMatchObject({ versionFormat: 1, modifieLe: '2026-10-01T00:00:00.000Z', creeLe: '2026-10-01T00:00:00.000Z', aEnvoyer: 1 })
     expect(await base.reglages.get('profil')).toMatchObject({ prenom: 'Arthur', aEnvoyer: 1 })
@@ -109,7 +109,7 @@ describe('import', () => {
     const bilan = await importerDonnees(JSON.stringify({
       version: 2, exporteLe: 'x', tables: { appareil: [{ cle: 'cleApiClaude', valeur: 'pirate' }], inconnue: [{ id: 'z' }], salles: [{ id: 'salle-a', modifieLe: '2026-11-01T00:00:00.000Z' }] },
     }))
-    expect(bilan).toEqual({ seances: 0, autres: 1 })
+    expect(bilan).toEqual({ seances: 0, autres: 1, ecartes: 0 })
     expect(await base.appareil.count()).toBe(0)
     expect(await base.seancesRealisees.get('reste')).toBeTruthy()
     await expect(importerDonnees('pas du json')).rejects.toThrow('sauvegarde')

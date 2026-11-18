@@ -27,6 +27,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test
+      # Une clé qui n'est pas « publiable » (secrète, service_role…) serait écrite en clair dans les fichiers publiés.
+      - name: Vérifier la clé publique Supabase
+        env:
+          VITE_SUPABASE_CLE_PUBLIQUE: ${{ vars.VITE_SUPABASE_CLE_PUBLIQUE }}
+        run: |
+          if [ -n "$VITE_SUPABASE_CLE_PUBLIQUE" ] && [[ "$VITE_SUPABASE_CLE_PUBLIQUE" != sb_publishable_* ]]; then
+            echo "::error::VITE_SUPABASE_CLE_PUBLIQUE doit commencer par sb_publishable_ (jamais une clé secrète). Mise en ligne arrêtée."
+            exit 1
+          fi
       - run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}

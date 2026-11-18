@@ -20,18 +20,24 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
   const fichier = useRef<HTMLInputElement>(null)
 
   const exporter = async () => {
-    const lien = document.createElement('a')
-    lien.href = URL.createObjectURL(new Blob([await exporterDonnees()], { type: 'application/json' }))
-    lien.download = `appli-escalade-${jourLocal()}.json`
-    lien.click()
-    URL.revokeObjectURL(lien.href)
-    setMessage('Sauvegarde créée dans tes téléchargements.')
+    try {
+      const lien = document.createElement('a')
+      lien.href = URL.createObjectURL(new Blob([await exporterDonnees()], { type: 'application/json' }))
+      lien.download = `appli-escalade-${jourLocal()}.json`
+      lien.click()
+      URL.revokeObjectURL(lien.href)
+      // Le navigateur ne dit pas si le fichier a vraiment été enregistré : on ne le prétend pas.
+      setMessage('Fichier proposé au téléchargement : vérifie qu’il est bien dans tes fichiers.')
+    } catch {
+      setMessage('La sauvegarde n’a pas pu être créée. Tes données sont toujours sur cet appareil : réessaie.')
+    }
   }
   const importer = async (f: File | undefined) => {
     if (!f) return
     try {
-      const { seances, autres } = await importerDonnees(await f.text())
-      setMessage(`Sauvegarde rechargée : ${seances} séance${seances > 1 ? 's' : ''} et ${autres} autre${autres > 1 ? 's' : ''} élément${autres > 1 ? 's' : ''}.`)
+      const { seances, autres, ecartes } = await importerDonnees(await f.text())
+      const ecart = ecartes > 0 ? ` ${ecartes} élément${ecartes > 1 ? 's' : ''} du fichier ${ecartes > 1 ? 'ont été écartés' : 'a été écarté'} (identifiant ou contenu trop long).` : ''
+      setMessage(`Sauvegarde rechargée : ${seances} séance${seances > 1 ? 's' : ''} et ${autres} autre${autres > 1 ? 's' : ''} élément${autres > 1 ? 's' : ''}.${ecart}`)
       onDonneesImportees()
     } catch (e) {
       setMessage(e instanceof Error ? `Import impossible. ${e.message}` : 'Import impossible : fichier illisible.')

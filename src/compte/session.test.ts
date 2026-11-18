@@ -83,6 +83,7 @@ describe('appels au service', () => {
   it('se déconnecte', async () => {
     auth.signOut.mockResolvedValue({ error: null })
     await seDeconnecter()
-    expect(auth.signOut).toHaveBeenCalled()
+    // Seulement cet appareil : les autres appareils du compte restent connectés.
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' })
   })
 })
