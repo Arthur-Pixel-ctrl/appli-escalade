@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0C0D0E"/><path d="M120 372 L216 196 L280 292 L328 228 L392 372 Z" fill="#E9F55B"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img">
+  <title>Get me to 9a</title>
+  <!-- Couleurs = variables de src/index.css (sans les deux tirets, interdits dans un commentaire XML) : fond #F1EFE9 = fond, prise #0F5A54 = accent (résine), bord #1D1C19 = texte, trou de vis et « 9a » #FBFAF7 = surface. -->
+  <rect width="512" height="512" rx="96" fill="#F1EFE9"/>
+  <path d="M92 300 C76 190 150 78 270 72 C392 66 446 168 430 282 C418 386 332 448 228 440 C136 434 100 384 92 300 Z" fill="#0F5A54" stroke="#1D1C19" stroke-width="12" stroke-linejoin="round"/>
+  <circle cx="262" cy="178" r="32" fill="#FBFAF7" stroke="#1D1C19" stroke-width="8"/>
+  <!-- La police de l'app n'est pas chargée dans l'icône : une police du système suffit. -->
+  <text x="262" y="372" text-anchor="middle" font-family="'Arial Narrow', Arial, sans-serif" font-weight="800" font-size="150" fill="#FBFAF7">9a</text>
+</svg>

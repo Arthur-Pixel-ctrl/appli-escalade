@@ -21,12 +21,17 @@ export function Erreur({ message }: { message: string }) {
   )
 }
 
-/** Écran d'attente : texte discret, affiché seulement si le chargement dure. */
+/** Écran d'attente : silhouettes du titre et de deux lignes, affichées seulement si le chargement dure (400 ms). */
 export function Chargement() {
   return (
     <div className="app">
       <main className="ecran chargement" aria-busy="true">
-        <p className="texte-3">Chargement…</p>
+        <p className="pour-lecteur" role="status">Chargement…</p>
+        <div className="pile-large chargement-forme" aria-hidden="true">
+          <div className="silhouette ligne-silhouette titre-silhouette" />
+          <div className="silhouette ligne-silhouette" />
+          <div className="silhouette ligne-silhouette" />
+        </div>
       </main>
     </div>
   )

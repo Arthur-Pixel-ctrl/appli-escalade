@@ -6,7 +6,7 @@ export function Bienvenue({ onValider }: { onValider: (p: Profil) => void }) {
   return (
     <main className="ecran">
       <div className="pile">
-        <p className="surtitre">Bienvenue</p>
+        <p className="surtitre">Get me to 9a</p>
         <p className="texte-2">
           Cette app guide tes séances d’escalade, seul ou en groupe, et garde la trace de ta progression.
           Tes réponses restent sur ton téléphone. Tu pourras tout modifier ensuite dans l’onglet Profil.
