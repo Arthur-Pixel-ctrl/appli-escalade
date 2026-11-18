@@ -26,6 +26,9 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | F2-01 | Moteur de séance indépendant de l'affichage (`src/moteur/`) | Fait |
 | F2-03 | Script du serveur Supabase et guide d'installation (`supabase/`, `docs/supabase.md`) | Fait |
 | D-01 | Polices et couleurs de l'identité « Topo », nom « Get me to 9a » | Fait |
+| F2-02 | Modèle de données v2 : types, exemples, profil complété (`src/donnees/modele.ts`) | Fait |
+| F2-06 | Client Supabase, sans effet tant que le projet n'est pas configuré (`src/compte/client.ts`) | Fait |
+| D-02 | Composants de base « Topo » en CSS (fiches, étiquettes, avertissements, signaux d'arrêt) | Fait |
 
 ## Ouvrir l'app
 
