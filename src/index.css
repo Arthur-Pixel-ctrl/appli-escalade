@@ -372,3 +372,26 @@ form.pile-large { gap: 24px; }
    (« Ce soir » ne se coupe pas) et la valeur, alignée à droite, se répartit sur des lignes équilibrées. */
 .ligne > span:first-child { min-width: 7em; }
 .ligne > span:last-child { text-align: right; text-wrap: balance; }
+
+/* Mise en page bureau (F2-14 + D-10) : barre du haut, contenu de 1 280 px au plus. Écran large seulement (≥ 1024 px, voir useEcranLarge). */
+.bureau { height: 100%; display: flex; flex-direction: column; }
+.bureau-barre { flex: none; min-height: 64px; display: flex; align-items: center; gap: var(--espace-6); padding: 0 var(--espace-6); background: var(--fond); border-bottom: 2px solid var(--texte); }
+.bureau-marque { display: flex; align-items: center; gap: var(--espace-2); font-family: var(--police-titre); font-size: 26px; font-weight: 900; line-height: 1; white-space: nowrap; }
+.bureau-liens { flex: 1; display: flex; align-self: stretch; gap: var(--espace-5); }
+.bureau-lien { position: relative; min-height: 48px; align-self: center; padding: 0 var(--espace-1); font-weight: 700; color: var(--texte-2); }
+.bureau-lien[aria-current='page'] { color: var(--texte); }
+.bureau-lien[aria-current='page']::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 3px; background: var(--accent); }
+@media (hover: hover) { .bureau-lien:hover { color: var(--texte); } }
+.bureau-droite { display: flex; align-items: center; gap: var(--espace-4); }
+.bureau-droite .bouton-second { flex: none; width: auto; min-height: 48px; padding: 0 var(--espace-4); }
+.bureau-contenu { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+.bureau-contenu:focus-visible { outline-offset: -3px; }
+.bureau-conteneur { max-width: 1280px; margin: 0 auto; padding: 0 var(--espace-6); }
+.bureau-conteneur .bandeau { margin-top: var(--espace-4); padding-top: var(--espace-2); border-radius: var(--rayon-bouton); }
+/* Écrans de lecture (profil, bilans, en construction) : colonne lisible, collée à gauche du contenu. */
+.bureau-lecture { max-width: 640px; }
+.bureau-lecture .ecran { overflow: visible; padding: var(--espace-6) 0; }
+.bureau-lecture .bandeau + .ecran { padding-top: var(--espace-6); }
+/* Lien d'évitement : caché hors écran, visible au focus. */
+.lien-evitement { position: absolute; left: var(--espace-4); top: -100px; z-index: 10; min-height: 48px; display: flex; align-items: center; padding: 0 var(--espace-4); background: var(--surface); color: var(--texte); border: 2px solid var(--texte); border-radius: var(--rayon-bouton); font-weight: 700; }
+.lien-evitement:focus-visible { top: var(--espace-2); }
