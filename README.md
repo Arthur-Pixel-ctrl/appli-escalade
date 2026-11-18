@@ -45,6 +45,8 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | D-08 | Trois questions, débrief, bilans par semaine et mises en garde au style « Topo » | Fait |
 | F2-10 | Synchronisation automatique (démarrage, retour du réseau, après chaque écriture) et indicateur, active seulement avec un compte lié (`src/synchro/automatique.ts`) | Fait, essai réel à faire |
 | D-09 | Profil, bienvenue (prénom demandé), chargement, icône « 9a » au style « Topo » | Fait |
+| F2-11 | Sauvegarde complète (11 tables, sans clé API), rechargement des anciens fichiers, suppression du compte | Fait, suppression à essayer pour de vrai |
+| F2-14 | Mise en page ordinateur (1024 px et plus) : barre du haut et rubriques, sans lancement de séance | Fait |
 
 ## Ouvrir l'app
 
