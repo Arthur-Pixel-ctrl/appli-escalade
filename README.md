@@ -1,4 +1,4 @@
-# Appli escalade
+# Get me to 9a
 
 Application d'entraînement à l'escalade : séances guidées avec chrono, séances en groupe à objectifs, programme par blocs de 4 semaines, mobilité et repères de nutrition.
 
@@ -18,6 +18,14 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | 3.5 | Trois questions, débrief, enregistrement des séances, historique | Fait |
 | 3.6 | Profil, premier lancement, sauvegarde des données | Fait |
 | 4.1 | Bibliothèque de 60 protocoles, vérifiée à la source et auditée (`docs/verifications.md`, `docs/audit-bibliotheque.md`) | Fait |
+
+### Plan v2 (`docs/plan-v2.md`, liste des tâches : `docs/backlog-v2.md`)
+
+| Tâche | Contenu | État |
+|---|---|---|
+| F2-01 | Moteur de séance indépendant de l'affichage (`src/moteur/`) | Fait |
+| F2-03 | Script du serveur Supabase et guide d'installation (`supabase/`, `docs/supabase.md`) | Fait |
+| D-01 | Polices et couleurs de l'identité « Topo », nom « Get me to 9a » | Fait |
 
 ## Ouvrir l'app
 
