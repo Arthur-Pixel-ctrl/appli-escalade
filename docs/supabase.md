@@ -183,7 +183,15 @@ En tant qu'administrateur du projet, tu peux techniquement lire toutes les ligne
 
 Ton engagement : ne pas ouvrir la table `documents` pour lire les données des autres. Tu n'as besoin d'y aller que pour dépanner, avec l'accord de la personne.
 
+## Le réveil automatique
+
+Le lundi et le jeudi, GitHub Actions appelle une petite fonction du projet (`ping`) qui ne lit aucune donnée. Le projet gratuit n'est ainsi pas mis en pause pour cause d'inactivité. Le fichier est `.github/workflows/reveil-supabase.yml`.
+
+- **Lancer le réveil à la main** : sur github.com, onglet « Actions », « Réveil Supabase », « Run workflow ». Une coche verte signifie que le projet a répondu.
+- **Tant que les variables manquent** (étape 7 pas encore faite) : le réveil ne fait rien et affiche une coche verte. Ce n'est pas une erreur.
+- **Si le réveil échoue (croix rouge) alors que les variables sont renseignées** : le projet est sans doute en pause. Dans le tableau de bord Supabase, clique sur « Restore project ». Les données sont conservées.
+
 ## À savoir ensuite
 
-- **Projet en pause** : sur l'offre gratuite, Supabase met un projet en pause après une période sans activité. Si l'app affiche « Synchronisation impossible » plusieurs jours de suite et que le tableau de bord indique « Paused », clique sur « Restore project ». Les données sont conservées et les téléphones renvoient ce qu'ils avaient en attente. Une petite tâche automatique hebdomadaire (F2-15) limite ce risque.
+- **Projet en pause** : sur l'offre gratuite, Supabase met un projet en pause après une période sans activité. Si l'app affiche « Synchronisation impossible » plusieurs jours de suite et que le tableau de bord indique « Paused », clique sur « Restore project ». Les données sont conservées et les téléphones renvoient ce qu'ils avaient en attente. Une petite tâche automatique, deux fois par semaine (F2-15), limite ce risque.
 - **Assistant IA (phase 5)** : chaque utilisateur crée sa propre clé API dans la Console Claude ; tu n'as rien à faire pour les autres.

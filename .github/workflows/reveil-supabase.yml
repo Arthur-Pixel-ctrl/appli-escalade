@@ -1,0 +1,33 @@
+# Appelle le lundi et le jeudi une petite fonction du projet Supabase (elle ne lit aucune donnée),
+# pour éviter que l'offre gratuite ne mette le projet en pause après 7 jours sans activité.
+# Deux fois par semaine plutôt qu'une : GitHub retarde parfois les tâches planifiées, et un
+# seul appel par semaine tomberait pile sur la limite des 7 jours.
+name: Réveil Supabase
+
+on:
+  schedule:
+    - cron: '17 6 * * 1,4' # lundi et jeudi à 6 h 17 (heure universelle)
+  workflow_dispatch: # permet aussi de le lancer à la main (onglet « Actions »)
+
+permissions:
+  contents: read
+
+jobs:
+  reveil:
+    runs-on: ubuntu-latest
+    # Les valeurs passent par l'environnement, pas directement dans la commande.
+    env:
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      SUPABASE_CLE: ${{ vars.VITE_SUPABASE_CLE_PUBLIQUE }}
+    steps:
+      - name: Appeler ping()
+        run: |
+          # Tant que les deux variables ne sont pas renseignées, on ne fait rien et on réussit :
+          # une coche verte, pas un échec rouge.
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_CLE" ]; then
+            echo "Variables VITE_SUPABASE_URL ou VITE_SUPABASE_CLE_PUBLIQUE absentes : rien à faire."
+            exit 0
+          fi
+          curl --fail --silent --show-error -X POST "$SUPABASE_URL/rest/v1/rpc/ping" \
+            -H "apikey: $SUPABASE_CLE" \
+            -H "Content-Type: application/json" -d '{}'
