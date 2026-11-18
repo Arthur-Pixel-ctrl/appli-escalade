@@ -1,8 +1,10 @@
 # Get me to 9a
 
+(dépôt et adresse : `appli-escalade`)
+
 Application d'entraînement à l'escalade : séances guidées avec chrono, séances en groupe à objectifs, programme par blocs de 4 semaines, mobilité et repères de nutrition.
 
-Elle s'installe sur le téléphone comme une app (PWA) et fonctionne hors ligne. Les données restent sur l'appareil de chaque personne : ni compte ni serveur.
+Elle s'installe sur le téléphone comme une app (PWA) et fonctionne hors ligne. Les données restent sur l'appareil. Avec un compte (facultatif), elles se synchronisent entre téléphone et ordinateur.
 
 Les contenus d'entraînement, de nutrition et de mobilité sont des repères généraux, pas un avis médical.
 
@@ -20,6 +22,8 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | 4.1 | Bibliothèque de 60 protocoles, vérifiée à la source et auditée (`docs/verifications.md`, `docs/audit-bibliotheque.md`) | Fait |
 
 ### Plan v2 (`docs/plan-v2.md`, liste des tâches : `docs/backlog-v2.md`)
+
+Phase 2 (fondations) : la base de données est passée à la version 3, avec écriture unique, migration sans perte et sauvegarde complète. L'app accepte un compte facultatif (connexion par code e-mail), synchronise les séances entre téléphone et ordinateur, et a une mise en page ordinateur. Recette de fin de phase : [`docs/recette-phase-2.md`](docs/recette-phase-2.md).
 
 | Tâche | Contenu | État |
 |---|---|---|
@@ -48,6 +52,7 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | F2-11 | Sauvegarde complète (11 tables, sans clé API), rechargement des anciens fichiers, suppression du compte | Fait, suppression à essayer pour de vrai |
 | F2-14 | Mise en page ordinateur (1024 px et plus) : barre du haut et rubriques, sans lancement de séance | Fait |
 | D-21 | Bienvenue avec compte ou sans compte, « J'ai une sauvegarde » avant de créer le profil, bandeau hors ligne | Fait |
+| F2-16 | Recette de fin de phase 2 et README (`docs/recette-phase-2.md`) | Fait |
 
 ## Ouvrir l'app
 
@@ -81,7 +86,14 @@ Pour tester les comptes, copier `.env.exemple` en `.env.local` et y mettre les v
 | `src/donnees/seanceGroupeExemple.ts` | Les objectifs de groupe d'exemple |
 | `src/donnees/bibliotheque/` | La bibliothèque de protocoles, un fichier par qualité, testée |
 | `src/donnees/profil.ts` | La forme du profil du grimpeur |
+| `src/moteur/` | Le moteur de séance, sans affichage (testé) |
+| `src/compte/` | Connexion par code, client Supabase, session |
+| `src/synchro/` | Synchronisation entre téléphone et serveur, reprise des séances |
+| `src/miseEnPage/` | Mise en page téléphone et mise en page ordinateur (bascule à 1 024 px) |
 | `src/donnees/base.ts` | La base de données sur le téléphone et l'enregistrement d'une séance |
+| `src/donnees/modele.ts` | Forme des données v2 (séances, plan, profil) |
+| `src/donnees/stockage.ts` | Écriture unique des données, sauvegarde et rechargement |
+| `src/donnees/plan.ts` | Dates des phases et statut des séances, calculés à la lecture |
 | `src/donnees/debrief.ts` | Calculs du débrief (charge, semaine, blocs par couleur), testés |
 | `src/donnees/salles.ts` | Les salles et leurs couleurs de blocs |
 | `src/chrono/sequence.ts` | Calcul du chrono : phases d'effort et de repos, testé |
@@ -89,8 +101,12 @@ Pour tester les comptes, copier `.env.exemple` en `.env.local` et y mettre les v
 | `src/chrono/signaux.ts` | Bips, vibrations, écran qui reste allumé |
 | `src/index.css` | Thème : couleurs, police, composants de base |
 | `vite.config.ts` | Configuration de la construction et de l'installation sur téléphone |
-| `docs/modele-donnees.md` | Modèle de données de l'app |
+| `supabase/` | Script SQL de la base serveur et sa vérification |
+| `docs/modele-donnees.md` | Modèle de données de l'app (version 1, remplacée) |
+| `docs/architecture-v2.md` | Architecture de la phase 2 |
+| `docs/supabase.md` | Guide pas à pas du serveur Supabase |
+| `docs/format-seance.md` | Format de séance documenté pour une future montre |
 
 ## Technique
 
-React, TypeScript, Vite. Stockage local avec Dexie (IndexedDB) : les séances restent sur l'appareil. Tests avec Vitest.
+React, TypeScript, Vite. Stockage local avec Dexie (IndexedDB) : les séances restent sur l'appareil. Tests avec Vitest. Comptes et synchronisation avec Supabase : connexion par code envoyé par e-mail, et une table de documents protégée par des règles d'accès (une personne ne voit que ses données).
