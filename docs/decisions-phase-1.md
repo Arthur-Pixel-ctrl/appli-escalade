@@ -61,3 +61,13 @@ D'après `docs/architecture-v2.md` section 9 : créer le compte et le projet Sup
 ## E. Étape suivante
 
 Une consolidation (concepteur Opus, effort élevé) fusionne les 56 tâches (F2-01 à F2-16, D-01 à D-24, E-01 à E-16) en une liste unique, ordonnée en vagues, en appliquant ces décisions. Puis la phase 2 démarre.
+
+## F. Décisions du 18/11/2026 (après la phase 2)
+
+| # | Sujet | Décision d'Arthur |
+|---|---|---|
+| F1 | Recette de la phase 2 et mise en place de Supabase | Reportées à plus tard ; on passe à la phase 3 |
+| F2 | Recherche B21 (`docs/recherche-b21/audit.md`, 15 points) | **Tout oui** : les 15 recommandations de l'audit sont validées (tests jamais placés dans une séance générée et conditions strictes pour les tests maximaux ; réglages des tests maximaux ; repères Lattice affichés comme repères ; tests de fin de cycle pour la courbe seulement ; zones « hanche » et « cheville » ; échauffement court réservé aux séances non maximales ; bidoigts à 8 tenues au départ ; module hanches de 12 min ; école de vol courte en voie ; une seule fiche de chute en bloc, 50-80-100 cm, hors génération ; rappel de sécurité du bloc ; jeux de groupe sans élimination, 4 blocs ; trois séances de résistance en voie, 1 par semaine en profil bloc, pyramide abandonnée ; gainage au sol, front lever et préparation planche en fiches d'essai, objectif « planche complète » retiré ; arqué doux au mur, jamais automatique, après relecture par un kiné) |
+| F3 | Bibliothèque | La bibliothèque est une **banque d'exercices** dans laquelle le générateur de plan, puis l'assistant IA, piochent selon les objectifs, le nombre de séances par semaine, les prérequis et les douleurs du grimpeur |
+| F4 | Niveau de détail des séances | **Trois niveaux**, même structure (cycle de 12 semaines, 3 phases, séances avec type, dureté et durée) : **Simple** (type de séance et une recommandation), **Grandes lignes** (les 3 ou 4 blocs de la séance avec l'exercice principal), **Détaillé** (chaque étape avec chrono, séries, repos, consignes, comme aujourd'hui) |
+| F5 | Où se choisit le niveau | **À la création du programme, sur ordinateur** : un niveau par défaut pour tout le cycle, modifiable séance par séance (sur ordinateur aussi). Le téléphone affiche chaque séance à son niveau et garde le suivi (chrono, trois questions, débrief) |
