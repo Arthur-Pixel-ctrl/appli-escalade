@@ -2,39 +2,29 @@ import { useEffect, useState } from 'react'
 import { enregistrerProfil, enregistrerSeance, lireProfil, type Brouillon } from './donnees/base.ts'
 import type { Profil as TypeProfil } from './donnees/profil.ts'
 import { salleParId } from './donnees/salles.ts'
-import { appliquerMiseAJour, surMiseAJourDisponible } from './miseAJour.ts'
+import { surMiseAJourDisponible } from './miseAJour.ts'
 import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
 import { SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
 import { bilanObjectifs } from './moteur/seanceGroupe.ts'
-import { Aujourdhui } from './ecrans/Aujourdhui.tsx'
 import { Bienvenue } from './ecrans/Bienvenue.tsx'
 import { Compte } from './ecrans/Compte.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
-import { EnConstruction } from './ecrans/EnConstruction.tsx'
 import { Chargement, Erreur } from './ecrans/Erreur.tsx'
-import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
-import { Profil } from './ecrans/Profil.tsx'
 import { supabase } from './compte/client.ts'
 import { useSession } from './compte/session.ts'
 import { lireEtat, surDonneesChangees } from './donnees/stockage.ts'
 import { demarrerSynchroAutomatique, surCompteLie } from './synchro/automatique.ts'
 import { serveurSupabase } from './synchro/serveurSupabase.ts'
 import { synchroniser } from './synchro/synchro.ts'
-import { Icone } from './composants/Icone.tsx'
 import { Confirmation } from './composants/Confirmation.tsx'
 import { Questions } from './ecrans/Questions.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
 import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
-
-// Les quatre onglets de la barre du bas.
-const ONGLETS = [
-  { nom: 'Aujourd’hui', icone: 'aujourdhui' },
-  { nom: 'Programme', icone: 'programme' },
-  { nom: 'Bilans', icone: 'bilans' },
-  { nom: 'Profil', icone: 'profil' },
-] as const
-type Onglet = (typeof ONGLETS)[number]['nom']
+import { MiseEnPageBureau } from './miseEnPage/MiseEnPageBureau.tsx'
+import { MiseEnPageTelephone } from './miseEnPage/MiseEnPageTelephone.tsx'
+import { ongletPourRubrique, rubriquePourOnglet, type Onglet, type RubriqueBureau } from './miseEnPage/navigation.ts'
+import { useEcranLarge } from './miseEnPage/useEcranLarge.ts'
 
 // Ce qui occupe l'écran. Une séance suit toujours le même chemin :
 // séance → trois questions → (mises en garde si douleur) → débrief.
@@ -47,8 +37,18 @@ type Vue =
   | { nom: 'debrief'; seanceId: string }
   | { nom: 'compte' }
 
+// Ordinateur pour organiser, téléphone pour exécuter : les séances se lancent depuis le téléphone.
 export default function App() {
   const [onglet, setOnglet] = useState<Onglet>('Aujourd’hui')
+  const [rubrique, setRubrique] = useState<RubriqueBureau>('Tableau de bord')
+  const large = useEcranLarge()
+  // Les deux mises en page partagent l'écran courant : changer de l'une met l'autre à jour,
+  // pour qu'un redimensionnement ou une rotation retombe sur le même écran.
+  const choisirOnglet = (o: Onglet) => { setOnglet(o); setRubrique(rubriquePourOnglet(o)) }
+  const choisirRubrique = (r: RubriqueBureau) => {
+    setRubrique(r)
+    if (r !== 'Bibliothèque') setOnglet(ongletPourRubrique(r))
+  }
   const [vue, setVue] = useState<Vue>({ nom: 'onglets' })
   // undefined = lecture en cours ; null = pas encore de profil (premier lancement)
   const [profil, setProfil] = useState<TypeProfil | null | undefined>(undefined)
@@ -209,34 +209,25 @@ export default function App() {
     return <div className="app"><Debrief seanceId={vue.seanceId} salle={salle} onFermer={accueil} /></div>
   }
 
+  const actions = {
+    profil, majPrete,
+    onOuvrirSeance: (seanceId: string) => setVue({ nom: 'debrief', seanceId }),
+    onEnregistrerProfil: async (p: TypeProfil) => { await enregistrerProfil(p); setProfil(p) },
+    onMisesEnGarde: () => setVue({ nom: 'mises_en_garde' }),
+    onCompte: () => setVue({ nom: 'compte' }),
+    onDonneesImportees: () => void lireProfil().then((p) => p && setProfil(p)).catch(() => {}),
+  }
+
+  if (large) {
+    return <MiseEnPageBureau {...actions} rubrique={rubrique} onChoisirRubrique={choisirRubrique} avecCompte={session.userId !== null} />
+  }
   return (
-    <div className="app">
-      {/* Proposée seulement ici, jamais pendant une séance, pour ne rien faire perdre. */}
-      {majPrete && (
-        <button className="bandeau" onClick={appliquerMiseAJour}>Nouvelle version disponible · <b>Mettre à jour</b></button>
-      )}
-      {onglet === 'Aujourd’hui' && (
-        <Aujourdhui grimpeSouventEnGroupe={profil.grimpeSouventEnGroupe} onSeanceSolo={() => setVue({ nom: 'seance_solo' })} onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })} />
-      )}
-      {onglet === 'Bilans' && <Historique onOuvrir={(seanceId) => setVue({ nom: 'debrief', seanceId })} />}
-      {onglet === 'Programme' && <EnConstruction titre="Programme" />}
-      {onglet === 'Profil' && (
-        <Profil
-          profil={profil}
-          onEnregistrer={async (p) => { await enregistrerProfil(p); setProfil(p) }}
-          onMisesEnGarde={() => setVue({ nom: 'mises_en_garde' })}
-          onCompte={() => setVue({ nom: 'compte' })}
-          onDonneesImportees={() => void lireProfil().then((p) => p && setProfil(p)).catch(() => {})}
-        />
-      )}
-      <nav className="onglets" aria-label="Navigation principale">
-        {ONGLETS.map(({ nom, icone }) => (
-          <button key={nom} className="onglet" aria-current={nom === onglet ? 'page' : undefined} onClick={() => setOnglet(nom)}>
-            <Icone nom={icone} />
-            {nom}
-          </button>
-        ))}
-      </nav>
-    </div>
+    <MiseEnPageTelephone
+      {...actions}
+      onglet={onglet}
+      onChoisirOnglet={choisirOnglet}
+      onSeanceSolo={() => setVue({ nom: 'seance_solo' })}
+      onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })}
+    />
   )
 }
