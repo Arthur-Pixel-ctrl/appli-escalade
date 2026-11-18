@@ -8,6 +8,8 @@ de l'expert entraînement ; le modèle de données et la navigation technique vi
 
 > **Consolidation du 17/11** (décisions de `docs/decisions-phase-1.md` appliquées ; chaque correction porte la mention « (consolidation 17/11) ») : l'app s'appelle **« Get me to 9a »** ; connexion par **code à 6 chiffres** reçu par e-mail, jamais par lien (B1), avec **liste d'invités** (B2) ; la période de 4 semaines s'appelle **« Phase »** (B9 : « Phase 1 », « Vue phase », « Objectifs de la phase ») ; **aucune séance ne se lance sur ordinateur** (B12) ; « Forme du jour » gardée et branchée en phase 4 (B10) ; petits ajustements sur téléphone : déplacer ou sauter une séance (B11) ; assistant sur ordinateur seulement, Haiku par défaut, coût estimé affiché avant chaque demande (B5 à B7). Les tâches et leur ordre sont dans `docs/backlog-v2.md`.
 
+> **Consolidation du 18/11** (décisions F3 à F5, détail dans `docs/specs/niveaux-de-detail.md`) : chaque séance s'affiche à un **niveau de détail** (simple, grandes lignes, détaillé), choisi pour tout le cycle à sa création sur ordinateur (fenêtre **O-13**) et modifiable séance par séance sur ordinateur ; le téléphone affiche chaque séance à son niveau (**T-16** pour le simple et les grandes lignes) et garde tout le suivi ; un **générateur** propose un plan à partir de la banque d'exercices ; « HORS ASSISTANT » devient « À LA MAIN SEULEMENT ». Chaque ajout porte la mention « (consolidation 18/11) ».
+
 Conventions : identifiant d'écran `T-xx` (téléphone) et `O-xx` (ordinateur). Pour chaque écran : **But**, **Contenu**,
 **Action principale** (une seule, en résine), **Autres actions**, **États**, **Adaptation**, **Accessibilité**.
 Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation ni emoji.
@@ -76,6 +78,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 
 ### P3. Construire un cycle à la main sur ordinateur
 1. **O-01 Connexion** (même code par e-mail ; consolidation 17/11), puis **O-02 Tableau de bord** vide : « Crée ton premier cycle ».
+1 bis. (consolidation 18/11) **O-13 Nouveau cycle** : date, séances par semaine, **niveau de détail**, accents proposés ; « Proposer un plan » (le générateur remplit les 12 semaines en brouillon, à retoucher ensuite) ou « Commencer vide » (étapes 2 à 4).
 2. **O-03 Vue 12 semaines** : date de début, nombre de séances par semaine (2 à 5), accent de chaque bloc,
    jusqu'à 2 objectifs par bloc, réglage de la semaine allégée.
 3. **O-04 Vue bloc** : poser des séances sur les jours de la semaine 1 ; « Recopier sur les semaines 2 et 3 ».
@@ -169,6 +172,9 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   - mention « Phase 1 · doigts · semaine 2 sur 4 » (consolidation 17/11, B9) (et « SEMAINE ALLÉGÉE » si c'est le cas) ;
   - titre `affiche` : nom de la séance ;
   - **fiche de la séance** : étiquette de dureté (facile, moyenne, dure), durée, étapes numérotées avec leur durée ;
+    (consolidation 18/11) selon le niveau affiché : étapes (détaillé), parties avec leur durée (grandes lignes),
+    recommandation en grand (simple) ; sous-titre du bouton solo : « Séance guidée, chrono intégré » (détaillé),
+    « Grandes lignes, chrono libre », « Recommandation, chrono libre » (simple) ;
   - deux boutons : « Je grimpe seul » (sous-titre « Séance guidée, chrono intégré ») et « Je grimpe en groupe »
     (sous-titre « 2 objectifs, 1 h 30 ») ; le **mode habituel** du profil est le bouton principal, l'autre est second ;
   - ligne « Forme du jour » (décision B10 : gardée, branchée en phase 4 sur les contrôles du jour, tâche C-03 ; retirée en phase 2 pour ne pas laisser de bouton sans action) ; la ligne « Assiette du jour » est retirée jusqu'à la phase 7 ;
@@ -194,7 +200,8 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 - **Contenu** : en haut, les 3 phases en bande (consolidation 17/11) (comme la démo du constructeur, version compacte : S1 à S12, semaine
   en cours en encre, semaines allégées hachurées, semaines passées en résine douce) ; dessous, la semaine choisie en
   lignes de jours (comme la vue semaine de l'ordinateur, sans poignées) ; toucher une séance ouvre son aperçu (étapes,
-  version solo et version groupe) avec « Faire cette séance maintenant ».
+  version solo et version groupe) avec « Faire cette séance maintenant ». (consolidation 18/11) L'aperçu suit le
+  niveau affiché de la séance ; le téléphone ne change pas le niveau.
 - **Action principale** : aucune action résine par défaut ; dans l'aperçu d'une séance : « Faire cette séance maintenant ».
 - **Autres actions** : flèches « Semaine précédente », « Semaine suivante » (48 px) ; dans l'aperçu d'une séance à venir
   (consolidation 17/11, B11) : « Déplacer » (un autre jour de la même semaine) et « Sauter cette séance » (avec
@@ -265,6 +272,24 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 - Les deux listes passent en signal d'arrêt (rubalise brique, « Arrête la séance et consulte ») et en avertissement
   (rubalise ambre, « Allège pendant 1 à 2 semaines »). Contenu inchangé.
 
+### T-16 Séance en bref (consolidation 18/11, nouveau : niveaux simple et grandes lignes)
+- **But** : faire une séance décrite en une ligne ou en quelques parties, avec un chrono libre, sans perdre le suivi.
+- **Contenu** : nom ; mention « Doigts · dure · 1 h 30 » ; **chrono libre** (temps écoulé en chiffres de 72 px,
+  « Démarrer » / « Pause ») ; *simple* : la recommandation en `affiche` ; *grandes lignes* : les parties en lignes
+  (titre, durée, exercice principal, consigne), chacune avec « Fait » et « Passé » (64 px), « Voir la fiche » pour
+  l'exercice principal ; « Lancer un repos » (minuteur existant, 3 min par défaut, choix de 1 à 5 min).
+- **Rappels de sécurité** (séance dure) : fiche en encre « À respecter » : « Échauffe-toi 20 à 30 min, de plus en plus
+  dur, avant tout effort maximal. » ; « Entre deux efforts maximaux : 3 à 5 min de repos. » ; « Arrête l'effort maximal
+  quand deux essais de suite sont nettement moins bons que le meilleur. » ; avant une séance de bloc limite, le rappel
+  de sécurité du bloc (décision F2, point 11), comme en détaillé.
+- **Arrêt** : « Stop, ça fait mal » toujours visible (bouton d'arrêt brique), vers les mises en garde (T-15). Le
+  signal d'arrêt d'une douleur déclarée reste affiché en haut.
+- **Action principale** : « Terminer la séance » → T-11 Trois questions → T-12 Débrief.
+- **Autres actions** : « Quitter » (fenêtre de confirmation, comme T-08).
+- **États** : rien à résumer → « Séance {qualité}, {dureté} : grimpe à ton idée. » ; hors ligne → tout marche.
+- **Accessibilité** : le temps écoulé n'est pas annoncé chaque seconde ; chaque partie est une ligne avec deux boutons
+  libellés (« Échauffement fait »).
+
 ---
 
 ## 3. Écrans de l'ordinateur
@@ -305,6 +330,9 @@ au lieu de le pousser.
   - chaque semaine est cliquable (ouvre O-05) ; chaque phase a « Ouvrir la phase » (O-04) ;
   - (consolidation 17/11) étiquette « BROUILLON » tant que le cycle n'est pas validé, et bouton second « Valider le cycle »
     (confirmation : « Ton cycle apparaîtra sur ton téléphone. Tu pourras encore le modifier. »).
+  - (consolidation 18/11) « Niveau : Grandes lignes » (choix encre Simple / Grandes lignes / Détaillé) ; changer ouvre
+    une confirmation : « Les séances suivront ce niveau. Rien n'est effacé. {n} séances gardent leur propre niveau. »,
+    action « Changer le niveau », lien « Les passer aussi en {niveau} ».
 - **Objectifs de la phase** : bouton « Choisir un objectif » ouvre une liste courte (proposée par les règles selon
   l'accent et le profil) avec une option « Écrire le mien » ; au plus 2 ; au-delà, le bouton est désactivé avec
   « Deux objectifs au plus par phase : retire-en un pour en choisir un autre. »
@@ -344,6 +372,14 @@ au lieu de le pousser.
 - **Fiche de séance** :
   - en-tête : étiquette de dureté (calculée), nom (modifiable en place), durée (calculée), **bascule « SOLO | GROUPE »**
     qui choisit la version affichée et éditée ;
+  - (consolidation 18/11) **niveau** : « Comme le cycle (grandes lignes) / Simple / Grandes lignes / Détaillé ». La version
+    solo s'édite au niveau choisi : *simple* = recommandation d'une ligne (120 caractères, compteur), durée, exercice
+    principal facultatif (« Choisir dans la bibliothèque ») ; *grandes lignes* = 1 à 5 parties (titre, durée, exercice
+    principal facultatif, consigne courte ; « Ajouter une partie », « Monter », « Descendre », « Retirer ») ;
+    *détaillé* = les étapes ci-dessous. Une séance qui a des étapes, affichée en simple ou en grandes lignes, montre le
+    résumé calculé avec « Modifier le texte » et « Voir les étapes ». Une séance sans étapes passée en détaillé :
+    « Cette séance n'a pas encore d'étapes. » avec « Remplir depuis la séance type » ou « Ajouter une étape ».
+    Un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape ;
   - **version solo** : étapes numérotées (protocoles), chacune avec poignée, nom, étiquettes (PRÉREQUIS, À VÉRIFIER,
     PERSO), durée, menu (« Voir la fiche », « Remplacer », « Monter », « Descendre », « Retirer ») ; zone de dépôt
     en bas « Dépose un protocole ici » ;
@@ -402,7 +438,8 @@ au lieu de le pousser.
 - **Action principale** : « Ajouter au plan » (menu : semaine, jour, séance ; par défaut la semaine affichée).
 - **Autres actions** : « Essayer le chrono » (second, ouvre le chrono en aperçu) ; pour un exercice personnel :
   « Modifier », « Supprimer » (avec confirmation, et la liste des séances qui l'utilisent).
-- **États** : protocole exclu de la génération automatique → étiquette « HORS ASSISTANT » et la raison ; panneau
+- **États** : protocole exclu de la génération automatique (ou fiche de test) → étiquette « À LA MAIN SEULEMENT »
+  (consolidation 18/11 : le générateur et l'assistant ne la proposent pas ; ajoutable à la main) et la raison ; panneau
   fermé par Échap ou la croix, focus rendu à la fiche d'origine.
 
 ### O-08 Créer un exercice personnel
@@ -519,6 +556,27 @@ au lieu de le pousser.
 - **Action principale** : « Enregistrer » de la section en cours d'édition (une seule active à la fois).
 - **États** : changements non enregistrés en quittant → confirmation ; enregistrement hors ligne → « Enregistré sur cet
   appareil, envoi au retour du réseau. »
+- (consolidation 18/11) Section **Toi** : « Où tu t'entraînes » (choix multiples encre) : « Salle de bloc », « Salle avec
+  des voies (corde et assureur) », « À la maison (poutre ou barre) » ; aide « Le générateur et l'assistant ne te
+  proposent que des exercices faisables là. Rien de coché : salle de bloc. » (`Profil.lieux`).
+
+### O-13 Nouveau cycle (consolidation 18/11, fenêtre)
+- **But** : poser le cadre du cycle et son niveau de détail, puis le remplir avec le générateur ou à la main.
+- **Ouverture** : « Crée ton premier cycle » (O-02), « Nouveau cycle » (O-03).
+- **Contenu** : nom ; date de début (un lundi ; par défaut le lundi suivant) ; séances par semaine (2 à 5, profil par
+  défaut) ; jours (rappel de `joursDisponibles`, « Modifier dans ton profil ») ; lieux (rappel, même lien) ;
+  **niveau de détail** en trois choix encre, chacun avec sa ligne d'exemple :
+  « Simple — Jeudi · Doigts · dure · 1 h 30 : Bloc limite sur réglettes, 4 essais max. » ;
+  « Grandes lignes — Échauffement 30 min · Bloc limite 45 min · Antagonistes 15 min. » ;
+  « Détaillé — Chaque étape avec son chrono, ses séries et ses repos. » ;
+  aide « Tu pourras changer le niveau du cycle ou d'une séance à tout moment. Rien n'est effacé. » ;
+  **accents** des 3 phases, proposés selon ton profil (modifiables).
+- **Action principale** : « Proposer un plan » (le générateur remplit les 12 semaines ; le cycle reste en brouillon).
+- **Autres actions** : « Commencer vide » (second) ; « Annuler ».
+- **États** : génération → la vue 12 semaines s'ouvre sur le cycle brouillon, avec les avertissements en direct et, pour
+  chaque manque du générateur, une ligne d'information (« Pas de séance possible le jeudi avec ton profil ou tes
+  douleurs : repos. ») ; erreur d'enregistrement → comme O-03.
+- **Accessibilité** : fenêtre de confirmation (D-04) : focus piégé, Échap annule, titre lu à l'ouverture.
 
 ---
 
@@ -596,6 +654,9 @@ Liste pour l'architecte et l'expert entraînement (le gérant consolide). « Cal
 - Calculés pour l'affichage : dureté d'une séance, durée estimée, charge prévue de la semaine, nombre de séances dures,
   état d'une séance prévue (faite, manquée, à venir) à partir des séances réalisées.
 - Lien entre une séance réalisée et la séance prévue (identifiant), et séance « libre » sans lien.
+- (consolidation 18/11) Niveau de détail du cycle et d'une séance ; recommandation d'une ligne ; parties (titre, durée,
+  exercice principal, consigne) ; lieux d'entraînement du profil. Calculés : niveau affiché, parties et recommandation
+  tirées des étapes. Voir `docs/architecture-v2.md` § 3.7.
 
 ### Bibliothèque et exercices personnels
 - Pour chaque protocole : tous les champs de `types.ts` (déjà présents), plus « origine » (bibliothèque ou perso).

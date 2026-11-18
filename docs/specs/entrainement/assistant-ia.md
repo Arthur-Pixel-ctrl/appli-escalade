@@ -44,6 +44,7 @@ Le code construit ce contexte à chaque demande et l'envoie avec le message de l
 interface ContexteAssistant {
   aujourdhui: string                  // "2026-11-17"
   demande: string                     // texte de l'utilisateur
+  niveauDetail: 'simple' | 'grandes_lignes' | 'detaille' // (consolidation 18/11) niveau du cycle en cours, ou choisi pour un nouveau cycle
   profil: {
     disciplinePrincipale: 'bloc' | 'voie'
     niveauBloc: string | null; niveauVoie: string | null
@@ -59,6 +60,7 @@ interface ContexteAssistant {
     seancesParSemaine: number
     joursDisponibles: string[]        // ["mardi", "jeudi", "samedi"]
     grimpeSouventEnGroupe: boolean
+    lieux: string[]                   // (consolidation 18/11) ["salle_bloc"] au moins
   }
   regles: Regles                      // valeurs en vigueur (moteur, B.1)
   planEnCours: null | {
@@ -68,6 +70,7 @@ interface ContexteAssistant {
     seancesAVenir: {                  // 14 prochains jours
       id: string; date: string; nom: string; qualite: string; durete: string
       seanceTypeId?: string; etapes: string[]; objectifsGroupe: string[]
+      niveau: string                  // (consolidation 18/11) niveau affiché ; sans étapes, `etapes` liste les exercices principaux des parties
     }[]
   }
   historique: {
@@ -82,9 +85,9 @@ interface ContexteAssistant {
     id: string; nom: string; qualite: string; dureeMin: number; marqueurs: string[]
     maxParSemaine?: number; terrain?: string; resume: string
   }[]
-  fichesIndisponibles: { id: string; nom: string; raison: 'prerequis' | 'douleur' | 'a_verifier' | 'contexte' }[]
+  fichesIndisponibles: { id: string; nom: string; raison: 'prerequis' | 'douleur' | 'a_verifier' | 'test' | 'contexte' }[] // 'test' : consolidation 18/11
   seancesTypes: { id: string; nom: string; qualite: string; role: 'N' | 'C' | 'L' | 'H'; durete: string;
-    dureeMin: number; variantes: string[] }[]   // seulement celles dont toutes les fiches sont disponibles
+    dureeMin: number; variantes: string[]; recommandation: string }[]   // seulement celles dont toutes les fiches sont disponibles ; recommandation : consolidation 18/11
   objectifsGroupe: { id: string; libelle: string; ficheReference?: string }[]
   objectifsPerso: { id: string; nom: string }[] // proposables pour ce profil
   exercicesPerso: { id: string; nom: string; qualite: string; dureeMin: number; marqueurs: string[] | null }[]
@@ -94,6 +97,8 @@ interface ContexteAssistant {
 (consolidation 17/11) Les champs du profil portent les noms du moteur (`tractionsStrictesMax`, `test15sSur25mm`, `adulte`) : ils sont convertis depuis le profil enregistré (`tractionsStrictes`, `tient15sSur25mm`, `majeur`) par la tâche C-01 ; `joursDisponibles` vient de `Profil.joursDisponibles`.
 
 Filtrage de `fichesDisponibles` : même logique que les vérifications S-02, S-03, S-04 et S-07 du moteur (une fiche qui déclencherait l'une d'elles est dans `fichesIndisponibles`).
+
+(consolidation 18/11, décision F3) Ce filtrage est **la banque d'exercices** : il est fait par `trierFiches` et `seancesTypesDisponibles` (`src/regles/banque.ts`, tâche G-01), les mêmes fonctions que pour le générateur de plan. Raisons, dans l'ordre : `a_verifier` (`exclureDeLaGeneration`), `test` (`estTest` : un test n'est jamais placé dans un brouillon), `prerequis`, `douleur`, `contexte` (grimpe en tête, ou terrain hors des `lieux` du profil). L'assistant ne pioche que dans cette liste (F-6).
 
 ## D.4 Format de réponse
 
@@ -129,10 +134,17 @@ type ObjectifBrouillon =
   | { libelle: string; cible: number; compte: 'blocs_notes' | 'flashs'; ficheReference: string;
       blocs?: number; essaisMaxParBloc?: number; reposConseilleS?: number }
 type SeanceBrouillon =
-  | { jour: JourSemaine; seanceTypeId: string; variante?: string } // séance du catalogue
+  | { jour: JourSemaine; seanceTypeId: string; variante?: string } // séance du catalogue (valable à tous les niveaux)
   | {
       jour: JourSemaine; nom: string; qualite: Qualite; durete: 'dure' | 'legere'; effortPrevu: number // 1 à 10
       solo: { etapes: EtapeBrouillon[] }
+      groupe: null | { objectifs: ObjectifBrouillon[]; miniBloc?: { moment: 'avant' | 'apres'; etapes: EtapeBrouillon[] } }
+    }
+  | {                                 // (consolidation 18/11) séance résumée, niveau simple ou grandes lignes
+      jour: JourSemaine; nom: string; qualite: Qualite; durete: 'dure' | 'legere'; effortPrevu: number
+      niveau: 'simple' | 'grandes_lignes'
+      recommandation: string          // 120 caractères au plus ; garde les bornes de sécurité (« 4 essais max par bloc »)
+      parties: { titre: string; dureeMin: number; ficheId?: string; consigne?: string }[] // simple : 1 ; grandes lignes : 2 à 5
       groupe: null | { objectifs: ObjectifBrouillon[]; miniBloc?: { moment: 'avant' | 'apres'; etapes: EtapeBrouillon[] } }
     }
 
@@ -198,6 +210,7 @@ type TitreLivre =
 | F-6 | Chaque `ficheId` est dans `fichesDisponibles` ou `exercicesPerso` ; chaque `seanceTypeId` dans `seancesTypes` ; chaque `variante` dans les `variantes` de sa séance type ; chaque `objectifId` dans `objectifsGroupe` ; chaque `ficheReference` dans `fichesDisponibles` ; chaque `seanceId` dans `planEnCours.seancesAVenir`. |
 | F-7 | `effortPrevu` entier de 1 à 10 ; `reductionPct` de 40 à 60 pour `decharge` et `affutage` (10 à 60 pour `alleger_seance`) ; `objectifs` de groupe : 1 à 3. |
 | F-8 | Longueurs maximales respectées (voir les commentaires). |
+| F-9 | (consolidation 18/11) Séance résumée : 1 partie en `simple`, 2 à 5 en `grandes_lignes` ; `dureeMin` de 5 à 180 ; chaque `ficheId` d'une partie suit F-6 ; une séance `dure` a au moins une partie avec `ficheId` (sinon le moteur la compte maximale par prudence, S-26). Échec → A-01, ou A-02 pour un `ficheId` inconnu. |
 
 ## D.5 Validation avant affichage
 
@@ -207,14 +220,14 @@ Ordre de traitement (choix de conception) :
 2. **Forme** : règles F-1 à F-8. Échec sur F-1 à F-5 ou F-7 → A-01 (ou A-04 pour les dates). Échec sur F-6 → A-02 (identifiants inconnus listés).
 3. **Sources** : A-05 (page ou contenu d'un livre retirés), A-06 (titre de livre inconnu : source retirée).
 4. **Contenu interdit** (A-07) : recherche, sans tenir compte des majuscules ni des accents, dans `resume`, `justification`, `miseEnGarde`, `texte`, `questions` et les `note`/`raison`, des motifs suivants : `perte de poids`, `perdre du poids`, `perdre \d+ ?(kg|kilos?)`, `poids (cible|ideal|de forme)`, `maigrir`, `mincir`, `regime (amaigrissant|hypocalorique|restrictif)`, `deficit calorique`, `(reduire|couper|limiter) (les|tes) calories`, `seche`. **Ne pas** filtrer `affutage`, `deficit energetique` (l'assistant doit pouvoir mettre en garde contre le sous-apport), ni `poids du corps` (unité de charge). Motif trouvé → tout le texte de la réponse est remplacé par le message de A-07, le brouillon est retiré.
-5. **Expansion** : le brouillon devient un plan complet (séances datées, semaines allégées calculées selon A.4, versions groupe des séances types).
+5. **Expansion** : le brouillon devient un plan complet (séances datées, semaines allégées calculées selon A.4, versions groupe des séances types). (consolidation 18/11) Une séance type garde ses étapes complètes quel que soit le niveau ; une séance résumée devient une version solo sans étapes, avec `recommandation` et `parties` (`niveaux-de-detail.md`, § 1.2), allégée en semaine 4 par la même fonction que le générateur (`allegerSeance`, G-03).
 6. **Moteur** : `verifierPlan` avec `origine: 'assistant'` (ou `verifierSeance` pour chaque séance touchée par un ajustement, plus les semaines concernées).
 7. **Relance** : au plus **une** relance automatique si l'étape 1, 2 ou 6 (avertissement fort) échoue. Le message de relance liste les erreurs (codes et messages), sans le reste de la conversation. Après la relance, on affiche la meilleure des deux réponses (celle qui a le moins d'avertissements forts), avec ses avertissements. Jamais plus de deux appels pour une demande.
 8. **Affichage** : brouillon, justification, sources, mise en garde, avertissements du moteur. (consolidation 17/11 : l'interface du design prime) Le brouillon est découpé en **éléments** (une phase, une semaine, une séance ou une opération) que l'utilisateur garde, modifie ou rejette **un par un** ; « Garder tout ce qui reste » existe en bouton discret (tâches C-07 et D-23). Rien n'est enregistré sans action de l'utilisateur.
 
 ## D.6 Prompt système
 
-Texte complet, à mettre tel quel. Les données de l'utilisateur arrivent dans le message, au format `ContexteAssistant` (D.3).
+Texte complet, à mettre tel quel. Les données de l'utilisateur arrivent dans le message, au format `ContexteAssistant` (D.3). (consolidation 18/11) Paragraphe « Niveaux de détail » ajouté (décisions F3 à F5).
 
 ```text
 Tu es l'assistant d'entraînement d'une application d'escalade. Tu aides un grimpeur à construire et à ajuster son plan. Tu proposes des brouillons ; c'est lui qui décide, modifie et valide. Tu écris en français, tu tutoies, tu fais des phrases courtes et concrètes.
@@ -237,6 +250,12 @@ Un seul objet JSON conforme au format « ReponseAssistant » version 1, sans auc
 - Ordre dans une séance : échauffement, technique, effort maximal, travail de capacité, antagonistes, retour au calme.
 - Une séance de groupe garde l'intention de la version solo : même qualité, même dureté, mêmes efforts maximaux. 1 à 3 objectifs, chacun avec un nombre de blocs et d'essais. La poutre va dans un mini-bloc solo de 10 à 15 min avant les objectifs.
 - Jusqu'à 2 objectifs spécifiques par phase, en modules de 10 à 15 min, 1 à 2 fois par semaine.
+
+# Niveaux de détail
+Le niveau du cycle est dans contexte.niveauDetail : « simple » (une recommandation d'une ligne), « grandes_lignes » (3 ou 4 parties avec l'exercice principal et la durée) ou « detaille » (chaque étape).
+- Préfère toujours une séance type (seanceTypeId), à tous les niveaux : l'application en tire elle-même la recommandation, les parties et les étapes.
+- Si tu composes une séance au niveau « detaille », donne ses étapes. Au niveau « simple » ou « grandes_lignes », donne niveau, recommandation et parties ; chaque partie qui travaille vraiment cite sa fiche (ficheId) de fichesDisponibles ou exercicesPerso.
+- La recommandation garde les bornes de sécurité de la fiche : nombre d'essais, repos, écart avec une autre séance. Les règles de sécurité valent à tous les niveaux.
 
 # Règles de sécurité : tu les respectes toujours
 Les valeurs exactes sont dans contexte.regles. Par défaut :
