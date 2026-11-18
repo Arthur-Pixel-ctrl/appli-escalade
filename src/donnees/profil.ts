@@ -1,6 +1,6 @@
 // Le profil du grimpeur. Il est rempli au premier lancement et sert de point de départ à tout le reste :
 // salle et couleurs aujourd'hui, programme et prérequis des exercices dans les lots suivants.
-export type ZoneDouleur = 'doigts' | 'poignet' | 'coude' | 'epaule' | 'genou' | 'dos' | 'autre'
+export type ZoneDouleur = 'doigts' | 'poignet' | 'coude' | 'epaule' | 'hanche' | 'genou' | 'cheville' | 'dos' | 'autre'
 export type JourSemaine = 'lundi' | 'mardi' | 'mercredi' | 'jeudi' | 'vendredi' | 'samedi' | 'dimanche'
 
 export interface Profil {
@@ -55,6 +55,6 @@ export const COTATIONS_VOIE = ['5a', '5b', '5c', '6a', '6a+', '6b', '6b+', '6c',
 
 export const ZONES: { valeur: ZoneDouleur; nom: string }[] = [
   { valeur: 'doigts', nom: 'Doigts' }, { valeur: 'poignet', nom: 'Poignet' }, { valeur: 'coude', nom: 'Coude' },
-  { valeur: 'epaule', nom: 'Épaule' }, { valeur: 'genou', nom: 'Genou' }, { valeur: 'dos', nom: 'Dos' },
-  { valeur: 'autre', nom: 'Autre' },
+  { valeur: 'epaule', nom: 'Épaule' }, { valeur: 'hanche', nom: 'Hanche' }, { valeur: 'genou', nom: 'Genou' },
+  { valeur: 'cheville', nom: 'Cheville' }, { valeur: 'dos', nom: 'Dos' }, { valeur: 'autre', nom: 'Autre' },
 ]
