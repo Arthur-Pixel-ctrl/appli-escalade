@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { lireSeances, type SeanceRealisee } from '../donnees/base.ts'
 import { chargeSeance, lundiDe } from '../donnees/debrief.ts'
+import { surDonneesChangees } from '../donnees/stockage.ts'
 
 const dateCourte = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
 const jourMois = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' })
@@ -11,6 +12,8 @@ export function Historique({ onOuvrir }: { onOuvrir: (id: string) => void }) {
   const [seances, setSeances] = useState<SeanceRealisee[] | null>(null)
   const [echec, setEchec] = useState(false)
   useEffect(() => { lireSeances().then(setSeances).catch(() => setEchec(true)) }, [])
+  // Des séances arrivées d'un autre appareil : on relit la liste.
+  useEffect(() => surDonneesChangees(() => { lireSeances().then(setSeances).catch(() => {}) }), [])
 
   // Du plus récent au plus ancien, puis regroupées par lundi (l'ordre des groupes suit celui des séances).
   const groupes = new Map<string, SeanceRealisee[]>()

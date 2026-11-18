@@ -15,6 +15,12 @@ import { Chargement, Erreur } from './ecrans/Erreur.tsx'
 import { Historique } from './ecrans/Historique.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
 import { Profil } from './ecrans/Profil.tsx'
+import { supabase } from './compte/client.ts'
+import { useSession } from './compte/session.ts'
+import { lireEtat, surDonneesChangees } from './donnees/stockage.ts'
+import { demarrerSynchroAutomatique, surCompteLie } from './synchro/automatique.ts'
+import { serveurSupabase } from './synchro/serveurSupabase.ts'
+import { synchroniser } from './synchro/synchro.ts'
 import { Icone } from './composants/Icone.tsx'
 import { Confirmation } from './composants/Confirmation.tsx'
 import { Questions } from './ecrans/Questions.tsx'
@@ -52,6 +58,28 @@ export default function App() {
       .then(setProfil)
       .catch((e: unknown) => setErreurDemarrage(e instanceof Error ? `${e.name} : ${e.message}` : String(e)))
   }, [])
+  // Des données arrivées d'un autre appareil : on relit seulement le profil (jamais l'écran de séance).
+  // Si rien n'a changé, on garde le même objet : aucun nouvel affichage.
+  useEffect(() => surDonneesChangees(() => {
+    lireProfil()
+      .then((p) => { if (p) setProfil((avant) => (JSON.stringify(avant) === JSON.stringify(p) ? avant : p)) })
+      .catch(() => {})
+  }), [])
+  // Synchronisation automatique : seulement si connecté ET appareil lié à ce compte (la reprise passe d'abord).
+  const session = useSession()
+  const [versionLien, setVersionLien] = useState(0)
+  useEffect(() => surCompteLie(() => setVersionLien((v) => v + 1)), [])
+  useEffect(() => {
+    const userId = session.userId
+    if (!supabase || !userId) return
+    let annule = false
+    let arreter: (() => void) | undefined
+    lireEtat<string | null>('compteId').then((compteId) => {
+      if (annule || compteId !== userId) return
+      arreter = demarrerSynchroAutomatique(() => synchroniser(serveurSupabase(supabase!), userId))
+    }).catch(() => {})
+    return () => { annule = true; arreter?.() }
+  }, [session.userId, versionLien])
   const [majPrete, setMajPrete] = useState(false)
   useEffect(() => surMiseAJourDisponible(() => setMajPrete(true)), [])
   // Erreur d'enregistrement, affichée dans l'écran Questions (les réponses restent gardées).
