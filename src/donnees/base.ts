@@ -1,32 +1,13 @@
 import Dexie, { type Table } from 'dexie'
-import type { BlocGrimpe } from '../moteur/types.ts'
-import type { Profil } from './profil.ts'
+import type { ProfilEnregistre, SeanceRealisee } from './modele.ts'
+import { completerProfil, type Profil } from './profil.ts'
 
 // La base de données de l'app, stockée sur le téléphone (IndexedDB, via Dexie).
-// Version simplifiée de `SeanceRealisee` du modèle de données : on n'enregistre que ce que
-// l'app sait déjà produire. Les champs manquants seront ajoutés avec les lots suivants.
-export interface SeanceRealisee {
-  id: string
-  creeLe: string // horodatage complet
-  modifieLe: string
-  date: string // jour de la séance, "2026-11-16"
-  mode: 'solo' | 'groupe'
-  nom: string
-  durete: 'dure' | 'legere'
-  dureeMin: number
-  effortPercu: number // 1 à 10
-  peau: 1 | 2 | 3 // 1 abîmée, 2 limite, 3 bonne
-  douleur: boolean
-  etapes: { titre: string; statut: 'faite' | 'passee' | 'a_faire' }[] // séance solo
-  objectifs: { libelle: string; cible: number; fait: number }[] // séance en groupe
-  blocs: BlocGrimpe[]
-}
+// Le type `SeanceRealisee` vient de `modele.ts` ; les autres fichiers continuent de l'importer d'ici.
+export type { SeanceRealisee }
 
 /** Ce qu'on connaît de la séance avant les trois questions de fin. */
-export type Brouillon = Omit<SeanceRealisee, 'id' | 'creeLe' | 'modifieLe' | 'date' | 'effortPercu' | 'peau' | 'douleur'>
-
-/** Le profil tel qu'il est rangé dans la base : un seul enregistrement, d'identifiant fixe. */
-export type ProfilEnregistre = Profil & { id: 'profil'; modifieLe: string }
+export type Brouillon = Omit<SeanceRealisee, 'id' | 'versionFormat' | 'creeLe' | 'modifieLe' | 'date' | 'effortPercu' | 'peau' | 'douleur'>
 
 class Base extends Dexie {
   seancesRealisees!: Table<SeanceRealisee, string>
@@ -57,6 +38,7 @@ export async function enregistrerSeance(
     ...brouillon,
     ...reponses,
     id: crypto.randomUUID(),
+    versionFormat: 1,
     creeLe: maintenant.toISOString(),
     modifieLe: maintenant.toISOString(),
     date: jourLocal(maintenant),
@@ -86,11 +68,17 @@ document.addEventListener('visibilitychange', () => {
 })
 
 export async function lireProfil(): Promise<Profil | null> {
-  return (await avecReprise(() => base.reglages.get('profil'))) ?? null
+  const enregistre = await avecReprise(() => base.reglages.get('profil'))
+  // Un profil enregistré avant la v2 n'a pas les champs récents : on les complète.
+  return enregistre ? completerProfil(enregistre) : null
 }
 
 export async function enregistrerProfil(profil: Profil): Promise<void> {
-  await avecReprise(() => base.reglages.put({ ...profil, id: 'profil', modifieLe: new Date().toISOString() }))
+  const maintenant = new Date().toISOString()
+  await avecReprise(async () => {
+    const existant = await base.reglages.get('profil')
+    await base.reglages.put({ ...profil, id: 'profil', versionFormat: 1, creeLe: existant?.creeLe ?? maintenant, modifieLe: maintenant })
+  })
 }
 
 /** Toutes les séances enregistrées. */
