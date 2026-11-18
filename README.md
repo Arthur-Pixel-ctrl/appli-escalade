@@ -47,6 +47,7 @@ Les contenus d'entraînement, de nutrition et de mobilité sont des repères gé
 | D-09 | Profil, bienvenue (prénom demandé), chargement, icône « 9a » au style « Topo » | Fait |
 | F2-11 | Sauvegarde complète (11 tables, sans clé API), rechargement des anciens fichiers, suppression du compte | Fait, suppression à essayer pour de vrai |
 | F2-14 | Mise en page ordinateur (1024 px et plus) : barre du haut et rubriques, sans lancement de séance | Fait |
+| D-21 | Bienvenue avec compte ou sans compte, « J'ai une sauvegarde » avant de créer le profil, bandeau hors ligne | Fait |
 
 ## Ouvrir l'app
 
