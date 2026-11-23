@@ -396,6 +396,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 
 ## Vague 3.3
 
+> 9. (livraison 23/11, validé par le gérant) La fenêtre O-13 livrée demande déjà l'accent des trois phases (« Pas encore choisi » par défaut) avant le niveau, pour suivre F6 sans attendre D-25 ; `niveauPropose(accents)` y est appelé avec ces accents. La fenêtre de changement de niveau est un `<dialog>` propre à `VueCycle.tsx` (lien « Les passer aussi en … »). Le début du cycle n'est plus modifiable dès qu'une séance planifiée existe.
+
 #### E-03 · Vérifications de séance : profil, douleurs, contexte (S-01 à S-09)
 - **Modèle** : Sonnet · **Dépend de** : E-02 · **Texte** : [taches-entrainement.md, E-03](specs/entrainement/taches-entrainement.md#e-03--vérifications-de-séance--profil-douleurs-contexte-s-01-à-s-09)
 - **Fichiers** : créer `src/regles/verifSeanceProfil.ts`, `src/regles/verifSeanceProfil.test.ts`.
@@ -555,6 +557,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 
 > **Amendements de consolidation** : tâche nouvelle (décisions F3, F5).
 > 1. (consolidation 23/11, F6) Les accents viennent **avant** le niveau, et la présélection du niveau suit les accents (`niveauPropose`, N-01) : étape 1 du texte complet, mise à jour.
+
+> (livraison D-14, 23/11) Les listes d'accents existent déjà dans `NouveauCycle.tsx` : D-25 y branche `accentsDeDepart` comme présélection au lieu de « Pas encore choisi », sans les recréer.
 
 #### D-18 · Avertissements de sécurité en direct — vague 3.10
 - **Modèle** : Sonnet · **Dépend de** : D-17, E-09, C-01 · **Texte** : [taches-design.md, D-18](specs/design/taches-design.md#d-18--avertissements-de-sécurité-en-direct)
