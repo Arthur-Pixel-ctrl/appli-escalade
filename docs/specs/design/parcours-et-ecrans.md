@@ -10,6 +10,8 @@ de l'expert entraînement ; le modèle de données et la navigation technique vi
 
 > **Consolidation du 18/11** (décisions F3 à F5, détail dans `docs/specs/niveaux-de-detail.md`) : chaque séance s'affiche à un **niveau de détail** (simple, grandes lignes, détaillé), choisi pour tout le cycle à sa création sur ordinateur (fenêtre **O-13**) et modifiable séance par séance sur ordinateur ; le téléphone affiche chaque séance à son niveau (**T-16** pour le simple et les grandes lignes) et garde tout le suivi ; un **générateur** propose un plan à partir de la banque d'exercices ; « HORS ASSISTANT » devient « À LA MAIN SEULEMENT ». Chaque ajout porte la mention « (consolidation 18/11) ».
 
+> **Consolidation du 23/11** (décision F6) : aucun niveau n'est imposé à la création d'un cycle. Dans **O-13**, la question du niveau vient **après** les accents des phases, avec un niveau présélectionné selon ces accents et une ligne qui dit pourquoi (`docs/specs/niveaux-de-detail.md` § 1.7). Pour un brouillon de cycle de l'assistant (**O-10**), la même question s'affiche en tête de la réponse. Mention « (consolidation 23/11, F6) ».
+
 Conventions : identifiant d'écran `T-xx` (téléphone) et `O-xx` (ordinateur). Pour chaque écran : **But**, **Contenu**,
 **Action principale** (une seule, en résine), **Autres actions**, **États**, **Adaptation**, **Accessibilité**.
 Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation ni emoji.
@@ -78,7 +80,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 
 ### P3. Construire un cycle à la main sur ordinateur
 1. **O-01 Connexion** (même code par e-mail ; consolidation 17/11), puis **O-02 Tableau de bord** vide : « Crée ton premier cycle ».
-1 bis. (consolidation 18/11) **O-13 Nouveau cycle** : date, séances par semaine, **niveau de détail**, accents proposés ; « Proposer un plan » (le générateur remplit les 12 semaines en brouillon, à retoucher ensuite) ou « Commencer vide » (étapes 2 à 4).
+1 bis. (consolidation 18/11) **O-13 Nouveau cycle** : date, séances par semaine, accents proposés, puis **niveau de détail** proposé selon les accents (consolidation 23/11, F6) ; « Proposer un plan » (le générateur remplit les 12 semaines en brouillon, à retoucher ensuite) ou « Commencer vide » (étapes 2 à 4).
 2. **O-03 Vue 12 semaines** : date de début, nombre de séances par semaine (2 à 5), accent de chaque bloc,
    jusqu'à 2 objectifs par bloc, réglage de la semaine allégée.
 3. **O-04 Vue bloc** : poser des séances sur les jours de la semaine 1 ; « Recopier sur les semaines 2 et 3 ».
@@ -516,6 +518,11 @@ au lieu de le pousser.
   une relance) », mis à jour avant chaque envoi ; le modèle (Haiku par défaut, Sonnet en option dans les réglages) est nommé.
 - **Sources** (consolidation 17/11) : un livre n'est jamais la source d'une règle ou d'un chiffre ; il s'affiche à part,
   sous « Lecture conseillée ».
+- **Niveau d'un brouillon de cycle** (consolidation 23/11, F6) : l'assistant ne choisit pas le niveau. En tête d'une
+  réponse de type cycle, au-dessus des éléments : « Niveau du cycle » en trois choix encre, présélection
+  `niveauPropose` sur les accents des phases du brouillon, et sa ligne « pourquoi » (comme O-13). Le cycle est créé à
+  ce niveau quand tu gardes son premier élément. Pour les autres demandes, mention « Niveau : celui du cycle
+  (grandes lignes) », qui se change dans l'en-tête du cycle.
 - **Téléphone** : l'assistant n'est pas proposé sur téléphone (décision B7).
 
 ### O-11 Bilans (ordinateur)
@@ -563,20 +570,33 @@ au lieu de le pousser.
 ### O-13 Nouveau cycle (consolidation 18/11, fenêtre)
 - **But** : poser le cadre du cycle et son niveau de détail, puis le remplir avec le générateur ou à la main.
 - **Ouverture** : « Crée ton premier cycle » (O-02), « Nouveau cycle » (O-03).
-- **Contenu** : nom ; date de début (un lundi ; par défaut le lundi suivant) ; séances par semaine (2 à 5, profil par
-  défaut) ; jours (rappel de `joursDisponibles`, « Modifier dans ton profil ») ; lieux (rappel, même lien) ;
+- **Contenu**, dans cet ordre (consolidation 23/11, F6 : le niveau vient après les accents) : nom ; date de début (un
+  lundi ; par défaut le lundi suivant) ; séances par semaine (2 à 5, profil par défaut) ; jours (rappel de
+  `joursDisponibles`, « Modifier dans ton profil ») ; lieux (rappel, même lien) ;
+  **accents** des 3 phases, proposés selon ton profil (modifiables) ;
   **niveau de détail** en trois choix encre, chacun avec sa ligne d'exemple :
   « Simple — Jeudi · Doigts · dure · 1 h 30 : Bloc limite sur réglettes, 4 essais max. » ;
   « Grandes lignes — Échauffement 30 min · Bloc limite 45 min · Antagonistes 15 min. » ;
   « Détaillé — Chaque étape avec son chrono, ses séries et ses repos. » ;
-  aide « Tu pourras changer le niveau du cycle ou d'une séance à tout moment. Rien n'est effacé. » ;
-  **accents** des 3 phases, proposés selon ton profil (modifiables).
-- **Action principale** : « Proposer un plan » (le générateur remplit les 12 semaines ; le cycle reste en brouillon).
+  sous le choix, la ligne **« pourquoi »** du niveau proposé (consolidation 23/11, F6), par exemple « Une de tes phases
+  travaille les doigts, la traction ou la puissance : en Détaillé, le chrono règle les temps d'effort et les repos. » ;
+  aide « Tu pourras changer le niveau du cycle ou d'une séance à tout moment. Rien n'est effacé. »
+- **Niveau proposé** (consolidation 23/11, F6) : un niveau est toujours présélectionné par `niveauPropose(accents)`
+  (`niveaux-de-detail.md` § 1.7), jamais imposé, jamais écrit sans avoir été affiché. Détaillé dès qu'une phase
+  travaille les doigts, la traction ou la puissance, ou tant qu'un accent manque ; Grandes lignes quand toutes les phases
+  visent l'endurance, la résistance ou la technique ; Simple jamais présélectionné, toujours proposé. Tant que tu n'as pas
+  touché au niveau, la présélection et sa ligne suivent les accents. Dès que tu choisis, ton choix reste ; si les accents
+  changent ensuite et que la proposition diffère, la ligne devient « Ton choix. Pour ces accents, l'app propose
+  {Niveau}. » Avant D-25 (fenêtre sans accents) : Détaillé, avec « Les accents de tes phases ne sont pas tous choisis :
+  l'app propose le niveau le plus guidé. »
+- **Action principale** : « Proposer un plan » (le générateur remplit les 12 semaines au niveau affiché ; le cycle reste en brouillon).
 - **Autres actions** : « Commencer vide » (second) ; « Annuler ».
 - **États** : génération → la vue 12 semaines s'ouvre sur le cycle brouillon, avec les avertissements en direct et, pour
   chaque manque du générateur, une ligne d'information (« Pas de séance possible le jeudi avec ton profil ou tes
   douleurs : repos. ») ; erreur d'enregistrement → comme O-03.
 - **Accessibilité** : fenêtre de confirmation (D-04) : focus piégé, Échap annule, titre lu à l'ouverture.
+  (consolidation 23/11, F6) La ligne « pourquoi » est liée au groupe de choix du niveau (`aria-describedby`) et lue
+  quand elle change (`aria-live="polite"`).
 
 ---
 

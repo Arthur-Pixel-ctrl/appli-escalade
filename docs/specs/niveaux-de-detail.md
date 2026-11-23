@@ -1,15 +1,18 @@
 # Niveaux de détail et banque d'exercices
 
-18 novembre 2026 · Concepteur (architecture, entraînement, parcours). Intègre les décisions **F3, F4, F5** d'Arthur (`docs/decisions-phase-1.md`, section F), avant le code de la phase 3. Statut : à relire par le gérant ; deux questions pour Arthur à la fin (section 8).
+18 novembre 2026 · Concepteur (architecture, entraînement, parcours). Intègre les décisions **F3, F4, F5** d'Arthur (`docs/decisions-phase-1.md`, section F), avant le code de la phase 3. Statut : à relire par le gérant. Les deux questions de la section 8 ont été tranchées par Arthur le 18/11 (F6, F7) et reportées le 23/11.
 
 Les amendements correspondants sont marqués « (consolidation 18/11) » dans `docs/architecture-v2.md` § 3, `docs/specs/entrainement/moteur-verification.md`, `docs/specs/entrainement/assistant-ia.md`, `docs/specs/entrainement/regles-planification.md` (A4-3), `docs/specs/design/parcours-et-ecrans.md` et `docs/backlog-v2.md` (tâches N-01, G-01 à G-03, D-25 à D-27, et encadrés des tâches existantes).
+
+(consolidation 23/11) Les décisions **F6** (niveau proposé selon l'objectif) et **F7** (séance dure sans exercice connu) sont reportées ici (§ 1.7, § 3.3, § 4.1, § 5, § 8) et dans les mêmes documents, avec la mention « (consolidation 23/11, F6) » ou « (consolidation 23/11, F7) ».
 
 ## 0. En bref
 
 - **Le niveau est un choix d'affichage, pas un autre modèle.** Même cycle, mêmes phases, mêmes séances (date, qualité, dureté, effort, durée). Le niveau dit seulement ce que le téléphone montre de la version solo : une ligne, 3 ou 4 parties, ou toutes les étapes.
 - **Rien n'est effacé quand on change de niveau.** Les étapes restent enregistrées même quand la séance s'affiche « simple ». On peut monter ou descendre de niveau sans rien perdre.
 - **Le générateur et les séances types remplissent toujours tout** (étapes complètes + recommandation). Le niveau ne change que l'affichage. Seules les séances écrites à la main en simple ou en grandes lignes n'ont pas d'étapes.
-- **Le moteur vérifie toujours le contenu le plus fin qui existe.** Un seul contrôle dépend du niveau affiché : S-15 (repos réglé dans le chrono). Aucun avertissement de semaine ou de plan ne disparaît. Une séance dure sans aucun exercice connu compte, par prudence, comme un effort maximal.
+- **Pas de niveau imposé** (consolidation 23/11, F6). À la création d'un cycle, l'app pose la question du niveau après le choix des accents des phases, et présélectionne un niveau qui dépend d'eux (`niveauPropose`, § 1.7), avec une ligne qui dit pourquoi.
+- **Le moteur vérifie toujours le contenu le plus fin qui existe.** Un seul contrôle dépend du niveau affiché : S-15 (repos réglé dans le chrono). Aucun avertissement de semaine ou de plan ne disparaît. (consolidation 23/11, F7) Une séance dure sans aucun exercice connu compte comme une séance dure ordinaire, pas comme un effort maximal ; S-26 propose de choisir son exercice principal.
 - **La banque** = la bibliothèque (protocoles et exercices personnels) triée par une seule fonction commune au générateur (phase 3) et à l'assistant (phase 5).
 
 ---
@@ -28,7 +31,7 @@ interface Cycle            { /* … */ niveauDetail?: NiveauDetail }  // niveau 
 interface SeancePlanifiee  { /* … */ niveauDetail?: NiveauDetail }  // remplace celui du cycle pour cette séance ; absent = celui du cycle
 ```
 
-- Le niveau du cycle est choisi à la création, sur ordinateur (fenêtre O-13). Il reste modifiable dans l'en-tête du cycle.
+- Le niveau du cycle est choisi à la création, sur ordinateur (fenêtre O-13). (consolidation 23/11, F6) L'app y propose un niveau selon les accents des phases, sans l'imposer (§ 1.7). Il reste modifiable dans l'en-tête du cycle.
 - Le niveau d'une séance est modifiable dans sa fiche, sur ordinateur seulement (R-6, B11 : le téléphone ne change pas le niveau).
 - Les deux champs sont **facultatifs** : les cycles et séances déjà enregistrés (et les sauvegardes par fichier) se lisent comme « détaillé », c'est-à-dire comme aujourd'hui.
 
@@ -113,6 +116,56 @@ Une séance déjà faite n'est pas touchée : la séance réalisée est un autre
 - **Sauvegarde** : l'export emporte les champs ; un fichier ancien se relit en « détaillé ».
 - **Téléphone pas à jour** : il ne lit pas encore le plan avant la phase 4 ; quand il le lira, il aura les écrans des trois niveaux (D-22, D-27). Aucun téléphone ne verra une séance simple sans savoir l'afficher.
 
+### 1.7 Niveau proposé à la création d'un cycle (consolidation 23/11, F6)
+
+**Décision d'Arthur (F6)** : pas de niveau imposé. L'app pose la question à la création du cycle, et sa proposition dépend de l'objectif. Arthur garde le choix, et peut changer le niveau séance par séance (F5).
+
+**Ce que « l'objectif » veut dire à ce moment.** Dans la fenêtre O-13, avant « Proposer un plan », le seul objectif enregistré dans le modèle est **l'accent de chaque phase** (`PhaseCycle.accent: AccentPhase | null`, `src/donnees/modele.ts`), présélectionné par `accentsDeDepart` (G-02) et modifiable (D-25). Les autres « objectifs » n'entrent pas dans la règle :
+- `Cycle.objectif` (libellé et date, facultatif) se saisit plus tard, dans l'en-tête de la vue 12 semaines (D-14), et c'est un texte libre ;
+- les objectifs spécifiques (`ObjectifSpecifique`, 0 à 2 par phase) se choisissent ensuite, dans O-09 ;
+- l'objectif du profil est un texte libre : une règle ne le lit pas.
+
+**La règle** (tâche N-01, `src/donnees/niveaux.ts`, fonction pure sans bibliothèque) :
+
+```ts
+/** Accents dont le cœur est un effort court et intense, réglé au chrono (« accent nerveux », regles-planification A.3.6). */
+export const ACCENTS_NERVEUX: AccentPhase[] = ['doigts', 'traction_gainage', 'puissance']
+
+/** Niveau présélectionné à la création d'un cycle, et la phrase qui dit pourquoi. Jamais 'simple'. */
+export function niveauPropose(accents: (AccentPhase | null)[]): { niveau: NiveauDetail; pourquoi: string }
+```
+
+| Ordre | Condition (la première vraie l'emporte) | Niveau | `pourquoi` (mot pour mot) |
+|---|---|---|---|
+| 1 | Un accent choisi est dans `ACCENTS_NERVEUX` | `detaille` | « Une de tes phases travaille les doigts, la traction ou la puissance : en Détaillé, le chrono règle les temps d'effort et les repos. » |
+| 2 | Liste vide, ou un accent vaut `null` | `detaille` | « Les accents de tes phases ne sont pas tous choisis : l'app propose le niveau le plus guidé. » |
+| 3 | Sinon : tous les accents sont choisis, parmi `resistance`, `endurance`, `technique` | `grandes_lignes` | « Tes phases visent l'endurance, la résistance ou la technique : les grandes parties suffisent. Tu peux passer une séance de poutre en Détaillé. » |
+
+`simple` n'est jamais présélectionné, mais il est toujours proposé : les trois choix restent affichés.
+
+**En une phrase pour Arthur** : l'app propose Détaillé dès qu'une phase travaille les doigts, la traction ou la puissance, Grandes lignes quand toutes tes phases visent l'endurance, la résistance ou la technique ; Simple n'est jamais présélectionné, mais tu peux toujours le choisir.
+
+**Pourquoi** [CDC] :
+- *Accent nerveux → Détaillé.* Ces phases reposent sur des efforts courts et maximaux (suspensions de quelques secondes, tractions lestées, bloc à ta limite, pan), dont la sécurité tient aux temps d'effort et aux repos de 3 à 5 min [SYN, A.8]. En détaillé, le chrono les règle et le moteur vérifie ces repos (S-15) ; en grandes lignes, le chrono est libre et seuls des rappels les donnent (§ 4.2).
+- *Endurance, résistance, technique → Grandes lignes.* L'effort y est sous-maximal ; sa borne tient en une consigne (« 1 min entre deux passages », recommandations du § 2.5). Le générateur remplit quand même toutes les étapes, et le moteur les vérifie (§ 3) : aucune règle de récupération ni de quota ne se perd. La séance de poutre d'entretien de ces cycles (ST-DOI-02, variante `entretien`) peut passer en Détaillé à elle seule (F5) : la ligne le rappelle.
+- *Un accent manque → Détaillé.* On ne sait pas encore ce que la phase contiendra : valeur par défaut prudente (CLAUDE.md).
+- *Les trois accents comptent, pas seulement le premier* : le niveau vaut pour tout le cycle, et une phase de doigts en phase 3 a besoin du même chrono qu'en phase 1.
+- *Simple jamais présélectionné* : c'est le niveau le moins guidé (une ligne). Il reste un choix délibéré.
+
+**Conséquence à connaître** : les accents de départ (`accentsDeDepart`) commencent tous par une phase de doigts ou de traction. Sans changement d'accent, la proposition est donc Détaillé ; elle passe à Grandes lignes quand toutes les phases sont d'endurance, de résistance ou de technique.
+
+**Comment la question est posée** (O-13, § 4.1 ; tâches D-14 puis D-25) :
+- La question du niveau vient **après** les accents, juste avant l'action principale.
+- Le niveau proposé est présélectionné, et sa ligne `pourquoi` s'affiche sous le choix. **Aucun niveau n'est écrit sans avoir été affiché** : `Cycle.niveauDetail` reçoit toujours le niveau visible au moment de « Proposer un plan » ou de « Commencer vide ».
+- Tant que l'utilisateur n'a pas touché au niveau, la présélection et sa ligne suivent les accents. Dès qu'il choisit, son choix reste. Si les accents changent ensuite et que la proposition diffère de son choix, la ligne devient « Ton choix. Pour ces accents, l'app propose {Niveau}. »
+- Avant D-25, la fenêtre n'a pas encore les accents : `niveauPropose([])` donne Détaillé et la ligne 2.
+- Plus tard, changer un accent dans la vue 12 semaines ne change pas le niveau et ne déclenche aucune proposition : le niveau se change dans l'en-tête du cycle (§ 1.5) ou séance par séance.
+
+**Assistant (phase 5)** : l'assistant ne choisit jamais le niveau (§ 5).
+- Demande « Brouillon de cycle » : le contexte envoie `niveauDetail: 'detaille'`. Les accents ne sont pas encore connus, et une séance type ou détaillée s'affiche ensuite à tout niveau sans rien perdre (R-9).
+- Une réponse de type `cycle` s'affiche avec, en tête, « Niveau du cycle » : trois choix encre, présélection `niveauPropose` sur les accents des phases du brouillon, et sa ligne `pourquoi`. Le cycle est créé à ce niveau quand l'utilisateur garde son premier élément (C-07, D-23).
+- Autres demandes (phase, semaine, ajustement) : le niveau du cycle en cours, affiché, modifiable seulement dans l'en-tête du cycle.
+
 ---
 
 ## 2. Banque d'exercices
@@ -157,7 +210,7 @@ Un champ de profil (tâche D-20) : `Profil.lieux: LieuEntrainement[]`, avec `Lie
 | Séances par semaine | O-13 (2 à 5) | `profil.seancesParSemaine` |
 | Jours | `profil.joursDisponibles` | jours conseillés (§ 2.4) |
 | Accents des 3 phases | O-13, proposés par `accentsDeDepart(profil)` | tableau A.2 |
-| Niveau de détail | O-13 | question Q1 (§ 8) |
+| Niveau de détail | O-13 : choisi par l'utilisateur | (consolidation 23/11, F6) présélection `niveauPropose(accents)` (§ 1.7) |
 | Semaine allégée et réduction | `Reglages.reglesSecurite` | active, 50 % |
 
 Hors du générateur en phase 3 (choix de simplicité) : le mode « objectif daté » (l'affûtage se règle à la main, P-05 le rappelle) et les modules d'objectifs spécifiques (choisis ensuite dans O-09 ; l'assistant pourra les placer en phase 5).
@@ -242,7 +295,7 @@ Le moteur vérifie **le contenu enregistré, au niveau le plus fin qui existe**,
 |---|---|---|---|
 | Étapes présentes | les étapes réelles | fiches des étapes ∪ exercices principaux des parties écrites | somme des étapes |
 | Pas d'étapes, des parties | une étape résumée par partie qui a un exercice principal (`ficheId` = principal, `dureeMin` = durée de la partie) | fiches des principaux | somme des parties (`VersionVerif.dureeMin`) |
-| Rien de connu (aucune fiche) | aucune | **prudence** : `maximale` si la version est dure | somme des parties |
+| Rien de connu (aucune fiche) | aucune | aucun (consolidation 23/11, F7 : une version dure est une séance dure ordinaire, § 3.3) | somme des parties |
 
 Nouveaux champs de la vue (E-01) : `VersionVerif.niveau?: NiveauDetail` (niveau affiché ; absent = détaillé) et `VersionVerif.etapesDetaillees?: boolean` (faux quand les étapes sont résumées ; absent = vrai). La version groupe garde toujours ses étapes réelles (mini-bloc) et le niveau détaillé.
 
@@ -260,8 +313,14 @@ Nouveaux champs de la vue (E-01) : `VersionVerif.niveau?: NiveauDetail` (niveau 
 
 ### 3.3 Trois ajouts au moteur (amendements de `moteur-verification.md`)
 
-- **Prudence pour une séance sans contenu connu** (B.2) : une version solo **dure** sans aucune fiche connue porte le marqueur `maximale` (W-01, W-12, J-04 la comptent) ; elle sollicite les doigts sauf si sa qualité est `mobilite` ou `antagonistes` (W-06) ; elle entretient sa qualité dominante (W-13). [CDC], valeurs par défaut prudentes (CLAUDE.md). Voir la question Q2.
-- **S-26 Séance dure sans exercice connu** — information, portée séance : « « {seance} » est notée dure sans exercice de la bibliothèque : par prudence, l'app la compte comme un effort maximal pour la récupération. Choisis son exercice principal pour un compte exact. » [CDC]
+- **Séance dure sans contenu connu** (B.2 ; consolidation 23/11, F7, décision d'Arthur qui remplace la prudence du 18/11) : une version solo **dure** sans aucune fiche connue est une **séance dure ordinaire**. Elle ne porte aucun marqueur (ni `maximale` ni marqueur à quota). Règle par règle :
+  - **W-01** (48 h) : muette. La règle des 48 h s'applique à cette séance comme à toute séance dure : elle ne vise que les séances maximales et de poutre intensive (A3-1, A.3.8), et celle-ci n'en est pas une tant qu'aucun exercice maximal n'est choisi ;
+  - **W-06** (jours de doigts) : inchangée. Elle compte comme un jour de doigts, sauf si sa qualité est `mobilite` ou `antagonistes` (prudence gardée : elle ne dépend pas du marqueur `maximale`) ;
+  - **W-12** (efforts maximaux en semaine allégée), **J-02** et **J-04** (sommeil, récupération) : elle n'est pas comptée comme séance maximale ;
+  - **W-13** (entretien) : inchangée. Elle entretient sa qualité dominante ;
+  - **W-08**, **W-09**, **W-10**, **S-05**, **J-01**, **J-03**, **J-07** : elle compte comme toute séance dure (`estDure`, effort prévu 7) ;
+  - **S-26** : information ci-dessous.
+- **S-26 Séance dure sans exercice connu** — information, portée séance (consolidation 23/11, F7, nouveau texte) : « « {seance} » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte. » [CDC]
 - **P-15 Séances sans étapes** — information, portée plan, une fois : « {n} séances n'ont pas d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance. » [CDC]
 
 Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pas sans étapes (ordre, repos) sont remplacés par des rappels affichés pendant la séance (§ 4.2), et P-15 le dit sur ordinateur.
@@ -272,13 +331,13 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
 
 ### 4.1 Ordinateur
 
-- **O-13 Nouveau cycle** (nouvelle fenêtre, depuis le tableau de bord et la vue 12 semaines ; tâches D-14 puis D-25) : nom, date de début (un lundi), séances par semaine (2 à 5), jours (rappel du profil), lieux (rappel du profil, « Modifier dans ton profil »), **niveau de détail** en choix encre, chacun avec sa ligne d'exemple :
+- **O-13 Nouveau cycle** (nouvelle fenêtre, depuis le tableau de bord et la vue 12 semaines ; tâches D-14 puis D-25), dans cet ordre (consolidation 23/11, F6 : le niveau vient après les accents) : nom, date de début (un lundi), séances par semaine (2 à 5), jours (rappel du profil), lieux (rappel du profil, « Modifier dans ton profil »), accents proposés des 3 phases (modifiables, D-25), puis **niveau de détail** en choix encre, chacun avec sa ligne d'exemple :
   - « Simple — Jeudi · Doigts · dure · 1 h 30 : Bloc limite sur réglettes, 4 essais max. »
   - « Grandes lignes — Échauffement 30 min · Bloc limite 45 min · Antagonistes 15 min. »
   - « Détaillé — Chaque étape avec son chrono, ses séries et ses repos. »
+  - (consolidation 23/11, F6) présélection `niveauPropose(accents)` et, sous le choix, sa ligne `pourquoi` (§ 1.7) ; la présélection suit les accents tant que l'utilisateur n'a pas choisi lui-même ;
   - aide : « Tu pourras changer le niveau du cycle ou d'une séance à tout moment. Rien n'est effacé. »
-  - accents proposés des 3 phases (modifiables, D-25) ;
-  - action principale « Proposer un plan » (générateur, D-25 ; en D-14 seule : « Créer le cycle ») ; action seconde « Commencer vide ».
+  - action principale « Proposer un plan » (générateur, D-25 ; en D-14 seule : « Créer le cycle ») ; action seconde « Commencer vide ». Les deux écrivent le niveau affiché, jamais un autre.
   - Après « Proposer un plan » : la vue 12 semaines s'ouvre sur le cycle brouillon, avec les avertissements (D-18) et une ligne d'information par manque du générateur.
 - **O-03 Vue 12 semaines** : dans l'en-tête, « Niveau : Grandes lignes » (choix encre) ; changer ouvre la confirmation du § 1.5.
 - **O-05 Fiche de séance** (D-26) : choix « Niveau : comme le cycle (grandes lignes) / Simple / Grandes lignes / Détaillé ». L'éditeur suit le niveau choisi :
@@ -306,7 +365,8 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
 
 ## 5. Assistant IA (phase 5)
 
-- **Contexte** (D.3) : `niveauDetail` du cycle en cours (ou celui choisi pour un nouveau cycle) ; chaque séance type envoyée porte sa `recommandation` ; `fichesDisponibles` et `fichesIndisponibles` viennent de `trierFiches` (G-01), raison `test` en plus ; `profil.lieux`. L'assistant ne pioche **que** dans cette banque envoyée (F-6, A-02 inchangés).
+- **Niveau d'un nouveau cycle** (consolidation 23/11, F6) : l'assistant ne le choisit pas. Pour « Brouillon de cycle », le contexte envoie `'detaille'` ; la réponse affiche en tête « Niveau du cycle », présélectionné par `niveauPropose` sur les accents du brouillon, avec sa ligne `pourquoi` ; le cycle est créé à ce niveau quand l'utilisateur garde son premier élément (§ 1.7).
+- **Contexte** (D.3) : `niveauDetail` du cycle en cours (`'detaille'` pour un brouillon de cycle, consolidation 23/11) ; chaque séance type envoyée porte sa `recommandation` ; `fichesDisponibles` et `fichesIndisponibles` viennent de `trierFiches` (G-01), raison `test` en plus ; `profil.lieux`. L'assistant ne pioche **que** dans cette banque envoyée (F-6, A-02 inchangés).
 - **Réponse** (D.4) : une `SeanceBrouillon` peut être (1) une séance type, valable à tous les niveaux (préférée) ; (2) une séance composée étape par étape (détaillé) ; (3) **nouveau** : une séance résumée `{ niveau: 'simple' | 'grandes_lignes', recommandation, parties: [{ titre, dureeMin, ficheId?, consigne? }] }`, avec 1 partie en simple et 2 à 5 en grandes lignes (règle F-9). Chaque `ficheId` doit venir de la banque envoyée.
 - **Expansion et vérification** : une séance résumée devient une version solo sans étapes (§ 1.2) ; le moteur la vérifie comme au § 3 (origine `assistant`, S-02 en fort inchangé).
 - **Prompt** (D.6) : un paragraphe sur les niveaux (préférer les séances types à tout niveau ; en simple, une ligne qui garde les bornes de sécurité et la fiche principale ; jamais de fiche hors de la liste).
@@ -329,12 +389,13 @@ Détail et vagues dans `docs/backlog-v2.md`.
 | **D-26** | Fiche de séance aux trois niveaux sur ordinateur | Sonnet | 3.11 |
 | **D-27** | Séance en bref sur téléphone (simple, grandes lignes) | Sonnet | 4.2 |
 | Amendées | D-20 (lieux), E-01, E-02, E-04, E-06, E-07, E-09, E-10, E-16, C-01, D-11, D-14, D-16, D-19 (phase 3) ; D-22 (phase 4) ; E-11, E-12, E-13, E-14, C-07, D-23 (phase 5) | | |
+| Amendées le 23/11 | F6 : N-01, D-14, D-25 (phase 3) ; E-13, C-07, D-23 (phase 5). F7 : E-02, E-04, E-05, E-06, E-08, E-09 (phase 3) | | |
 
-## 8. Questions pour Arthur
+## 8. Décisions d'Arthur sur les questions Q1 et Q2
 
-Deux questions fermées. Sans réponse, la recommandation s'applique.
+Posées le 18/11, tranchées par Arthur le 18/11 (`docs/decisions-phase-1.md`, F6 et F7), reportées le 23/11. Les recommandations du 18/11 (Détaillé imposé pour Q1, « Oui » pour Q2) ne s'appliquent plus.
 
-| # | Question | Recommandation |
-|---|---|---|
-| **Q1** | Quel niveau l'app propose-t-elle par défaut quand tu crées un cycle : **Détaillé**, Grandes lignes ou Simple ? (Tu peux toujours en choisir un autre.) | **Détaillé** : c'est le plus guidé ; les repos et les consignes de sécurité sont dans les étapes, et c'est ce que l'app sait déjà faire. |
-| **Q2** | Une séance écrite à la main, notée « dure », sans aucun exercice de la bibliothèque : l'app la compte-t-elle comme un effort maximal pour la règle des 48 h ? **Oui** (prudent) / Non (elle n'est pas comptée) | **Oui** : on ne sait pas ce qu'elle contient, donc on protège tes doigts. L'app le dit et propose de choisir l'exercice principal pour un compte exact. |
+| # | Question | Réponse d'Arthur | Ce qui change |
+|---|---|---|---|
+| **Q1** | Quel niveau l'app propose-t-elle par défaut quand tu crées un cycle : Détaillé, Grandes lignes ou Simple ? | **F6** : pas de niveau imposé. L'app pose la question à la création du cycle, et la proposition dépend de l'objectif. | (consolidation 23/11, F6) § 1.7 : `niveauPropose(accents)` remplace la constante de niveau par défaut prévue le 18/11 ; la question vient après les accents, avec une ligne qui dit pourquoi (O-13, § 4.1) ; l'assistant ne choisit pas le niveau (§ 5). |
+| **Q2** | Une séance écrite à la main, notée « dure », sans aucun exercice de la bibliothèque : l'app la compte-t-elle comme un effort maximal pour la règle des 48 h ? | **F7 : non.** Elle compte comme une séance dure ordinaire, pas comme un effort maximal. | (consolidation 23/11, F7) § 3.1 et § 3.3 : plus aucun marqueur pour cette séance ; W-01, W-12, J-02, J-04 ne la comptent pas ; W-06, W-13 et les règles de toute séance dure s'appliquent ; S-26 reste une information, reformulée. |
