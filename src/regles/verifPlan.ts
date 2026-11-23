@@ -325,7 +325,7 @@ export function verifierStructurePlan(plan: PlanVerif, ctx: ContexteVerif): Aver
       alerte(
         'P-15',
         'information',
-        `${sansEtapes.length} séances n'ont pas d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance.`,
+        `${sansEtapes.length === 1 ? "1 séance n'a pas" : `${sansEtapes.length} séances n'ont pas`} d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance.`,
         'Choix de l\'app',
       ),
     )

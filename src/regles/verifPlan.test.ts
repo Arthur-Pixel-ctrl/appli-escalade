@@ -485,7 +485,7 @@ describe('verifierStructurePlan', () => {
       const a = verifier(planStandard({ seances: [detaillee('a', '2026-11-04'), resumee] })).filter((x) => x.code === 'P-15')
       expect(a).toHaveLength(1)
       expect(a[0].niveau).toBe('information')
-      expect(a[0].message.startsWith("1 séances n'ont pas d'étapes détaillées")).toBe(true)
+      expect(a[0].message.startsWith("1 séance n'a pas d'étapes détaillées")).toBe(true)
     })
 
     it('séances sans exercice connu : comptées, une seule alerte', () => {
