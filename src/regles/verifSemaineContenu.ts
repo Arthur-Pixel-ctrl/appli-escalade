@@ -211,12 +211,12 @@ function w13(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
   const manquantes = QUALITES_PHYSIQUES.filter((q) => !entretenues.has(q))
   if (manquantes.length === 0) return []
   const liste = manquantes.map((q) => NOMS_QUALITES[q]).join(', ')
-  const pronom = manquantes.length === 1 ? 'la' : 'les'
+  const pronom = manquantes.length === 1 ? "l'" : 'les '
   return [
     avertissementSemaine(
       'W-13',
       'information',
-      `Cette semaine ne contient rien pour : ${liste}. Ajoute une étape courte pour ${pronom} entretenir (10 à 20 min suffisent).`,
+      `Cette semaine ne contient rien pour : ${liste}. Ajoute une étape courte pour ${pronom}entretenir (10 à 20 min suffisent).`,
       semaine,
       'Plan de l’app, synthèse (toutes les qualités entretenues)',
     ),
