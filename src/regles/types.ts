@@ -4,6 +4,7 @@
 // documents existants et ne sont pas recopiés ici.
 import type { Contexte, Marqueur, Prerequis, Qualite } from '../donnees/bibliotheque/types.ts'
 import type { ZoneDouleur } from '../donnees/profil.ts'
+import type { NiveauDetail } from '../donnees/modele.ts'
 
 export type { Contexte, Marqueur, Prerequis, Qualite, ZoneDouleur }
 
@@ -69,7 +70,7 @@ export interface VersionVerif {
   // groupe : durée annoncée ; solo : seulement sans étapes réelles (somme des parties)
   dureeMin?: number
   // (consolidation 18/11) niveau affiché ; absent = détaillé
-  niveau?: 'simple' | 'grandes_lignes' | 'detaille'
+  niveau?: NiveauDetail
   // (consolidation 18/11) faux = étapes résumées (une par exercice principal) ; absent = vrai
   etapesDetaillees?: boolean
 }

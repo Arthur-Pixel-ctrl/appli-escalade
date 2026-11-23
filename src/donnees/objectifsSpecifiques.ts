@@ -1,8 +1,9 @@
 import type { ReglagesEtape } from '../moteur/types.ts'
 import { protocoleParId, peutEtreGeneree } from './bibliotheque/index.ts'
-import type { Marqueur, Prerequis, Protocole } from './bibliotheque/types.ts'
+import type { Marqueur, Protocole } from './bibliotheque/types.ts'
 import type { AccentPhase } from './modele.ts'
-import type { ZoneDouleur } from './profil.ts'
+import type { ObjectifPersoVerif } from '../regles/types.ts'
+import { MARQUEURS_QUOTA } from '../regles/reglesParDefaut.ts'
 
 // Le catalogue des objectifs spécifiques : ce qu'on peut ajouter à une phase (0 à 2 par phase),
 // sous forme d'un module de 10 à 15 minutes. Un objectif ne recopie rien de sa fiche :
@@ -141,15 +142,8 @@ export function objectifsPourAccent(accent: AccentPhase): ObjectifSpecifiqueType
   return [...liste.filter((o) => !estProposeSeulementALaMain(o)), ...liste.filter(estProposeSeulementALaMain)]
 }
 
-/** Forme lue par le moteur de vérification (même contenu que `ObjectifPersoVerif` de moteur-verification.md). */
-export interface ObjectifVerif {
-  id: string
-  nom: string
-  marqueurs: Marqueur[]
-  prerequis: Prerequis
-  contreIndications: ZoneDouleur[]
-  remplacementNom?: string
-}
+/** Forme lue par le moteur de vérification : un seul type, défini dans src/regles/types.ts. */
+export type ObjectifVerif = ObjectifPersoVerif
 
 /** Déduit de la fiche ce que le moteur de vérification doit savoir : rien n'est saisi deux fois. */
 export function objectifVersVerif(o: ObjectifSpecifiqueType): ObjectifVerif {
@@ -166,7 +160,7 @@ export function objectifVersVerif(o: ObjectifSpecifiqueType): ObjectifVerif {
 }
 
 // Marqueurs qui comptent dans les quotas de la semaine (règle A6-2).
-const MARQUEURS_A_QUOTA: Marqueur[] = ['maximale', 'poutre_intensive', 'bloc_limite', 'pan_gullich', 'poutre']
+const MARQUEURS_A_QUOTA: Marqueur[] = MARQUEURS_QUOTA // une seule liste, celle du moteur de vérification
 
 /** Deux objectifs d'une même phase ne doivent pas porter le même marqueur à quota (A7-4). */
 export function partagentUnMarqueurAQuota(a: ObjectifSpecifiqueType, b: ObjectifSpecifiqueType): boolean {
