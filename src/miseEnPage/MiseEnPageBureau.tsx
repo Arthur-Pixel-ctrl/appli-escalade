@@ -1,6 +1,7 @@
 import { BarreBureau } from '../composants/BarreBureau.tsx'
 import { EnConstruction } from '../ecrans/EnConstruction.tsx'
 import { Historique } from '../ecrans/Historique.tsx'
+import { Plan } from '../ecrans/bureau/Plan.tsx'
 import { Reglages } from '../ecrans/bureau/Reglages.tsx'
 import { appliquerMiseAJour } from '../miseAJour.ts'
 import type { ActionsEcrans } from './MiseEnPageTelephone.tsx'
@@ -42,9 +43,7 @@ export function MiseEnPageBureau({
             </div>
           )}
           {rubrique === 'Plan' && (
-            <div className="bureau-lecture">
-              <EnConstruction titre="Plan" texte="Ici tu construiras ton cycle de 12 semaines, en 3 phases de 4 semaines." />
-            </div>
+            <div className="bureau-plan"><Plan /></div>
           )}
           {rubrique === 'Bibliothèque' && (
             <div className="bureau-lecture">
