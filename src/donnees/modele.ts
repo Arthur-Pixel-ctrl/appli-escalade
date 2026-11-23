@@ -18,6 +18,11 @@ export type Durete = 'dure' | 'legere'
 /** Note de 1 à 5 de la forme du jour : 1 = mauvais, 5 = très bon ; « rouge » = 1 ou 2. */
 export type Note5 = 1 | 2 | 3 | 4 | 5
 
+/** Niveau de détail d'une séance : il ne change que l'affichage, jamais les étapes enregistrées (R-9). */
+export type NiveauDetail = 'simple' | 'grandes_lignes' | 'detaille'
+/** Du moins détaillé au plus détaillé : sert à comparer deux niveaux. */
+export const NIVEAUX_DETAIL: NiveauDetail[] = ['simple', 'grandes_lignes', 'detaille']
+
 export const QUALITES_PHYSIQUES: QualitePhysique[] = ['doigts', 'traction_gainage', 'puissance', 'resistance', 'endurance']
 
 /** Champs communs à tout document enregistré et synchronisé. */
@@ -61,6 +66,7 @@ export interface Cycle extends Document {
   objectif?: { libelle: string; date?: DateISO } // avec une date : mode « objectif daté » (calculé)
   abandonneLe?: DateISO // arrêté avant la fin ; le cycle reste dans l'historique
   assistant?: TraceAssistant
+  niveauDetail?: NiveauDetail // niveau par défaut du cycle ; absent = 'detaille' (comme avant)
   avertissementsGardes: string[] // clés des avertissements repliés par « Je garde ce choix »
 }
 
@@ -86,10 +92,20 @@ export interface ObjectifSpecifique extends Document {
   indicateur?: { nom: string; unite: string; depart?: number; cible?: number }
 }
 
+/** Une partie d'une séance en grandes lignes : « Échauffement · 20 min ». */
+export interface PartieSeance {
+  titre: string // « Bloc limite sur réglettes »
+  dureeMin: number // 5 à 180
+  principal?: { source: 'bibliotheque' | 'perso'; refId: string } // exercice principal : ses marqueurs et prérequis comptent
+  consigne?: string // une phrase, 120 caractères au plus
+}
+
 /** Version solo d'une séance planifiée : étapes complètes, recopiées à la création. */
 export interface VersionSolo extends SeanceGuidee {
   durete: Durete // choisie par l'utilisateur (défaut proposé par les règles)
   effortPrevu?: number // 1 à 10 ; absent = 7 si dure, 4 si légère
+  recommandation?: string // une ligne, 120 caractères au plus (niveau simple) ; absente = calculée
+  parties?: PartieSeance[] // 1 à 5, écrites à la main ; absentes = calculées depuis les étapes
   // Pas de champ `marqueurs` : ils se calculent depuis les fiches citées par origine.refId.
 }
 
@@ -115,6 +131,7 @@ export interface SeancePlanifiee extends Document {
   groupe: VersionGroupe | null // null = pas de version groupe proposée (séance à la maison)
   seanceTypeId?: string // séance type du catalogue d'origine ("ST-DOI-02"), information
   variante?: string
+  niveauDetail?: NiveauDetail // remplace celui du cycle pour cette séance ; absent = celui du cycle
   sauteeLe?: Horodatage // l'utilisateur a choisi de la sauter (téléphone ou ordinateur)
   // Pas de `avertissementsVus` : les avertissements gardés sont sur le cycle.
 }

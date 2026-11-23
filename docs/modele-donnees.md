@@ -829,6 +829,8 @@ Les trois tables de suivi (`formes`, `douleurs`, `resultatsTests`) sont créées
 
 `seancesRealisees`, `reglages`, `cycles`, `phases`, `seancesPlanifiees`, `objectifsSpecifiques`, `exercicesPerso`, `salles`, `formes`, `douleurs`, `resultatsTests`, plus deux tables jamais synchronisées : `etatSynchro` et `appareil`. Les 11 premières sont synchronisées et portent un index `aEnvoyer` (0 ou 1). Le nom de la base (`appli-escalade`) et ses versions 1 et 2 ne changent pas.
 
+**Niveaux de détail** (consolidation 18/11) : `niveauDetail` facultatif sur le cycle et la séance planifiée, `recommandation` et `parties` facultatifs sur la version solo ; le niveau affiché se calcule. Voir `docs/architecture-v2.md` § 3.2 et `docs/specs/niveaux-de-detail.md` § 1.
+
 ### Calculé, jamais stocké
 
 | Valeur | Comment on l'obtient |

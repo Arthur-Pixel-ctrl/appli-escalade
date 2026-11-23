@@ -83,6 +83,7 @@ Exemple complet : `docs/format-seance/seance-planifiee.json`.
 | `groupe` | `VersionGroupe` ou `null` | Version en groupe. `null` = pas de version groupe (séance à la maison). |
 | `seanceTypeId` | texte, facultatif | Séance type du catalogue d'origine (`ST-DOI-02`). Information seulement. |
 | `variante` | texte, facultatif | Variante choisie de cette séance type. Information seulement. |
+| `niveauDetail` | `'simple'`, `'grandes_lignes'` ou `'detaille'`, facultatif | Niveau d'affichage de cette séance. Absent = celui du cycle (`cycles`, même champ facultatif) ; absent aussi sur le cycle = `'detaille'`. |
 | `sauteeLe` | horodatage, facultatif | L'utilisateur a choisi de sauter la séance : ne pas la proposer. |
 
 L'utilisateur choisit la version (solo ou groupe) au moment de commencer.
@@ -95,6 +96,14 @@ L'utilisateur choisit la version (solo ou groupe) au moment de commencer.
 | `etapes` | liste d'`EtapeSeance` | Dans l'ordre d'exécution. |
 | `durete` | `'dure'` ou `'legere'` | Séance dure ou légère. |
 | `effortPrevu` | 1 à 10, facultatif | Effort annoncé. Absent = **7** si dure, **4** si légère. |
+| `recommandation` | texte, facultatif | Une ligne de 120 caractères au plus, montrée au niveau simple. |
+| `parties` | liste de `PartieSeance`, facultatif | 1 à 5 parties écrites à la main, montrées en grandes lignes. |
+
+`PartieSeance` : `titre` (texte), `dureeMin` (5 à 180), `principal` (facultatif : `source` `'bibliotheque'` ou `'perso'`, et `refId`), `consigne` (facultative, 120 caractères au plus).
+
+#### Niveaux de détail
+
+Le niveau ne change que l'affichage : les étapes restent enregistrées, quel que soit le niveau. Si `etapes` n'est pas vide, une app native peut toujours exécuter les étapes. Si `etapes` est vide, elle affiche la recommandation et les parties avec un chrono libre, ou ne propose pas la séance si elle ne sait pas le faire (prudence). Les parties calculées depuis les étapes ne sont pas dans le document : sans la bibliothèque, on montre les étapes. Le chrono et la séance réalisée ne changent pas. Les champs sont tous facultatifs : un document sans eux se lit comme « détaillé » (conception : `docs/specs/niveaux-de-detail.md`).
 
 ### 4.3 `VersionGroupe`
 
