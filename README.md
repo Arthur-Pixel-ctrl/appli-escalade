@@ -55,6 +55,12 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | F2-16 | Recette de fin de phase 2 et README (`docs/recette-phase-2.md`) | Fait |
 | Audit 2 | Audit de fin de phase 2 (`docs/audits/audit-phase-2.md`) : 0 bloquant, 2 importants et 11 mineurs, tous corrigés | Fait |
 | B21 | Recherche sur les trous de la bibliothèque, auditée (`docs/recherche-b21/`) ; 27 fiches ajoutées à la banque d'exercices (9 proposables, 18 hors génération jusqu'à validation), zones de douleur « hanche » et « cheville » | Fait |
+| N-01 | Niveaux de détail : types et fonction `niveauPropose` (proposition selon les accents des phases) | Fait |
+| E-01 | Moteur de vérification : types et réglages par défaut (`src/regles/`) | Fait |
+| C-02 | Catalogue des objectifs spécifiques (10, dont 4 à ajouter à la main seulement) | Fait |
+| D-20 | Profil et réglages sur ordinateur : jours, lieux, règles, clé de l'assistant gardée sur l'appareil | Fait |
+| E-02 | Moteur de vérification : fonctions de base et adaptateur de la bibliothèque | Fait |
+| E-10 | Catalogue des 26 séances types (avec leur recommandation d'une ligne) et des 21 objectifs de groupe | Fait |
 
 ## Ouvrir l'app
 
