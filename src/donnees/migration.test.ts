@@ -69,7 +69,7 @@ describe('migration de la base version 2 vers la version 3', () => {
     expect(brut).toEqual({
       ...PROFIL_ANCIEN, aEnvoyer: 1,
       tractionsStrictes: null, tient15sSur25mm: null, majeur: null, grimpeEnTete: null,
-      joursDisponibles: [], repereTraction: 'aucun',
+      joursDisponibles: [], repereTraction: 'aucun', lieux: [],
     })
     const profil = await lireProfil()
     expect(profil).toMatchObject({ prenom: 'Arthur', niveauBloc: '7A', poidsCorpsKg: 72, douleursEnCours: ['coude'], tractionsStrictes: null })

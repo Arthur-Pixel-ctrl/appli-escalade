@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { exporterDonnees, importerDonnees, jourLocal } from '../donnees/base.ts'
 import type { Profil as TypeProfil } from '../donnees/profil.ts'
 import { comptesDisponibles } from '../compte/client.ts'
@@ -11,10 +11,14 @@ interface Props {
   onMisesEnGarde: () => void
   onDonneesImportees: () => void
   onCompte: () => void
+  // Ordinateur seulement (Reglages) : champs en plus dans le formulaire, et sections glissées avant les données.
+  bureau?: boolean
+  modifieLe?: string
+  sectionsEnPlus?: ReactNode
 }
 
 // Onglet Profil : le formulaire, les mises en garde et la sauvegarde des données.
-export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImportees, onCompte }: Props) {
+export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImportees, onCompte, bureau, modifieLe, sectionsEnPlus }: Props) {
   const { email, chargement } = useSession()
   const [message, setMessage] = useState('')
   const fichier = useRef<HTMLInputElement>(null)
@@ -46,8 +50,9 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
 
   return (
     <main className="ecran">
-      <ProfilFormulaire initial={profil} titre="Profil" libelleValider="Enregistrer le profil" onValider={onEnregistrer} />
-      <section className="pile">
+      <ProfilFormulaire initial={profil} titre="Profil" libelleValider="Enregistrer le profil" onValider={onEnregistrer} bureau={bureau} modifieLe={modifieLe} />
+      {sectionsEnPlus}
+      <section className="pile" id="section-donnees">
         <h2 className="sous-titre">À savoir et données</h2>
         {/* Sans compte (et seulement si les comptes existent) : dire ce que ça change, sans insister. */}
         {comptesDisponibles && !chargement && !email && (

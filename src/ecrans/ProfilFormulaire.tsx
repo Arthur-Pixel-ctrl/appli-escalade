@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, depuisReponse3, versReponse3, type Profil, type Reponse3 } from '../donnees/profil.ts'
+import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, depuisReponse3, versReponse3, type JourSemaine, type LieuEntrainement, type Profil, type Reponse3 } from '../donnees/profil.ts'
 import { SALLES } from '../donnees/salles.ts'
 
 interface Props {
@@ -7,7 +7,25 @@ interface Props {
   titre: string
   libelleValider: string
   onValider: (p: Profil) => void
+  // Ordinateur seulement : ajoute les jours disponibles, les lieux et le repère de traction. Le téléphone ne les montre pas.
+  bureau?: boolean
+  modifieLe?: string // date de modification du profil, affichée dans la fiche des prérequis (bureau)
 }
+
+const JOURS: { valeur: JourSemaine; nom: string }[] = [
+  { valeur: 'lundi', nom: 'Lundi' }, { valeur: 'mardi', nom: 'Mardi' }, { valeur: 'mercredi', nom: 'Mercredi' }, { valeur: 'jeudi', nom: 'Jeudi' },
+  { valeur: 'vendredi', nom: 'Vendredi' }, { valeur: 'samedi', nom: 'Samedi' }, { valeur: 'dimanche', nom: 'Dimanche' },
+]
+const LIEUX: { valeur: LieuEntrainement; nom: string }[] = [
+  { valeur: 'salle_bloc', nom: 'Salle de bloc' },
+  { valeur: 'salle_voie', nom: 'Salle avec des voies (corde et assureur)' },
+  { valeur: 'maison', nom: 'À la maison (poutre ou barre)' },
+]
+const REPERES: { valeur: Profil['repereTraction']; nom: string }[] = [
+  { valeur: 'aucun', nom: 'Aucun' },
+  { valeur: 'hommes', nom: 'Repère hommes (165 % du poids du corps)' },
+  { valeur: 'femmes', nom: 'Repère femmes (135 %)' },
+]
 
 // Un groupe de boutons où l'on choisit une seule valeur.
 function Choix<T extends string | number | boolean>({ legende, options, valeur, onChange, colonnes }: {
@@ -26,7 +44,7 @@ function Choix<T extends string | number | boolean>({ legende, options, valeur, 
 }
 
 // Formulaire du profil, utilisé au premier lancement puis dans l'onglet Profil.
-export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: Props) {
+export function ProfilFormulaire({ initial, titre, libelleValider, onValider, bureau = false, modifieLe }: Props) {
   const [p, setP] = useState<Profil>(initial)
   const [enregistre, setEnregistre] = useState(false)
   const [prenomManquant, setPrenomManquant] = useState(false)
@@ -35,6 +53,8 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
   const basculerDouleur = (zone: Profil['douleursEnCours'][number]) =>
     modifier('douleursEnCours', p.douleursEnCours.includes(zone) ? p.douleursEnCours.filter((z) => z !== zone) : [...p.douleursEnCours, zone])
 
+  const basculer = <V extends string>(liste: V[], valeur: V): V[] => (liste.includes(valeur) ? liste.filter((v) => v !== valeur) : [...liste, valeur])
+
   return (
     <form className="pile-large" noValidate onSubmit={(e) => {
       e.preventDefault()
@@ -42,7 +62,7 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
       if (p.prenom.trim() === '') { setPrenomManquant(true); champPrenom.current?.focus(); return }
       onValider(p); setEnregistre(true)
     }}>
-      <h1 className="titre moyen">{titre}</h1>
+      <h1 className="titre moyen" id="section-toi">{titre}</h1>
 
       <label className={prenomManquant ? 'champ erreur' : 'champ'}>Prénom
         <input ref={champPrenom} name="prenom" autoComplete="off" aria-invalid={prenomManquant} aria-describedby={prenomManquant ? 'erreur-prenom' : undefined} value={p.prenom}
@@ -100,6 +120,32 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
         </select>
       </label>
 
+      {bureau && (
+        <>
+          <fieldset className="question">
+            <legend>Jours disponibles</legend>
+            <div className="choix sept">
+              {JOURS.map((j) => (
+                <button type="button" key={j.valeur} aria-pressed={p.joursDisponibles.includes(j.valeur)}
+                  onClick={() => modifier('joursDisponibles', basculer(p.joursDisponibles, j.valeur))}>{j.nom}</button>
+              ))}
+            </div>
+            <p className="texte-3">Rien de coché : tous les jours sont possibles.</p>
+          </fieldset>
+
+          <fieldset className="question">
+            <legend>Où tu t’entraînes</legend>
+            <div className="choix trois">
+              {LIEUX.map((l) => (
+                <button type="button" key={l.valeur} aria-pressed={p.lieux.includes(l.valeur)}
+                  onClick={() => modifier('lieux', basculer(p.lieux, l.valeur))}>{l.nom}</button>
+              ))}
+            </div>
+            <p className="texte-3">Le générateur et l’assistant ne te proposent que des exercices faisables là. Rien de coché : salle de bloc.</p>
+          </fieldset>
+        </>
+      )}
+
       <label className="champ">Poids du corps en kg (facultatif)
         <input name="poids" inputMode="decimal" autoComplete="off" placeholder="Par exemple 68…" value={p.poidsCorpsKg ?? ''}
           onChange={(e) => { const n = Number(e.target.value.replace(',', '.')); modifier('poidsCorpsKg', e.target.value.trim() === '' || Number.isNaN(n) ? null : n) }} />
@@ -118,6 +164,9 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
       <section className="fiche pile-large" aria-labelledby="titre-prerequis">
       <h2 className="sous-titre" id="titre-prerequis">Pour débloquer les exercices exigeants</h2>
       <p className="texte-3">Si tu ne sais pas, laisse “Je ne sais pas” : par prudence, les exercices concernés ne te seront pas proposés.</p>
+      {bureau && modifieLe && (
+        <p className="texte-3">Profil mis à jour le {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(modifieLe))}.</p>
+      )}
 
       <div className="entete">
         <p className="libelle" id="libelle-tractions">Tractions strictes d’affilée, bras tendus en bas</p>
@@ -137,6 +186,18 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider }: 
 
       <Choix<Reponse3> legende="Tu sais grimper et chuter en tête ?" colonnes="trois" valeur={versReponse3(p.grimpeEnTete)} onChange={(v) => modifier('grimpeEnTete', depuisReponse3(v))}
         options={[{ valeur: 'oui', nom: 'Oui' }, { valeur: 'non', nom: 'Non' }, { valeur: 'inconnu', nom: 'Je ne sais pas' }]} />
+
+      {bureau && (
+        <fieldset className="question">
+          <legend>Repère de traction dans tes bilans</legend>
+          <div className="choix trois">
+            {REPERES.map((r) => (
+              <button type="button" key={r.valeur} aria-pressed={p.repereTraction === r.valeur} onClick={() => modifier('repereTraction', r.valeur)}>{r.nom}</button>
+            ))}
+          </div>
+          <p className="texte-3">Facultatif. C’est une moyenne de population, pas un objectif.</p>
+        </fieldset>
+      )}
       </section>
 
       <button className="bouton principal centre" type="submit"><strong>{libelleValider}</strong></button>
