@@ -9,5 +9,5 @@
 - Décisions en vigueur : `docs/plan-v2.md` et `docs/decisions-phase-1.md`.
 - Sécurité de l'entraînement : avertir sans bloquer ; afficher les signaux d'arrêt ; valeurs par défaut prudentes.
 - Avant de livrer : `npm run build` et `npm run test` doivent passer.
-- Modèles (décision du propriétaire, 17/11/2026) : la conversation de pilotage tourne sur Opus 5.5. Les concepteurs qui écrivent les spécifications et découpent les tâches sont en Opus, effort élevé. Le code est confié à Sonnet, les tâches mécaniques et les tests à Haiku. Fable sert seulement à auditer un travail terminé. Voir docs/plan-v2.md, section 7.
+- Modèles (décision du propriétaire, 17/11/2026) : la conversation de pilotage tourne sur Opus 5.5. Les décisions de conception, les spécifications et le découpage des tâches sont confiés à Opus, effort extra-élevé (précision du 23/11/2026). Le code est confié à Sonnet, les tâches mécaniques et les tests à Haiku. Fable sert seulement à auditer un travail terminé ; sans crédits d'usage, l'audit passe à Opus effort élevé (18/11). Le gérant vérifie chaque livraison par rapport aux spécifications de départ. Voir docs/plan-v2.md, section 7.
 - Agents : réservés aux travaux indépendants (recherche, contenus). Les tâches qui touchent les mêmes fichiers se font l'une après l'autre.
