@@ -108,7 +108,7 @@ function SectionAssistant() {
         <div className="pile">
           <p className="libelle">Clé API Claude</p>
           <p className="donnee" data-testid="cle-masquee">{masquerCle(cleEnregistree)}</p>
-          <button type="button" className="bouton-texte" onClick={() => setConfirmer(true)}>Supprimer la clé</button>
+          <button type="button" className="bouton-texte" onClick={() => setConfirmer(true)}>Retirer la clé</button>
         </div>
       ) : (
         <div className="pile">
@@ -143,9 +143,9 @@ function SectionAssistant() {
 
       <Confirmation
         ouverte={confirmer}
-        titre="Supprimer la clé ?"
+        titre="Retirer la clé ?"
         texte="La clé sera effacée de cet ordinateur. L’assistant ne marchera plus tant que tu n’en auras pas remis une."
-        libelleAction="Supprimer la clé"
+        libelleAction="Retirer la clé"
         danger
         onRester={() => setConfirmer(false)}
         onAction={async () => {
