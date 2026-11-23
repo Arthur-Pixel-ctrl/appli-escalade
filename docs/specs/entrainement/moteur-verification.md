@@ -6,7 +6,9 @@ Principe : **avertir, jamais bloquer** [PLAN], [MOD], CLAUDE.md.
 
 > **(consolidation 17/11)** À l'écran, la période de 4 semaines s'appelle « phase » (décision B9) : les **messages** ci-dessous le disent ; les noms internes du moteur (`mesocycleOrdre`, `mesocycles`, semaine `decharge`) ne changent pas. La vue `PlanVerif` est construite à partir des documents enregistrés par la tâche C-01 (`docs/backlog-v2.md`). Un accent de phase peut valoir `'technique'` (B13) ou être `null` tant qu'il n'est pas choisi : W-14, P-03, P-04 et P-07 ignorent un accent `null`. L'effort prévu par défaut (7 et 4) est décidé (B17) ; le plafond de poutre selon l'ancienneté reste une information (B18). Le moteur ne modifie rien ; il ne retire rien ; il ne masque rien. L'écran décide comment afficher.
 
-> **(consolidation 18/11, décisions F4 et F5)** Niveaux de détail (`docs/specs/niveaux-de-detail.md`, § 3). Le moteur vérifie toujours **le contenu le plus fin qui existe**, quel que soit le niveau affiché : une séance affichée « simple » qui a des étapes est vérifiée sur ses étapes. Sans étapes, la passerelle C-01 donne au moteur une étape résumée par exercice principal. Seul S-15 dépend du niveau affiché (le chrono réglé n'est lancé qu'en détaillé). Une version solo dure sans aucune fiche connue est comptée comme maximale (prudence, B.2). Deux vérifications nouvelles, d'information : S-26 et P-15. Aucune vérification de semaine, de plan ou de jour ne change.
+> **(consolidation 18/11, décisions F4 et F5)** Niveaux de détail (`docs/specs/niveaux-de-detail.md`, § 3). Le moteur vérifie toujours **le contenu le plus fin qui existe**, quel que soit le niveau affiché : une séance affichée « simple » qui a des étapes est vérifiée sur ses étapes. Sans étapes, la passerelle C-01 donne au moteur une étape résumée par exercice principal. Seul S-15 dépend du niveau affiché (le chrono réglé n'est lancé qu'en détaillé). Deux vérifications nouvelles, d'information : S-26 et P-15. Aucune vérification de semaine, de plan ou de jour ne change.
+
+> **(consolidation 23/11, décision F7)** Une version solo **dure** sans aucune fiche connue est une **séance dure ordinaire**, pas un effort maximal : `marqueursVersion` ne lui ajoute plus le marqueur `maximale` (la prudence du 18/11 est retirée). Ce que fait chaque règle pour cette séance : fin de B.2. S-26 reste une information, reformulée ; cas 14 et 15 de B.11 mis à jour.
 
 Sources : mêmes codes que `regles-planification.md` (`[SYN]`, `[VER n]`, `[AUD x]`, `[PLAN]`, `[MOD]`, `[CDC]`).
 
@@ -187,7 +189,7 @@ interface Regles {
 | `estNerveuse(f)` | `marqueursDe(f) ∩ MARQUEURS_NERVEUX ≠ ∅` | [CDC] |
 | `dureeEtape(e, f)` | `e.reglages?.dureeMin ?? f.dureeMin` | — |
 | `estCongestionnante(e, f)` | `f.qualite === 'resistance' OU (f.qualite === 'endurance' ET dureeEtape(e, f) ≥ 20)` | [SYN] (« résistance congestionnante », « gros volume ») ; 20 min : [CDC] |
-| `marqueursVersion(v)` | union des `marqueursDe(f)` des étapes connues ∪ union des `o.marqueurs` des objectifs ∪ (consolidation 18/11) `['maximale']` si `sansContenuConnu(v)` ET `v.durete === 'dure'` (prudence : on ne sait pas ce qu'elle contient) | [CDC] |
+| `marqueursVersion(v)` | union des `marqueursDe(f)` des étapes connues ∪ union des `o.marqueurs` des objectifs. (consolidation 23/11, F7) Rien de plus : une version `sansContenuConnu` n'a aucun marqueur, même dure (séance dure ordinaire) | [CDC] ; décision F7 d'Arthur |
 | `marqueursSeance(s)` | `s.realisee ? s.realisee.marqueurs : marqueursVersion(s.solo) ∪ (s.groupe ? marqueursVersion(s.groupe) : ∅)` — une séance prévue porte les marqueurs de ses deux versions, par prudence | [CDC] |
 | `estMaximale(s)` | `'maximale' ∈ marqueursSeance(s)` | [SYN] |
 | `estPoutreIntensive(s)` | `'poutre_intensive' ∈ marqueursSeance(s)` | [SYN] |
@@ -200,7 +202,7 @@ interface Regles {
 | `lundiDe(jour)` | lundi de la semaine (déjà dans `src/donnees/debrief.ts`) | — |
 | `joursEntre(a, b)` | nombre de jours calendaires de `a` à `b` (b − a) | — |
 | `solliciteDoigts(f)` | faux pour les identifiants de la liste ci-dessous et pour toute fiche de qualité `antagonistes` ou `mobilite` ; vrai sinon. Exercice perso : vrai si `contexte.terrain` vaut `bloc`, `voie`, `pan` ou `poutre`, faux sinon | [VER 9] (Hörst : jours de grimpe et de poutre) ; liste : [CDC] |
-| `seanceSolliciteDoigts(s)` | une étape au moins avec `solliciteDoigts`, ou une version groupe avec au moins un objectif, ou (consolidation 18/11) `sansContenuConnu(s.solo)` ET `s.qualite ∉ {mobilite, antagonistes}` (prudence) | [CDC] |
+| `seanceSolliciteDoigts(s)` | une étape au moins avec `solliciteDoigts`, ou une version groupe avec au moins un objectif, ou (consolidation 18/11) `sansContenuConnu(s.solo)` ET `s.qualite ∉ {mobilite, antagonistes}` (prudence, gardée le 23/11 : elle ne dépend pas du marqueur `maximale`) | [CDC] |
 | `reposEntreEffortsS(f)` (adaptateur) | forme `essais` : `reposS` ; chrono `repetition_unique` : `reposSeriesS` ; chrono `intermittent` : `reposRepetitionsS` si `repetitions > 1`, sinon `reposSeriesS` ; chrono `depart_minute` : `creneauS − effortS` ; `echelle` et `liste` : non défini | — |
 | `zonesDouloureuses(ctx, jour)` | `profil.douleursEnCours` ∪ zones des `douleurs` ouvertes (`resolueLe` absent ou postérieur à `jour`) et déclarées avant ou le `jour` | [MOD] |
 | `itemsRouges(forme)` | nombre de valeurs ≤ 2 parmi sommeil, fatigue, courbatures, douleur, peau | [MOD] |
@@ -208,6 +210,23 @@ interface Regles {
 | `capPoutreAnciennete(a)` | `a < 1 → 0 ; 1 ≤ a < 4 → 1 ; 4 ≤ a < 7 → 2 ; a ≥ 7 → 3` | [SYN] (Bechtel : 1 séance courte entre 1 et 4 ans, jusqu'à 2 entre 4 et 6, 1 à 3 au-delà de 7 ; coachs Lattice : poutre après un an). Lecture 6 à 7 ans → 2 : [CDC] |
 
 **Fiches de la bibliothèque qui ne sollicitent pas les doigts** (en plus des qualités `antagonistes` et `mobilite`) : `traction-simple-4x5`, `traction-negatives`, `traction-lestee-force-lattice`, `traction-lestee-5x5-horst`, `traction-blocages-90-120`, `traction-prises-decalees`, `puissance-tractions-explosives`, `puissance-tractions-rapides-nelson`, `mental-rituel-entre-essais`, `mental-bilan-a-vue`, `technique-lecture-a-vue`, `echauffement-dynamique-vagy`.
+
+**Séance dure sans exercice connu : ce que fait chaque règle** (consolidation 23/11, décision F7). Version solo `sansContenuConnu` et `durete === 'dure'` (par exemple une séance simple écrite à la main sans exercice principal). Elle compte comme une **séance dure ordinaire** :
+
+| Règle | Pour cette séance |
+|---|---|
+| `marqueursVersion`, `estMaximale`, `estPoutreIntensive` | aucun marqueur ; ni maximale, ni poutre intensive |
+| `estDure` | vrai (dureté déclarée) |
+| **W-01** 48 h | muette. La règle des 48 h s'applique à elle comme à toute séance dure : elle ne vise que les séances maximales et de poutre intensive (A3-1, A.3.8) |
+| **W-06** jours de doigts | inchangée : un jour de doigts, sauf qualité `mobilite` ou `antagonistes` (`seanceSolliciteDoigts`) |
+| **W-08** séances dures, **W-09** et **W-10** charge | comptée, comme toute séance dure (effort prévu 7 × somme des parties) |
+| **W-12** efforts max en semaine allégée | pas comptée parmi les séances maximales |
+| **W-13** entretien | inchangée : elle entretient sa qualité dominante `s.qualite` |
+| **S-05**, **J-01**, **J-03**, **J-07** | s'appliquent, comme à toute séance dure (`estDure`) |
+| **J-02** sommeil, **J-04** récupération | muettes pour elle : ni séance maximale du jour, ni dernière séance maximale réalisée (sa séance réalisée n'a pas de marqueur, C-01) |
+| **S-21** solo et groupe | peut signaler une différence si la version groupe porte un marqueur à quota : c'est voulu, la version solo n'en déclare aucun |
+| **S-26** | information (B.5) : propose de choisir l'exercice principal |
+| **P-15** | inchangée : la séance est comptée parmi celles sans étapes |
 
 ## B.3 Sortie
 
@@ -279,7 +298,7 @@ Chaque vérification s'applique à **chaque version** présente (`solo`, puis `g
 | **S-23** Version groupe hors qualité | Groupe seulement, une fois par séance : `s.qualite ∈ QUALITES_PHYSIQUES` ET aucun objectif n'a `s.qualite` dans `accents` ET aucune étape du mini-bloc n'a `f.qualite === s.qualite`. (Un objectif complémentaire d'une autre qualité est normal, comme une étape complémentaire en solo) | information | La version groupe de « {seance} » ne travaille pas sa qualité dominante ({qualite}). Ajoute un objectif qui la travaille. | [MOD] (`ObjectifGroupe.accents`), [CDC] (A6-1) |
 | **S-24** Module hors format | Étape avec `moduleObjectifId` ET (`dureeEtape < 10 OU > 15`) | information | Le module « {nom} » dure {d} min : un objectif spécifique tient en 10 à 15 min. | [PLAN], [MOD] |
 | **S-25** Module intense un jour léger | Étape avec `moduleObjectifId` ET `estNerveuse(f)` ET `v.durete === 'legere'` | information | Le module « {nom} » est un effort intense : place-le en début de séance dure, juste après l'échauffement. | [SYN] (intense à frais), [CDC] (A7-5) |
-| **S-26** Séance dure sans exercice connu (consolidation 18/11) | Solo seulement : `sansContenuConnu(v)` ET `v.durete === 'dure'` | information | « {seance} » est notée dure sans exercice de la bibliothèque : par prudence, l'app la compte comme un effort maximal pour la récupération. Choisis son exercice principal pour un compte exact. | [CDC] (valeur par défaut prudente) |
+| **S-26** Séance dure sans exercice connu (consolidation 18/11 ; message : consolidation 23/11, F7) | Solo seulement : `sansContenuConnu(v)` ET `v.durete === 'dure'` | information | « {seance} » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte. | [CDC] ; décision F7 d'Arthur |
 
 ## B.6 Vérifications d'une semaine (W)
 
@@ -390,6 +409,6 @@ Ces cas servent de tests d'intégration (tâche E-07). Profil par défaut : bloc
 **Cas ajoutés (consolidation 18/11, niveaux de détail)**
 
 13. **Même semaine au niveau simple** : le cas 1 avec `niveau: 'simple'` sur chaque version solo (étapes gardées). Attendu : aucun avertissement, comme au cas 1.
-14. **Séance dure sans contenu** : le cas 1, mais la séance du jeudi 26 est remplacée par une séance le mercredi 25 : qualité `traction_gainage`, version solo dure, `etapes: []`, `dureeMin: 90`, sans version groupe. Attendu : `W-01` fort sur la séance du 25 (prudence : comptée maximale) et `S-26` information ; pas de `W-13` (elle entretient sa qualité dominante).
-15. **Même séance avec un exercice principal** : la séance du 25 a une étape résumée `traction-simple-4x5` (`etapesDetaillees: false`, `dureeMin: 90`). Attendu : ni `W-01` ni `S-26` ; `S-10` muet (l'ordre n'est pas connu).
+14. **Séance dure sans contenu** (attendu mis à jour : consolidation 23/11, F7) : le cas 1, mais la séance du jeudi 26 est remplacée par une séance le mercredi 25 : qualité `traction_gainage`, version solo dure, `etapes: []`, `dureeMin: 90`, sans version groupe. Attendu : `S-26` information sur la séance du 25, et rien d'autre. Pas de `W-01` : c'est une séance dure ordinaire, pas maximale. Pas de `W-13` : elle entretient sa qualité dominante. Pas de `W-06` : 3 jours de doigts (le 25 compris, par prudence). Pas de `W-08` : 2 séances dures pour 3 au plus.
+15. **Même séance avec un exercice principal** : la séance du 25 a une étape résumée `traction-simple-4x5` (`etapesDetaillees: false`, `dureeMin: 90`). Attendu : ni `W-01` ni `S-26` ; `S-10` muet (l'ordre n'est pas connu). (consolidation 23/11, F7) Variante : même forme, avec `traction-lestee-force-lattice` (marqueur `maximale`) comme exercice principal. Attendu : `W-01` fort sur la séance du 25 (deux séances maximales de suite, le 24 et le 25) ; `S-26` et `S-10` muets. C'est ce que propose S-26 : choisir l'exercice principal pour que la règle des 48 h le compte.
 16. **Repos raccourci selon le niveau** : le cas 10 (`doigts-suspensions-max-lestees`, `reglages.reposS: 120`) avec `niveau: 'grandes_lignes'`. Attendu : `S-15` muet. Avec `niveau: 'detaille'` : `S-15` fort.

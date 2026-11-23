@@ -4,6 +4,8 @@ Expert entraînement, 17 novembre 2026. Ce document fixe ce que l'assistant fait
 
 > **(consolidation 17/11)** Décisions appliquées : l'assistant tourne en **Haiku par défaut**, Sonnet en option, avec le **coût estimé affiché avant chaque demande**, et **sur ordinateur seulement** (B5 à B7 ; tâche C-06). À l'écran, la période de 4 semaines s'appelle « phase » (B9) : le prompt le demande ; les clés du JSON (`blocs`, `type: 'bloc'`) restent. Une phase peut avoir la technique pour accent (B13). Les livres ne sont **jamais** la source d'une règle ou d'un chiffre (décision C du 17/11). L'écran trie la réponse élément par élément (C-07, D-23).
 
+> **(consolidation 23/11, décisions F6 et F7)** L'assistant ne choisit pas le niveau de détail d'un nouveau cycle : l'app le propose selon les accents du brouillon et l'utilisateur le choisit (`docs/specs/niveaux-de-detail.md` § 1.7). Une séance dure sans fiche compte pour le moteur comme une séance dure ordinaire (F7) : la règle F-9 garde donc une fiche dans chaque séance dure résumée.
+
 ## D.1 Rôle et limites
 
 **Rôle** : aider l'utilisateur à construire et ajuster son plan, en proposant des **brouillons** que l'utilisateur modifie et valide. L'assistant ne décide rien, n'enregistre rien et ne modifie pas le plan lui-même [PLAN].
@@ -17,6 +19,7 @@ Expert entraînement, 17 novembre 2026. Ce document fixe ce que l'assistant fait
 
 **Ce qu'il ne fait pas**
 - Il ne donne pas d'avis médical, ne nomme pas de lésion, n'attribue pas de grade, ne propose pas de rééducation [SYN].
+- (consolidation 23/11, F6) Il ne choisit pas le niveau de détail d'un nouveau cycle. Pour une réponse de type `cycle`, l'écran affiche en tête « Niveau du cycle », présélectionné par `niveauPropose` sur les accents des phases du brouillon, avec sa ligne « pourquoi » ; le cycle est créé à ce niveau quand l'utilisateur garde son premier élément (C-07, D-23).
 - Il ne contourne aucune règle de sécurité. Il n'a de toute façon pas le dernier mot : chaque brouillon passe par le moteur de vérification avant d'être affiché, avec ses avertissements [PLAN], `moteur-verification.md`.
 - Il n'invente ni fiche, ni identifiant, ni chiffre. Il n'utilise que les fiches qu'on lui envoie et les repères sourcés de son prompt.
 - Il ne parle ni de perte de poids, ni de poids cible, ni de régime restrictif [PLAN], CLAUDE.md.
@@ -44,7 +47,7 @@ Le code construit ce contexte à chaque demande et l'envoie avec le message de l
 interface ContexteAssistant {
   aujourdhui: string                  // "2026-11-17"
   demande: string                     // texte de l'utilisateur
-  niveauDetail: 'simple' | 'grandes_lignes' | 'detaille' // (consolidation 18/11) niveau du cycle en cours, ou choisi pour un nouveau cycle
+  niveauDetail: 'simple' | 'grandes_lignes' | 'detaille' // (consolidation 18/11) niveau du cycle en cours ; (consolidation 23/11, F6) 'detaille' pour un « Brouillon de cycle » : le niveau du nouveau cycle se choisit après la réponse
   profil: {
     disciplinePrincipale: 'bloc' | 'voie'
     niveauBloc: string | null; niveauVoie: string | null
@@ -210,7 +213,7 @@ type TitreLivre =
 | F-6 | Chaque `ficheId` est dans `fichesDisponibles` ou `exercicesPerso` ; chaque `seanceTypeId` dans `seancesTypes` ; chaque `variante` dans les `variantes` de sa séance type ; chaque `objectifId` dans `objectifsGroupe` ; chaque `ficheReference` dans `fichesDisponibles` ; chaque `seanceId` dans `planEnCours.seancesAVenir`. |
 | F-7 | `effortPrevu` entier de 1 à 10 ; `reductionPct` de 40 à 60 pour `decharge` et `affutage` (10 à 60 pour `alleger_seance`) ; `objectifs` de groupe : 1 à 3. |
 | F-8 | Longueurs maximales respectées (voir les commentaires). |
-| F-9 | (consolidation 18/11) Séance résumée : 1 partie en `simple`, 2 à 5 en `grandes_lignes` ; `dureeMin` de 5 à 180 ; chaque `ficheId` d'une partie suit F-6 ; une séance `dure` a au moins une partie avec `ficheId` (sinon le moteur la compte maximale par prudence, S-26). Échec → A-01, ou A-02 pour un `ficheId` inconnu. |
+| F-9 | (consolidation 18/11) Séance résumée : 1 partie en `simple`, 2 à 5 en `grandes_lignes` ; `dureeMin` de 5 à 180 ; chaque `ficheId` d'une partie suit F-6 ; une séance `dure` a au moins une partie avec `ficheId` ((consolidation 23/11, F7) sans fiche, le moteur la compte comme une séance dure ordinaire et ne voit pas ses efforts maximaux ni ses quotas : S-26). Échec → A-01, ou A-02 pour un `ficheId` inconnu. |
 
 ## D.5 Validation avant affichage
 

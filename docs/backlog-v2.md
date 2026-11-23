@@ -9,6 +9,7 @@
 4. Le modèle de données qui fait foi est `docs/architecture-v2.md` § 3 dans sa version consolidée (ajouts marqués « consolidation 17/11 »).
 5. Points où Arthur agit : repérés par **[ARTHUR]**. Tâches qui attendent la recherche sur la bibliothèque : section « Tâches bloquées par les trous de la bibliothèque ».
 6. **Consolidation du 18/11** (décisions F3 à F5 : banque d'exercices, trois niveaux de détail ; conception : `docs/specs/niveaux-de-detail.md`) : 7 tâches ajoutées (N-01, G-01 à G-03, D-25 à D-27, texte complet dans la section « Tâches ajoutées le 18/11 ») et des amendements marqués « (consolidation 18/11) » dans les encadrés des tâches existantes. Le modèle consolidé de `docs/architecture-v2.md` § 3 porte aussi ces ajouts.
+7. **Consolidation du 23/11** (décisions F6 et F7 d'Arthur, détail dans `docs/specs/niveaux-de-detail.md` § 1.7, § 3.3 et § 8) : aucune tâche nouvelle ; amendements marqués « (consolidation 23/11, F6) » (N-01, D-14, D-25, E-13, C-07, D-23 : niveau proposé selon les accents) ou « (consolidation 23/11, F7) » (E-02, E-04, E-05, E-06, E-08, E-09 : séance dure sans exercice connu comptée comme séance dure ordinaire).
 
 ## Règles de consolidation (à joindre à chaque tâche)
 
@@ -315,7 +316,7 @@ Ordre : chaque vague contient au plus une tâche qui touche `src/index.css` (tou
 
 Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`, `src/donnees/`) : elles accompagnent les tâches du design, qui passent une à la fois sur `src/index.css`. Au début de la phase, l'architecte et le concepteur relisent les tâches C (texte complet plus bas) et les amendements des tâches D (plan v2, § 7).
 
-**[ARTHUR] avant la vague 3.1** : relire et valider la recherche sur les trous de la bibliothèque (B21, dernière section) ; elle conditionne C-02. (consolidation 18/11) Répondre aussi aux deux questions de `docs/specs/niveaux-de-detail.md` § 8 (niveau proposé par défaut ; séance dure sans exercice comptée comme maximale) ; sans réponse, les recommandations s'appliquent.
+**[ARTHUR] avant la vague 3.1** : relire et valider la recherche sur les trous de la bibliothèque (B21, dernière section) ; elle conditionne C-02. (consolidation 18/11) Les deux questions de `docs/specs/niveaux-de-detail.md` § 8 ont reçu leur réponse le 18/11 (F6 : niveau proposé selon l'objectif ; F7 : séance dure sans exercice comptée comme séance dure ordinaire) ; reportées le 23/11.
 
 (consolidation 18/11) Le générateur et les écrans de niveau s'ajoutent aux vagues existantes ; la vague 3.0 (N-01 seule) ouvre la phase, parce que `src/donnees/modele.ts` doit porter les niveaux avant D-14.
 
@@ -326,6 +327,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Fichiers** : modifier `src/donnees/modele.ts`, `docs/format-seance.md` (§ 4.1, 4.2), `docs/modele-donnees.md` (§ 8) ; créer `src/donnees/niveaux.ts`, `src/donnees/niveaux.test.ts`.
 
 > **Amendements de consolidation** : tâche nouvelle (décisions F4, F5).
+> 1. (consolidation 23/11, F6) Pas de constante de niveau par défaut : `niveaux.ts` exporte `ACCENTS_NERVEUX` et la fonction `niveauPropose(accents)` de `niveaux-de-detail.md` § 1.7 (étape 2 et tests du texte complet, mis à jour).
 
 ## Vague 3.1
 
@@ -365,7 +367,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Fichiers** : créer `src/regles/base.ts`, `adaptateur.ts`, `exemples.ts`, `base.test.ts`, `adaptateur.test.ts`.
 
 > **Amendements de consolidation**
-> 1. (consolidation 18/11) B.2 consolidé : `sansContenuConnu(v)` ; prudence dans `marqueursVersion` (`maximale` pour une version solo dure sans fiche connue) et dans `seanceSolliciteDoigts` (sauf qualité `mobilite` ou `antagonistes`) ; `dureeVersion(v) = v.dureeMin ?? Σ` pour les deux versions. Tests : solo dure `etapes: []` → `['maximale']` ; légère → `[]` ; qualité `mobilite` sans fiche → ne sollicite pas les doigts ; solo avec `dureeMin: 90` et sans étapes → 90. `exemples.ts` : `PROFIL_DE_REFERENCE.lieux = ['salle_bloc']`.
+> 1. (consolidation 18/11) B.2 consolidé : `sansContenuConnu(v)` ; prudence dans `seanceSolliciteDoigts` (sauf qualité `mobilite` ou `antagonistes`) ; `dureeVersion(v) = v.dureeMin ?? Σ` pour les deux versions. Tests : qualité `mobilite` sans fiche → ne sollicite pas les doigts ; solo avec `dureeMin: 90` et sans étapes → 90. `exemples.ts` : `PROFIL_DE_REFERENCE.lieux = ['salle_bloc']`.
+> 2. (consolidation 23/11, F7) La prudence du 18/11 dans `marqueursVersion` est retirée : aucun marqueur n'est ajouté à une version `sansContenuConnu`, même dure ; c'est une séance dure ordinaire (B.2, tableau « Séance dure sans exercice connu »). La prudence de `seanceSolliciteDoigts` reste. Tests : solo dure `etapes: []` → `marqueursVersion` vide, `estDure` vrai, `estMaximale` faux ; solo légère `etapes: []` → vide ; qualité `traction_gainage` sans fiche → sollicite les doigts.
 
 #### E-10 · Catalogue des séances types et des objectifs de groupe
 - **Modèle** : Sonnet · **Dépend de** : — · **Texte** : [taches-entrainement.md, E-10](specs/entrainement/taches-entrainement.md#e-10--catalogue-des-séances-types-et-des-objectifs-de-groupe-données)
@@ -388,7 +391,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 > 4. Semaine allégée : réduction 40, 50 ou 60 % (50 par défaut) ; chaque semaine peut aussi être passée en « affûtage » par son menu (mode objectif daté).
 > 5. **Valider le cycle** (manquait : l'architecture veut un cycle `brouillon` invisible sur le téléphone tant qu'il n'est pas validé) : étiquette « BROUILLON » dans l'en-tête tant que `etat === 'brouillon'` ; bouton second « Valider le cycle » qui ouvre `Confirmation` (« Ton cycle apparaîtra sur ton téléphone. Tu pourras encore le modifier. ») puis passe `etat` à `'valide'`. Les avertissements n'empêchent jamais de valider.
 > 6. En-tête : « Objectif (facultatif) » : libellé et date (`Cycle.objectif`). Nouveau cycle : `nbSemaines: 12`, `avertissementsGardes: []`, 3 phases à 4 semaines (3 charge, 1 allégée).
-> 7. (consolidation 18/11, F5) **Fenêtre O-13 Nouveau cycle** (`parcours-et-ecrans.md`, consolidé 18/11), dans un fichier créé ici, `src/ecrans/bureau/NouveauCycle.tsx`, bâti sur la fenêtre de `Confirmation` (D-04) et les classes Topo existantes : nom, début (un lundi), séances par semaine, **niveau de détail** (trois choix encre avec leur ligne d'exemple, présélection `NIVEAU_PAR_DEFAUT` de N-01), action principale « Créer le cycle ». `Cycle.niveauDetail` est **toujours** écrit à la création. Les accents et « Proposer un plan » viendront avec D-25.
+> 7. (consolidation 18/11, F5) **Fenêtre O-13 Nouveau cycle** (`parcours-et-ecrans.md`, consolidé 18/11), dans un fichier créé ici, `src/ecrans/bureau/NouveauCycle.tsx`, bâti sur la fenêtre de `Confirmation` (D-04) et les classes Topo existantes : nom, début (un lundi), séances par semaine, puis **niveau de détail** en dernier (trois choix encre avec leur ligne d'exemple), action principale « Créer le cycle ». (consolidation 23/11, F6) Présélection : `niveauPropose([])` de N-01 (la fenêtre n'a pas encore d'accents : Détaillé), et sa ligne `pourquoi` sous le choix (`aria-describedby`, `aria-live="polite"`) ; jamais de constante. `Cycle.niveauDetail` est **toujours** écrit à la création, avec le niveau affiché. Les accents et « Proposer un plan » viendront avec D-25.
 > 8. (consolidation 18/11) En-tête de la vue 12 semaines : « Niveau : … » (choix encre) ; changer ouvre `Confirmation` (« Les séances suivront ce niveau. Rien n'est effacé. {n} séances gardent leur propre niveau. », action « Changer le niveau », lien « Les passer aussi en {niveau} » qui efface leur `niveauDetail`). Dépend aussi de N-01. Fichiers en plus : `src/ecrans/bureau/NouveauCycle.tsx`.
 
 ## Vague 3.3
@@ -406,6 +409,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 
 > **Amendements de consolidation**
 > 1. (consolidation 18/11, F4) Application selon le contenu (B.5 consolidé) : S-10 à S-14, S-16, S-24, S-25 sont muettes si `etapesDetaillees === false` ; S-15 seulement si `niveau` est absent ou `'detaille'`. Ajouter **S-26** (information, solo seulement : `sansContenuConnu` et dure). Tests : cas 15 et 16 de B.11 ; S-26 sur une version solo dure `etapes: []`, muette si légère.
+> 2. (consolidation 23/11, F7) Message de S-26 : texte du 23/11 de B.5, mot pour mot (« … l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte. »). Test en plus : le message ne contient pas « maximal ».
 
 #### D-15 · Plan : vue phase (titre d'origine « vue bloc »)
 - **Modèle** : Sonnet · **Dépend de** : D-14 · **Texte** : [taches-design.md, D-15](specs/design/taches-design.md#d-15--plan--vue-bloc)
@@ -422,7 +426,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Modèle** : Sonnet · **Dépend de** : E-02 · **Texte** : [taches-entrainement.md, E-05](specs/entrainement/taches-entrainement.md#e-05--vérifications-de-semaine--espacement-et-quotas-w-01-à-w-08)
 - **Fichiers** : créer `src/regles/verifSemaineQuotas.ts`, `src/regles/verifSemaineQuotas.test.ts`.
 
-> **Amendements de consolidation** : aucun.
+> **Amendements de consolidation**
+> 1. (consolidation 23/11, F7) Une séance dure sans exercice connu est une séance dure ordinaire : W-01 ne la vise pas (la règle des 48 h ne porte que sur les séances maximales et de poutre intensive), W-08 la compte, W-06 la compte comme jour de doigts sauf qualité `mobilite` ou `antagonistes`. Test : lundi une séance maximale, mardi une séance dure `etapes: []` de qualité `traction_gainage` → pas de W-01 sur mardi ; elle compte dans W-08 et dans W-06.
 
 #### E-06 · Vérifications de semaine : charge et contenu (W-09 à W-19)
 - **Modèle** : Sonnet · **Dépend de** : E-02 · **Texte** : [taches-entrainement.md, E-06](specs/entrainement/taches-entrainement.md#e-06--vérifications-de-semaine--charge-et-contenu-w-09-à-w-19)
@@ -431,6 +436,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 > **Amendements de consolidation**
 > 1. Messages de W-14 : « Cette phase met en avant… », « l'accent de cette phase » (texte corrigé dans `moteur-verification.md`, R-2). W-14 ignore une phase dont l'accent est `null`.
 > 2. (consolidation 18/11) W-13 : une séance dont la version solo est `sansContenuConnu` entretient sa qualité dominante. Test : cas 14 de B.11 (pas de W-13).
+> 3. (consolidation 23/11, F7) W-12 : une séance dure sans exercice connu n'est pas une séance maximale. Test : semaine allégée avec une séance dure `etapes: []`, dernière semaine de charge du bloc sans séance maximale → pas de W-12. W-09 et W-10 la comptent comme toute séance dure (effort prévu 7 × somme des parties).
 
 #### C-01 · Passerelles entre le modèle v2, la bibliothèque et le moteur
 - **Modèle** : Sonnet · **Dépend de** : E-02, E-03, F2-12, C-02, N-01 · **Texte** : [texte complet plus bas](#c-01-texte-complet)
@@ -454,7 +460,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Modèle** : Haiku · **Dépend de** : E-02 · **Texte** : [taches-entrainement.md, E-08](specs/entrainement/taches-entrainement.md#e-08--vérifications-du-jour-j-01-à-j-07)
 - **Fichiers** : créer `src/regles/verifJour.ts`, `src/regles/verifJour.test.ts`.
 
-> **Amendements de consolidation** : aucun (branchée sur l'écran par C-03, phase 4).
+> **Amendements de consolidation** : branchée sur l'écran par C-03, phase 4.
+> 1. (consolidation 23/11, F7) J-02 et J-04 ne visent pas une séance du jour dure sans exercice connu (séance dure ordinaire) ; J-01, J-03 et J-07 s'y appliquent, comme à toute séance dure. Tests : séance maximale réalisée il y a 20 h, séance du jour dure `etapes: []` → pas de J-04 ; même séance avec deux voyants au rouge → J-01.
 
 #### D-11 · Bibliothèque filtrable
 - **Modèle** : Sonnet · **Dépend de** : F2-14, C-01 · **Texte** : [taches-design.md, D-11](specs/design/taches-design.md#d-11--bibliothèque-filtrable)
@@ -475,6 +482,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 > **Amendements de consolidation**
 > 1. `index.ts` réexporte aussi les fonctions de `passerelles.ts` (C-01) : les écrans n'importent que `src/regles/index.ts`.
 > 2. (consolidation 18/11) Réexporter aussi `resumes.ts` (C-01). Tests d'intégration en plus : cas 13 à 16 de B.11 ; le plan de 12 semaines du cas 1, rendu au niveau simple (étapes gardées), donne les mêmes avertissements qu'au niveau détaillé, sauf S-15 (« aucun avertissement ne disparaît »).
+> 3. (consolidation 23/11, F7) Cas 14 et 15 dans leur version du 23/11 : cas 14 → `S-26` seul, sans `W-01` ; cas 15 → ni `W-01` ni `S-26`, et sa variante avec `traction-lestee-force-lattice` → `W-01` fort sur la séance du 25.
 
 #### D-12 · Fiche protocole en panneau latéral
 - **Modèle** : Sonnet · **Dépend de** : D-11 · **Texte** : [taches-design.md, D-12](specs/design/taches-design.md#d-12--fiche-protocole-en-panneau-latéral)
@@ -546,6 +554,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Fichiers** : modifier `src/ecrans/bureau/NouveauCycle.tsx`, `src/ecrans/bureau/Plan.tsx`. **Ne touche pas `src/index.css`** (vague partagée avec D-17).
 
 > **Amendements de consolidation** : tâche nouvelle (décisions F3, F5).
+> 1. (consolidation 23/11, F6) Les accents viennent **avant** le niveau, et la présélection du niveau suit les accents (`niveauPropose`, N-01) : étape 1 du texte complet, mise à jour.
 
 #### D-18 · Avertissements de sécurité en direct — vague 3.10
 - **Modèle** : Sonnet · **Dépend de** : D-17, E-09, C-01 · **Texte** : [taches-design.md, D-18](specs/design/taches-design.md#d-18--avertissements-de-sécurité-en-direct)
@@ -575,9 +584,9 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 
 ## Fin de phase 3
 
-**Sur un vrai téléphone** : rien de nouveau ne doit apparaître ; vérifier qu'aucune régression n'est venue des tâches partagées (séance solo, groupe, débrief, profil), et qu'un cycle **brouillon** construit sur l'ordinateur reste invisible sur le téléphone. **Sur ordinateur** : construire à la main un cycle de 12 semaines complet (3 phases, objectifs, versions solo et groupe), provoquer un avertissement des 48 h et le corriger en un clic, valider le cycle. (consolidation 18/11) Puis créer un second cycle avec « Proposer un plan » au niveau **grandes lignes**, passer une séance en simple puis en détaillé (rien ne se perd), écrire une séance simple à la main sans exercice et voir S-26.
+**Sur un vrai téléphone** : rien de nouveau ne doit apparaître ; vérifier qu'aucune régression n'est venue des tâches partagées (séance solo, groupe, débrief, profil), et qu'un cycle **brouillon** construit sur l'ordinateur reste invisible sur le téléphone. **Sur ordinateur** : construire à la main un cycle de 12 semaines complet (3 phases, objectifs, versions solo et groupe), provoquer un avertissement des 48 h et le corriger en un clic, valider le cycle. (consolidation 18/11) Puis créer un second cycle avec « Proposer un plan » au niveau **grandes lignes**, passer une séance en simple puis en détaillé (rien ne se perd), écrire une séance simple à la main sans exercice et voir S-26. (consolidation 23/11) Dans la fenêtre « Nouveau cycle », vérifier que le niveau proposé passe de Détaillé à Grandes lignes quand les trois accents sont endurance, résistance ou technique, avec sa ligne « pourquoi » (F6) ; placer la séance dure sans exercice le lendemain d'une séance maximale : S-26 seul, pas d'avertissement des 48 h (F7).
 
-**Audit Fable** : (1) entraînement — les 65 vérifications du moteur contre `moteur-verification.md` (code, niveau, message, source), les 12 cas de B.11, les 26 séances types sans avertissement (E-16) ; (2) « avertir sans bloquer » — aucun bouton désactivé par un avertissement, signaux d'arrêt visibles ; (3) passerelles C-01 — un `null` du profil compte comme non rempli, conversion `allegee` ↔ `decharge`, marqueurs jamais stockés ; (4) exercices personnels — « je ne sais pas » produit les marqueurs prudents, aucun contenu de livre recopié ; (5) accessibilité du glisser-déposer (tout au clavier) ; (6) (consolidation 18/11) niveaux et banque — changer de niveau n'efface rien, aucun avertissement de semaine ou de plan ne disparaît en simple ou en grandes lignes, le générateur ne place aucune fiche à vérifier, de test, contre-indiquée ou hors lieux, aucun `maxParSemaine` dépassé.
+**Audit Fable** : (1) entraînement — les 65 vérifications du moteur contre `moteur-verification.md` (code, niveau, message, source), les 12 cas de B.11, les 26 séances types sans avertissement (E-16) ; (2) « avertir sans bloquer » — aucun bouton désactivé par un avertissement, signaux d'arrêt visibles ; (3) passerelles C-01 — un `null` du profil compte comme non rempli, conversion `allegee` ↔ `decharge`, marqueurs jamais stockés ; (4) exercices personnels — « je ne sais pas » produit les marqueurs prudents, aucun contenu de livre recopié ; (5) accessibilité du glisser-déposer (tout au clavier) ; (6) (consolidation 18/11) niveaux et banque — changer de niveau n'efface rien, aucun avertissement de semaine ou de plan ne disparaît en simple ou en grandes lignes, le générateur ne place aucune fiche à vérifier, de test, contre-indiquée ou hors lieux, aucun `maxParSemaine` dépassé ; (7) (consolidation 23/11) le niveau d'un cycle est toujours celui affiché dans O-13, présélectionné par `niveauPropose` (F6) ; une séance dure sans exercice connu n'a aucun marqueur et S-26 ne parle pas d'effort maximal (F7).
 
 ---
 
@@ -679,6 +688,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 > 1. Profil : `profilVersVerif` (C-01) ; `joursDisponibles` vient de `Profil.joursDisponibles` (F2-02) ; `pointsFaibles` (un texte dans le profil) est découpé aux virgules et retours à la ligne ; `objectifsPerso` = catalogue C-02 filtré par `manquesPrerequis` et les zones douloureuses.
 > 2. Exercices personnels : `ficheDepuisExercicePerso` (C-01). Toujours sans prénom ni poids.
 > 3. (consolidation 18/11, F3) **Ne pas réécrire le tri** : `trierFiches` et `seancesTypesDisponibles` viennent de `src/regles/banque.ts` (G-01) ; les étapes 1 et 2 du texte d'origine se réduisent à leur appel (les tests d'origine restent, ils passent par G-01). Contexte en plus (D.3 consolidé) : `niveauDetail`, `profil.lieux`, `recommandation` de chaque séance type, `niveau` de chaque séance à venir, raison `test`. Dépend aussi de G-01.
+> 4. (consolidation 23/11, F6) `niveauDetail` = niveau du cycle en cours ; pour une demande « Brouillon de cycle », toujours `'detaille'` (le niveau du nouveau cycle se choisit après la réponse, D-23). Test : demande « Brouillon de cycle » avec un cycle en cours en simple → `niveauDetail: 'detaille'`.
 
 ## Vague 5.3
 
@@ -693,7 +703,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Fichiers** : créer `src/assistant/elements.ts`, `elements.test.ts`, `src/assistant/appliquer.ts`, `appliquer.test.ts`.
 
 > **Amendements de consolidation** : tâche nouvelle (contradiction tranchée : D.5 prévoyait « accepter tout, modifier, rejeter » ; le design, qui prime pour l'interface, trie élément par élément).
-> 1. (consolidation 18/11, F4) Une séance type devient une séance avec ses étapes complètes et sa `recommandation`, sans `niveauDetail` (elle suit le cycle). Une séance résumée devient une `VersionSolo` avec `etapes: []`, `recommandation` et `parties` (`ficheId` → `principal`, source `bibliotheque` ou `perso` selon la liste d'origine) ; son `niveauDetail` n'est posé que s'il diffère de celui du cycle. Un nouveau cycle reçoit `niveauDetail` = le niveau du contexte (`ContexteAssistant.niveauDetail`). Test : une séance simple gardée s'affiche en simple et garde sa fiche principale dans `marqueursVersionPlanifiee`.
+> 1. (consolidation 18/11, F4) Une séance type devient une séance avec ses étapes complètes et sa `recommandation`, sans `niveauDetail` (elle suit le cycle). Une séance résumée devient une `VersionSolo` avec `etapes: []`, `recommandation` et `parties` (`ficheId` → `principal`, source `bibliotheque` ou `perso` selon la liste d'origine) ; son `niveauDetail` n'est posé que s'il diffère de celui du cycle. Test : une séance simple gardée s'affiche en simple et garde sa fiche principale dans `marqueursVersionPlanifiee`.
+> 2. (consolidation 23/11, F6) Un nouveau cycle ne reçoit **pas** le niveau du contexte : `appliquerElement` prend un paramètre `niveauCycle: NiveauDetail` pour l'élément qui crée le cycle, et l'écrit dans `Cycle.niveauDetail`. C'est le niveau affiché en tête du brouillon (D-23), présélectionné par `niveauPropose` (N-01) sur les accents des phases du brouillon. Fonction en plus : `accentsDuBrouillon(reponse): AccentPhase[]` (accents des `blocs`, dans l'ordre). Dépend aussi de N-01. Tests : brouillon endurance, résistance, technique → `niveauPropose(accentsDuBrouillon(r)).niveau === 'grandes_lignes'` ; garder la phase 1 avec `niveauCycle: 'simple'` → cycle créé en simple.
 
 ## Vague 5.4
 
@@ -707,7 +718,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 > 3. Demandes toutes faites : « Brouillon de cycle », « Brouillon de cette phase », « Ajuster cette semaine » (R-2).
 > 4. Sources (D.4) : `fiche` ouvre la fiche (D-12) ; `methode` : auteur et idée ; `synthese` : « Synthèse du projet : … » ; `livre` : **titre seul, sous « Lecture conseillée »**, jamais rattaché à une phrase du brouillon.
 > 5. Ordinateur seulement (B7) : le bouton « Assistant » n'existe pas sur téléphone. Un cycle créé par l'assistant reste `brouillon` jusqu'à « Valider le cycle » (D-14).
-> 6. (consolidation 18/11) Sous le champ de demande : « Niveau : celui du cycle (grandes lignes) », modifiable pour une demande « Brouillon de cycle » (choix encre, mêmes trois niveaux que O-13) ; ce niveau part dans `ContexteAssistant.niveauDetail`.
+> 6. (consolidation 18/11) Sous le champ de demande : « Niveau : celui du cycle (grandes lignes) ». (consolidation 23/11, F6) Cette mention n'est pas modifiable dans le panneau (le niveau se change dans l'en-tête du cycle). Pour une demande « Brouillon de cycle », aucun niveau n'est demandé avant l'envoi (le contexte part en `'detaille'`, E-13) : la réponse de type cycle affiche en tête, au-dessus des éléments, « Niveau du cycle » en trois choix encre (mêmes lignes d'exemple que O-13), présélection `niveauPropose(accentsDuBrouillon(reponse))` (N-01, C-07) et sa ligne `pourquoi` ; garder le premier élément crée le cycle à ce niveau (`niveauCycle`, C-07). L'assistant ne choisit jamais le niveau.
 
 ## Fin de phase 5
 
@@ -868,14 +879,14 @@ Décisions F3 à F5 ; conception : `docs/specs/niveaux-de-detail.md` (à lire en
 **N-01 · Niveaux de détail : types et fonctions de base** — phase 3, vague 3.0, Sonnet.
 - **Objectif** : le modèle porte les trois niveaux ; quelques fonctions pures disent à quel niveau une séance s'affiche, sans lire la bibliothèque.
 - **Dépend de** : F2-02.
-- **Lire** : `docs/specs/niveaux-de-detail.md` § 1 et § 6 ; `docs/architecture-v2.md` § 3.2 et § 3.5 (consolidés 18/11) ; `src/donnees/modele.ts`, `src/donnees/plan.ts` (`dureeEtapes`), `docs/format-seance.md`.
+- **Lire** : `docs/specs/niveaux-de-detail.md` § 1 (dont § 1.7, consolidation 23/11) et § 6 ; `docs/architecture-v2.md` § 3.2 et § 3.5 (consolidés 18/11) ; `src/donnees/modele.ts`, `src/donnees/plan.ts` (`dureeEtapes`), `docs/format-seance.md`.
 - **Fichiers** : modifier `src/donnees/modele.ts`, `docs/format-seance.md`, `docs/modele-donnees.md` ; créer `src/donnees/niveaux.ts`, `src/donnees/niveaux.test.ts`.
 - **Étapes**
   1. `modele.ts` : `NiveauDetail`, `NIVEAUX_DETAIL`, `PartieSeance`, `Cycle.niveauDetail?`, `SeancePlanifiee.niveauDetail?`, `VersionSolo.recommandation?`, `VersionSolo.parties?`, exactement comme l'architecture § 3.2 consolidée, avec leurs commentaires courts.
-  2. `niveaux.ts` : `NIVEAU_PAR_DEFAUT: NiveauDetail = 'detaille'` (commentaire : « question Q1 de niveaux-de-detail.md ; à changer ici seulement ») ; `LONGUEUR_MAX_RECOMMANDATION = 120` ; `NB_PARTIES_MAX = 5` ; `ETIQUETTES_NIVEAU` (« Simple », « Grandes lignes », « Détaillé ») ; `EXEMPLES_NIVEAU` (les trois lignes d'exemple de O-13) ; `plusPetitNiveau(a, b)` ; `niveauChoisi(seance, cycle?)` ; `niveauDisponible(v: VersionSolo)` ; `niveauAffiche(seance, cycle?)` ; `dureeVersionSolo(v)` (étapes : `dureeEtapes` de `plan.ts` ; sinon somme des parties ; sinon 0).
+  2. `niveaux.ts` : (consolidation 23/11, F6) `ACCENTS_NERVEUX` et `niveauPropose(accents: (AccentPhase | null)[]): { niveau: NiveauDetail; pourquoi: string }`, exactement comme `niveaux-de-detail.md` § 1.7 (trois cas dans l'ordre, trois phrases `pourquoi` mot pour mot ; commentaire : « décision F6 d'Arthur : proposer selon les accents, jamais imposer ; jamais 'simple' ») ; `LONGUEUR_MAX_RECOMMANDATION = 120` ; `NB_PARTIES_MAX = 5` ; `ETIQUETTES_NIVEAU` (« Simple », « Grandes lignes », « Détaillé ») ; `EXEMPLES_NIVEAU` (les trois lignes d'exemple de O-13) ; `plusPetitNiveau(a, b)` ; `niveauChoisi(seance, cycle?)` ; `niveauDisponible(v: VersionSolo)` ; `niveauAffiche(seance, cycle?)` ; `dureeVersionSolo(v)` (étapes : `dureeEtapes` de `plan.ts` ; sinon somme des parties ; sinon 0).
   3. `docs/format-seance.md` : § 4.1 (`niveauDetail`), § 4.2 (`recommandation`, `parties`, `PartieSeance`) et une sous-section « Niveaux de détail » qui reprend `niveaux-de-detail.md` § 6 (si `etapes` est vide : recommandation et parties avec un chrono libre, ou ne pas proposer la séance). Ne pas toucher aux fichiers JSON de référence (l'exemple garde ses étapes, sans les nouveaux champs).
   4. `docs/modele-donnees.md` § 8 : une ligne qui renvoie aux niveaux de détail (architecture § 3.2, consolidation 18/11).
-- **Tests** : document sans `niveauDetail` → `'detaille'` ; séance `simple` dans un cycle `detaille` → `'simple'` ; choisi `detaille` sans étapes avec des parties → `'grandes_lignes'` ; sans étapes ni parties → `'simple'` ; `dureeVersionSolo` avec étapes, avec deux parties (30 + 45 → 75), vide → 0 ; `NIVEAUX_DETAIL` dans l'ordre simple, grandes lignes, détaillé.
+- **Tests** : document sans `niveauDetail` → `'detaille'` ; séance `simple` dans un cycle `detaille` → `'simple'` ; choisi `detaille` sans étapes avec des parties → `'grandes_lignes'` ; sans étapes ni parties → `'simple'` ; `dureeVersionSolo` avec étapes, avec deux parties (30 + 45 → 75), vide → 0 ; `NIVEAUX_DETAIL` dans l'ordre simple, grandes lignes, détaillé. (consolidation 23/11, F6) `niveauPropose` : `[]` et `[null, null, null]` → `detaille` (phrase 2) ; `['doigts', 'puissance', 'resistance']`, `['doigts', 'endurance', 'resistance']`, `['traction_gainage', 'endurance', 'puissance']` (les accents de départ) → `detaille` (phrase 1) ; `['endurance', null, 'technique']` → `detaille` (phrase 2) ; `['endurance', 'resistance', 'technique']` et `['technique', 'technique', 'technique']` → `grandes_lignes` (phrase 3) ; sur les 343 combinaisons de trois valeurs (six accents et `null`), jamais `simple`, et `pourquoi` jamais vide.
 - **Critères** : `npm run build` et `npm run test` passent sans changer `format.test.ts` ni ses fichiers ; aucun champ calculable ajouté (R-8).
 
 ### G-01 (texte complet)
@@ -928,13 +939,13 @@ Décisions F3 à F5 ; conception : `docs/specs/niveaux-de-detail.md` (à lire en
 **D-25 · Nouveau cycle : accents et « Proposer un plan »** — phase 3, vague 3.9, Sonnet.
 - **Objectif** : finir la fenêtre O-13 : le générateur remplit le cycle au niveau choisi.
 - **Dépend de** : D-14 (fenêtre), G-03.
-- **Lire** : `parcours-et-ecrans.md` O-13 (consolidé 18/11) ; `docs/specs/niveaux-de-detail.md` § 2.3 et § 4.1 ; `src/ecrans/bureau/NouveauCycle.tsx`, `Plan.tsx` ; `src/regles/index.ts` ; `src/donnees/plan.ts`.
+- **Lire** : `parcours-et-ecrans.md` O-13 (consolidé 18/11 et 23/11) ; `docs/specs/niveaux-de-detail.md` § 1.7, § 2.3 et § 4.1 ; `src/ecrans/bureau/NouveauCycle.tsx`, `Plan.tsx` ; `src/regles/index.ts` ; `src/donnees/plan.ts`, `src/donnees/niveaux.ts`.
 - **Fichiers** : modifier `src/ecrans/bureau/NouveauCycle.tsx`, `src/ecrans/bureau/Plan.tsx`. Ne pas toucher `src/index.css` (classes Topo existantes seulement).
 - **Étapes**
-  1. Fenêtre : rappel des jours et des lieux du profil avec « Modifier dans ton profil » ; accents des 3 phases en listes (cinq qualités et technique), présélection `accentsDeDepart`.
+  1. Fenêtre : rappel des jours et des lieux du profil avec « Modifier dans ton profil » ; accents des 3 phases en listes (cinq qualités et technique), présélection `accentsDeDepart`. (consolidation 23/11, F6) Les accents sont placés **avant** le niveau de détail. Présélection du niveau : `niveauPropose(accents)` (N-01), avec sa ligne `pourquoi` sous le choix ; tant que l'utilisateur n'a pas touché au niveau, la présélection et la ligne suivent chaque changement d'accent ; dès qu'il choisit, son choix reste, et si la proposition diffère ensuite, la ligne devient « Ton choix. Pour ces accents, l'app propose {Niveau}. » (étiquette de `ETIQUETTES_NIVEAU`).
   2. Action principale « Proposer un plan » : `genererCycle`, puis écriture par `enregistrerCycle`, `enregistrerPhase`, `enregistrerSeancePlanifiee` ; ouvrir la vue 12 semaines du nouveau cycle. « Créer le cycle » devient l'action seconde « Commencer vide ».
   3. En tête de la vue : bandeau d'information « Plan proposé : {n} séances. {f} avertissements forts, {i} informations, à voir semaine par semaine. » et une ligne par manque (`Avertissement` niveau information). Rien n'est bloqué.
-- **Critères** : le cycle proposé est en brouillon et n'apparaît pas sur le téléphone ; son niveau est celui choisi ; « Commencer vide » fait ce que faisait « Créer le cycle » ; tout au clavier ; R-6 (aucun lancement de séance).
+- **Critères** : le cycle proposé est en brouillon et n'apparaît pas sur le téléphone ; son niveau est celui choisi ; « Commencer vide » fait ce que faisait « Créer le cycle » ; tout au clavier ; R-6 (aucun lancement de séance). (consolidation 23/11, F6) Le niveau écrit est toujours celui affiché ; trois accents endurance, résistance, technique présélectionnent Grandes lignes ; changer un accent après avoir choisi un niveau ne change pas ce niveau.
 
 ### D-26 (texte complet)
 
@@ -976,7 +987,7 @@ Décisions F3 à F5 ; conception : `docs/specs/niveaux-de-detail.md` (à lire en
 | Après la vague 2.9 (F2-10) | Essai téléphone et ordinateur ; test d'isolement à deux comptes | `docs/supabase.md`, « Test d'isolement » |
 | Fin de phase 2 | Recette complète ; inviter les amis (une ligne SQL chacun) ; réinstaller l'app pour voir le nom « Get me to 9a » **seulement après une synchronisation vérifiée** (supprimer l'icône efface les données de l'appareil) | `docs/recette-phase-2.md` (F2-16), `docs/supabase.md`, « Inviter un ami » |
 | Avant la phase 3 | Lancer puis valider la recherche sur les trous de la bibliothèque (B21) | Section suivante |
-| Avant la vague 3.0 (consolidation 18/11) | Répondre à deux questions : niveau proposé par défaut ; séance dure sans exercice comptée comme maximale (sinon : recommandations) | `docs/specs/niveaux-de-detail.md` § 8 |
+| Avant la vague 3.0 (consolidation 18/11) | Fait le 18/11 (F6, F7), reporté le 23/11 : niveau proposé selon les accents ; séance dure sans exercice comptée comme séance dure ordinaire | `docs/specs/niveaux-de-detail.md` § 8 |
 | Fin de phase 3 | Construire un cycle complet à la main sur l'ordinateur | Fin de phase 3 ci-dessus |
 | Fin de phase 4 | Suivre une vraie semaine | Fin de phase 4 ci-dessus |
 | Avant la vague 5.1 | Créer sa clé API Claude (expiration, limite de dépense) | `docs/cle-api.md` (écrit par C-06 ; source : `docs/architecture-v2.md` § 5.2) |
