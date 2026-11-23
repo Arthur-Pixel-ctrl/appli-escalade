@@ -1,7 +1,7 @@
 import { BarreBureau } from '../composants/BarreBureau.tsx'
 import { EnConstruction } from '../ecrans/EnConstruction.tsx'
 import { Historique } from '../ecrans/Historique.tsx'
-import { Profil } from '../ecrans/Profil.tsx'
+import { Reglages } from '../ecrans/bureau/Reglages.tsx'
 import { appliquerMiseAJour } from '../miseAJour.ts'
 import type { ActionsEcrans } from './MiseEnPageTelephone.tsx'
 import { RUBRIQUES_BUREAU, type RubriqueBureau } from './navigation.ts'
@@ -53,10 +53,10 @@ export function MiseEnPageBureau({
           )}
           {rubrique === 'Bilans' && <div className="bureau-lecture"><Historique onOuvrir={onOuvrirSeance} /></div>}
           {rubrique === 'Profil' && (
-            <div className="bureau-lecture">
-              <Profil
+            <div className="bureau-reglages">
+              <Reglages
                 profil={profil}
-                onEnregistrer={onEnregistrerProfil}
+                onEnregistrerProfil={onEnregistrerProfil}
                 onMisesEnGarde={onMisesEnGarde}
                 onCompte={onCompte}
                 onDonneesImportees={onDonneesImportees}

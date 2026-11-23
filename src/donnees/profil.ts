@@ -2,6 +2,8 @@
 // salle et couleurs aujourd'hui, programme et prérequis des exercices dans les lots suivants.
 export type ZoneDouleur = 'doigts' | 'poignet' | 'coude' | 'epaule' | 'hanche' | 'genou' | 'cheville' | 'dos' | 'autre'
 export type JourSemaine = 'lundi' | 'mardi' | 'mercredi' | 'jeudi' | 'vendredi' | 'samedi' | 'dimanche'
+// Où le grimpeur s'entraîne : le générateur et l'assistant ne proposent que des exercices faisables là.
+export type LieuEntrainement = 'salle_bloc' | 'salle_voie' | 'maison'
 
 export interface Profil {
   prenom: string
@@ -24,6 +26,7 @@ export interface Profil {
   grimpeEnTete: boolean | null // sait grimper et chuter en tête
   joursDisponibles: JourSemaine[] // vide = pas renseigné ; sert au placement des séances
   repereTraction: 'aucun' | 'hommes' | 'femmes' // repère facultatif dans les bilans, « aucun » par défaut
+  lieux: LieuEntrainement[] // vide = pas renseigné : compte comme « salle de bloc »
 }
 
 export const PROFIL_VIDE: Profil = {
@@ -31,7 +34,7 @@ export const PROFIL_VIDE: Profil = {
   anneesPratique: 2, experiencePoutre: 'aucune', poidsCorpsKg: null, pointsFaibles: '',
   douleursEnCours: [], seancesParSemaine: 3, grimpeSouventEnGroupe: true, salleHabituelleId: 'salle-mroc',
   tractionsStrictes: null, tient15sSur25mm: null, majeur: null, grimpeEnTete: null,
-  joursDisponibles: [], repereTraction: 'aucun',
+  joursDisponibles: [], repereTraction: 'aucun', lieux: [],
 }
 
 /** Complète un profil enregistré avant la v2 : les champs absents prennent la valeur de PROFIL_VIDE. */

@@ -18,3 +18,12 @@ describe('prérequis du profil', () => {
     expect(completerProfil({ majeur: false }).majeur).toBe(false)
   })
 })
+
+describe('lieux d’entraînement', () => {
+  it('un profil ancien reçoit une liste vide', () => {
+    expect(completerProfil({}).lieux).toEqual([])
+  })
+  it('conserve les lieux déjà choisis', () => {
+    expect(completerProfil({ lieux: ['maison'] }).lieux).toEqual(['maison'])
+  })
+})

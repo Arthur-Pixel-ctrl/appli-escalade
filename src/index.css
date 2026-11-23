@@ -274,6 +274,8 @@ button.ligne::after { content: ''; position: absolute; right: 6px; top: 50%; wid
 .choix.cinq { grid-template-columns: repeat(5, 1fr); }
 .choix.trois { grid-template-columns: repeat(3, 1fr); }
 .choix.deux { grid-template-columns: repeat(2, 1fr); }
+.choix.sept { grid-template-columns: repeat(7, 1fr); }
+.choix.sept button { padding: 0 2px; font-size: 14px; }
 .choix.cinq button { font-size: 17px; }
 
 /* Débrief et historique */
@@ -403,3 +405,14 @@ form.pile-large { gap: 24px; }
 /* Lien d'évitement : caché hors écran, visible au focus. */
 .lien-evitement { position: absolute; left: var(--espace-4); top: -100px; z-index: 10; min-height: 48px; display: flex; align-items: center; padding: 0 var(--espace-4); background: var(--surface); color: var(--texte); border: 2px solid var(--texte); border-radius: var(--rayon-bouton); font-weight: 700; }
 .lien-evitement:focus-visible { top: var(--espace-2); }
+
+/* Profil et réglages sur ordinateur (D-20) : sommaire à gauche qui reste en vue, sections à droite. */
+.bureau-reglages { max-width: 920px; }
+.reglages { display: grid; grid-template-columns: 180px minmax(0, 640px); gap: var(--espace-6); align-items: start; }
+.reglages-sommaire { position: sticky; top: var(--espace-5); display: flex; flex-direction: column; align-items: flex-start; padding-top: var(--espace-6); }
+.reglages-sommaire .bouton-texte { width: auto; text-align: left; padding: 0; text-decoration: none; color: var(--texte-2); }
+@media (hover: hover) { .reglages-sommaire .bouton-texte:hover { color: var(--texte); text-decoration: underline; } }
+.reglages-corps .ecran { overflow: visible; padding: var(--espace-6) 0; }
+.reglages-corps .ecran > * { scroll-margin-top: var(--espace-5); }
+.case { display: flex; align-items: center; gap: var(--espace-3); min-height: 48px; font-size: 16px; font-weight: 600; }
+.case input { flex: none; width: 24px; height: 24px; accent-color: var(--texte); }
