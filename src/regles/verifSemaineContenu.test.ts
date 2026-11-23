@@ -306,7 +306,7 @@ describe('W-13 qualité non entretenue', () => {
     expect(w13[0].niveau).toBe('information')
     expect(w13[0].message).toContain('traction et gainage')
     expect(w13[0].message).toBe(
-      'Cette semaine ne contient rien pour : traction et gainage. Ajoute une étape courte pour l'entretenir (10 à 20 min suffisent).',
+      "Cette semaine ne contient rien pour : traction et gainage. Ajoute une étape courte pour l'entretenir (10 à 20 min suffisent).",
     )
   })
 
