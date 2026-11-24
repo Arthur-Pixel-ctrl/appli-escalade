@@ -1,13 +1,10 @@
-import { useId, useState } from 'react'
 import { nomQualite, texteContreIndication, TERRAINS, type EntreeBibliotheque, type EtatEntree } from '../donnees/bibliotheque/filtres.ts'
 import { Icone } from './Icone.tsx'
 
 // Fiche de la grille de la bibliothèque (O-06). Elle dit tout ce qui compte avant de choisir :
 // ce qui manque, ce qui est déconseillé, ce qui reste « à la main » et pourquoi, d'où vient l'exercice.
-// Le panneau latéral complet (D-12) remplacera le bouton « Détails ».
-export function FicheProtocole({ entree, etat }: { entree: EntreeBibliotheque; etat: EtatEntree }) {
-  const [ouverte, setOuverte] = useState(false)
-  const idDetails = useId()
+// Toute la fiche est cliquable : le bouton « Voir la fiche » étend sa zone sur la carte, et ouvre le panneau (D-12).
+export function FicheProtocole({ entree, etat, onOuvrir }: { entree: EntreeBibliotheque; etat: EtatEntree; onOuvrir: () => void }) {
   const terrain = TERRAINS.find((t) => t.valeur === entree.terrain)?.nom
   const { manques, contreIndications } = etat
 
@@ -46,19 +43,9 @@ export function FicheProtocole({ entree, etat }: { entree: EntreeBibliotheque; e
 
       <p className="texte-3 fiche-grille-source">Source : {entree.source}</p>
 
-      <button type="button" className="bouton-texte fiche-grille-details" aria-expanded={ouverte} aria-controls={idDetails} onClick={() => setOuverte(!ouverte)}>
-        {ouverte ? 'Masquer les détails' : 'Détails'}
+      <button type="button" className="bouton-texte fiche-grille-details" aria-haspopup="dialog" aria-label={`Voir la fiche : ${entree.nom}`} onClick={onOuvrir}>
+        Voir la fiche
       </button>
-      {ouverte && (
-        <div id={idDetails} className="fiche-grille-corps">
-          <p>{entree.consigne}</p>
-          {entree.progression && <p className="texte-2"><strong>Pour progresser.</strong> {entree.progression}</p>}
-          {entree.aVerifier && <p className="texte-2"><strong>À vérifier.</strong> {entree.aVerifier}</p>}
-          {entree.adresse && (
-            <p className="texte-2"><a href={entree.adresse} target="_blank" rel="noopener noreferrer">Ouvrir la source (nouvel onglet)</a></p>
-          )}
-        </div>
-      )}
     </article>
   )
 }

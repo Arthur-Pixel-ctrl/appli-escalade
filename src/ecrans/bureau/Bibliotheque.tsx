@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { FicheProtocole } from '../../composants/FicheProtocole.tsx'
 import { Icone } from '../../composants/Icone.tsx'
 import { Avertissement } from '../../composants/Avertissement.tsx'
+import { FicheDetail, type DonneesFiche } from './FicheDetail.tsx'
 import { BIBLIOTHEQUE } from '../../donnees/bibliotheque/index.ts'
 import {
   DUREES, FILTRES_VIDES, PREUVES, QUALITES, TERRAINS, convient, entreesDepuis, etatDe, filtresActifs, filtresDepuisRecherche, filtrer,
@@ -48,6 +49,7 @@ export function Bibliotheque() {
   const [donnees, setDonnees] = useState<Donnees | undefined>(undefined)
   const [echec, setEchec] = useState(false)
   const [filtres, setFiltres] = useState<Filtres>(() => filtresDepuisRecherche(window.location.search))
+  const [ouverteId, setOuverteId] = useState<string | undefined>(undefined)
   const idRecherche = useId()
   const idTri = useId()
 
@@ -66,6 +68,18 @@ export function Bibliotheque() {
   const entrees = useMemo(() => entreesDepuis(BIBLIOTHEQUE, donnees?.persos ?? []), [donnees])
   const resultats = useMemo(() => (donnees ? filtrer(entrees, filtres, donnees.contexte) : []), [entrees, filtres, donnees])
   const etats = useMemo(() => new Map(resultats.map((e) => [e.id, donnees ? etatDe(e, donnees.contexte) : { manques: [], contreIndications: [] }])), [resultats, donnees])
+
+  // La fiche ouverte dans le panneau : retrouvée par son identifiant, avec de quoi la jouer et la comparer au profil.
+  const ficheOuverte = useMemo((): DonneesFiche | undefined => {
+    if (!donnees || ouverteId === undefined) return undefined
+    const entree = entrees.find((e) => e.id === ouverteId)
+    const source = BIBLIOTHEQUE.find((p) => p.id === ouverteId) ?? donnees.persos.find((p) => p.id === ouverteId)
+    if (!entree || !source) return undefined
+    return {
+      entree, etat: etatDe(entree, donnees.contexte), forme: source, contexte: donnees.contexte,
+      ...('reference' in source && source.reference !== undefined ? { reference: source.reference } : {}),
+    }
+  }, [donnees, entrees, ouverteId])
 
   if (donnees === undefined) {
     return (
@@ -173,11 +187,12 @@ export function Bibliotheque() {
             </div>
           ) : (
             <div className="biblio-grille">
-              {resultats.map((e) => <FicheProtocole key={e.id} entree={e} etat={etats.get(e.id) ?? { manques: [], contreIndications: [] }} />)}
+              {resultats.map((e) => <FicheProtocole key={e.id} entree={e} etat={etats.get(e.id) ?? { manques: [], contreIndications: [] }} onOuvrir={() => setOuverteId(e.id)} />)}
             </div>
           )}
         </section>
       </div>
+      {ficheOuverte && <FicheDetail donnees={ficheOuverte} onFermer={() => setOuverteId(undefined)} />}
     </main>
   )
 }
