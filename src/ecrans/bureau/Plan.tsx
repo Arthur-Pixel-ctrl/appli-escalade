@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
 import type { Cycle, NiveauDetail, ObjectifSpecifique, PhaseCycle, SeancePlanifiee } from '../../donnees/modele.ts'
@@ -7,8 +7,26 @@ import { ecrire, lireTous, supprimer, surDonneesChangees } from '../../donnees/s
 import { NouveauCycle } from './NouveauCycle.tsx'
 import { cycleAMontrer, nouveauCycleVide, type DemandeCycle } from './Plan.outils.ts'
 import { VueCycle, type ObjectifChoisi } from './VueCycle.tsx'
+import { VuePhase, type ChangementSeances } from './VuePhase.tsx'
 
 const DELAI_NOUVEL_ESSAI_MS = 5000
+
+type Vue = 'cycle' | 'phase'
+
+// Choix de vue (encre = sélectionné). « Semaine » arrive avec la tâche suivante.
+function SelecteurVue({ vue, onChoisir }: { vue: Vue; onChoisir: (v: Vue) => void }) {
+  const idNote = useId()
+  return (
+    <>
+      <div className="choix trois" role="group" aria-label="Vue du plan" aria-describedby={idNote}>
+        <button type="button" aria-pressed={vue === 'cycle'} onClick={() => onChoisir('cycle')}>12 semaines</button>
+        <button type="button" aria-pressed={vue === 'phase'} onClick={() => onChoisir('phase')}>Phase</button>
+        <button type="button" aria-pressed="false" disabled>Semaine</button>
+      </div>
+      <p className="texte-3" id={idNote}>La vue Semaine arrive dans un prochain lot.</p>
+    </>
+  )
+}
 
 interface Donnees {
   cycle: Cycle
@@ -32,6 +50,8 @@ export function Plan() {
   const [echecLecture, setEchecLecture] = useState(false)
   const [echecEcriture, setEchecEcriture] = useState(false)
   const [nouveau, setNouveau] = useState(false)
+  const [vue, setVue] = useState<Vue>('cycle')
+  const [ordrePhase, setOrdrePhase] = useState<1 | 2 | 3>(1)
   const [seancesParSemaineProfil, setSeancesParSemaineProfil] = useState(3)
   // Les écritures en attente, une par document : un changement n'est jamais perdu, il est retenté.
   const enAttente = useRef(new Map<string, () => Promise<void>>())
@@ -86,6 +106,16 @@ export function Plan() {
       for (const o of ajoutes) await ecrire('objectifsSpecifiques', o)
     })
   }
+  // Séances posées, copiées, déplacées ou retirées depuis la vue Phase.
+  const changerSeances = ({ ecrites, retirees }: ChangementSeances) => {
+    setDonnees((d) => {
+      if (!d) return d
+      const gardees = d.seances.filter((s) => !retirees.includes(s.id) && !ecrites.some((e) => e.id === s.id))
+      return { ...d, seances: [...gardees, ...ecrites].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) }
+    })
+    for (const s of ecrites) sauver(`seance-${s.id}`, () => enregistrerSeancePlanifiee(s))
+    for (const id of retirees) sauver(`seance-${id}`, () => supprimer('seancesPlanifiees', id))
+  }
   // R-9 : changer de niveau n'efface ni étape ni partie ; seul le champ `niveauDetail` bouge.
   const changerNiveau = (niveau: NiveauDetail, effacerNiveauxPropres: boolean) => {
     if (!donnees) return
@@ -134,23 +164,38 @@ export function Plan() {
     )
   }
 
+  const selecteurVue = <SelecteurVue vue={vue} onChoisir={setVue} />
   return (
     <main className="ecran plan-ecran">
       {echecEcriture && (
         <Avertissement niveau="avertissement" titre="Changement pas encore enregistré">Nouvel essai dans quelques secondes. Tes changements restent à l’écran.</Avertissement>
       )}
-      <VueCycle
-        cycle={donnees.cycle}
-        phases={donnees.phases}
-        seances={donnees.seances}
-        objectifs={donnees.objectifs}
-        aujourdhui={jourLocal()}
-        onCycle={changerCycle}
-        onPhase={changerPhase}
-        onObjectifs={changerObjectifs}
-        onNiveau={changerNiveau}
-        onNouveauCycle={() => setNouveau(true)}
-      />
+      {vue === 'phase' ? (
+        <VuePhase
+          cycle={donnees.cycle}
+          phases={donnees.phases}
+          seances={donnees.seances}
+          aujourdhui={jourLocal()}
+          ordre={ordrePhase}
+          selecteurVue={selecteurVue}
+          onChoisirPhase={setOrdrePhase}
+          onChangerSeances={changerSeances}
+        />
+      ) : (
+        <VueCycle
+          cycle={donnees.cycle}
+          phases={donnees.phases}
+          seances={donnees.seances}
+          objectifs={donnees.objectifs}
+          aujourdhui={jourLocal()}
+          onCycle={changerCycle}
+          onPhase={changerPhase}
+          onObjectifs={changerObjectifs}
+          onNiveau={changerNiveau}
+          onNouveauCycle={() => setNouveau(true)}
+          selecteurVue={selecteurVue}
+        />
+      )}
       {fenetre}
     </main>
   )

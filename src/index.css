@@ -466,3 +466,36 @@ form.pile-large { gap: 24px; }
 .choix-niveau button[aria-pressed='true'] span { color: var(--fond); }
 .liste-objectifs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--espace-3); }
 .liste-objectifs li { display: flex; flex-direction: column; gap: var(--espace-1); }
+
+/* Vue Phase : tableau 4 semaines × 7 jours */
+.cache { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.phase-choix { max-width: 640px; }
+.phase-tableau { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.phase-tableau th, .phase-tableau td { padding: var(--espace-1); border: 1px solid var(--filet); vertical-align: top; text-align: left; }
+.phase-tableau thead th { font-family: var(--police-fixe); font-size: 13px; font-weight: 600; text-transform: uppercase; color: var(--texte-2); }
+.phase-tableau th[scope='row'] { display: table-cell; width: 84px; }
+.phase-tableau th[scope='row'] > * { display: block; margin-bottom: var(--espace-1); }
+.phase-tableau thead th:last-child, .case-charge { width: 112px; }
+.phase-tableau tr.allegee { background: repeating-linear-gradient(-45deg, transparent 0 6px, var(--surface-creuse) 6px 7px); }
+.phase-tableau tr.en-cours th[scope='row'] { border-left: 3px solid var(--accent); }
+.phase-tableau tr:focus-visible { outline-offset: -3px; }
+.case-jour { position: relative; height: 128px; min-width: 0; }
+.case-jour.aujourdhui { box-shadow: inset 0 3px 0 var(--accent); }
+.case-charge { display: table-cell; }
+.case-charge > * { display: block; margin-bottom: var(--espace-1); }
+.case-ajouter { width: 100%; min-height: 64px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--filet-fort); border-radius: var(--rayon-controle); background: transparent; color: var(--texte-3); }
+.seance-etiquette { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: var(--espace-1); border: 1.5px solid var(--texte); border-radius: var(--rayon-controle); background: var(--surface); }
+.seance-etiquette-tete { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-1); }
+.seance-etiquette .etiquette { padding: 1px 4px; font-size: 11px; }
+.seance-icones { display: inline-flex; gap: 2px; }
+.seance-nom { font-size: 14px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.seance-contenu { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.seance-etiquette .bouton-discret { min-height: 48px; padding: 0; text-align: left; font-size: 13px; }
+.menu-case { position: absolute; right: 2px; bottom: 2px; }
+.menu-case-bouton { width: 48px; min-height: 48px; border: 0; background: transparent; color: var(--texte); font-size: 20px; font-weight: 800; }
+.menu-case-liste { position: absolute; z-index: 5; bottom: 100%; left: 0; min-width: 220px; margin: 0; padding: var(--espace-1); list-style: none; background: var(--surface); border: 2px solid var(--texte); border-radius: var(--rayon-controle); }
+.menu-case-liste.droite { left: auto; right: 0; }
+.menu-case-liste button { width: 100%; min-height: 48px; padding: 0 var(--espace-3); border: 0; background: transparent; color: var(--texte); font-size: 15px; font-weight: 600; text-align: left; }
+.menu-case-liste button:disabled { color: var(--texte-3); }
+@media (hover: hover) { .menu-case-liste button:not(:disabled):hover { background: var(--surface-creuse); } }
+.phase-recopier { width: auto; align-self: flex-start; padding: 0 var(--espace-4); }
