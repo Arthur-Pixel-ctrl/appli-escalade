@@ -70,6 +70,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-11 | Bibliothèque sur ordinateur : banque d'exercices filtrable (qualité, terrain, durée, prérequis, preuve, groupe), étiquette « À la main seulement » | Fait |
 | E-09 | Moteur de vérification : point d'entrée unique (`src/regles/index.ts`), dédoublonnage, les 18 cas d'exemple vérifiés de bout en bout | Fait |
 | E-16 | Les 26 séances types et leurs 3 variantes passent le moteur sans avertissement, aux trois niveaux de détail | Fait |
+| G-01 | Banque d'exercices : tri commun (disponible, ou indisponible avec sa raison : à vérifier, test, prérequis, douleur, lieu) | Fait |
 
 ## Ouvrir l'app
 
