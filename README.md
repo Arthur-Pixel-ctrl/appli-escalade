@@ -69,6 +69,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | E-17 | Plafond de résistance en voie (W-20 : 1 par semaine en profil bloc, 2 en voie) et avertissements distincts par sujet | Fait |
 | D-11 | Bibliothèque sur ordinateur : banque d'exercices filtrable (qualité, terrain, durée, prérequis, preuve, groupe), étiquette « À la main seulement » | Fait |
 | E-09 | Moteur de vérification : point d'entrée unique (`src/regles/index.ts`), dédoublonnage, les 18 cas d'exemple vérifiés de bout en bout | Fait |
+| E-16 | Les 26 séances types et leurs 3 variantes passent le moteur sans avertissement, aux trois niveaux de détail | Fait |
 
 ## Ouvrir l'app
 
