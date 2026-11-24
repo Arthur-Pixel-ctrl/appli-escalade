@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { BandeSemaines } from '../../composants/BandeSemaines.tsx'
 import { Confirmation } from '../../composants/Confirmation.tsx'
@@ -26,12 +26,14 @@ interface Props {
   /** Change le niveau du cycle ; `effacerNiveauxPropres` remet aussi les séances au niveau du cycle. */
   onNiveau: (niveau: NiveauDetail, effacerNiveauxPropres: boolean) => void
   onNouveauCycle: () => void
+  /** Le sélecteur « 12 semaines / Phase / Semaine », tenu par Plan.tsx. */
+  selecteurVue: ReactNode
 }
 
 const TYPES_CHOISIS: SemainePlan['type'][] = ['charge', 'allegee', 'affutage']
 
 // Écran O-03 : la structure du cycle, en trois colonnes de phases.
-export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle }: Props) {
+export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, selecteurVue }: Props) {
   const [niveauDemande, setNiveauDemande] = useState<NiveauDetail | null>(null)
   const [validation, setValidation] = useState(false)
   const [phaseObjectifs, setPhaseObjectifs] = useState<PhaseCycle | null>(null)
@@ -40,7 +42,6 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
   const enregistrerLigne = useCallback((numero: number, el: HTMLElement | null) => {
     if (el) lignes.current.set(numero, el); else lignes.current.delete(numero)
   }, [])
-  const idNoteVues = useId()
 
   const position = semaineDuJour(cycle, aujourdhui)
   const plat = semainesAPlat(phases)
@@ -100,14 +101,7 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
         <p className="texte-3">Les séances se lancent depuis ton téléphone.</p>
       </header>
 
-      <div className="plan-selecteur pile">
-        <div className="choix trois" role="group" aria-label="Vue du plan" aria-describedby={idNoteVues}>
-          <button type="button" aria-pressed="true">12 semaines</button>
-          <button type="button" aria-pressed="false" disabled>Phase</button>
-          <button type="button" aria-pressed="false" disabled>Semaine</button>
-        </div>
-        <p className="texte-3" id={idNoteVues}>La vue Phase et la vue Semaine arrivent dans un prochain lot.</p>
-      </div>
+      <div className="plan-selecteur pile">{selecteurVue}</div>
 
       <BandeSemaines
         semaines={plat.map((s) => ({
