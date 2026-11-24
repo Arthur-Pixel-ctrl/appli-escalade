@@ -106,6 +106,7 @@ export function verifierJour(seanceDuJour: SeanceVerif, ctx: ContexteVerif, real
 }
 
 // ——— Réexports pour les écrans ———
+export * from './banque.ts'
 export * from './passerelles.ts'
 export * from './resumes.ts'
 export { REGLES_PAR_DEFAUT } from './reglesParDefaut.ts'
