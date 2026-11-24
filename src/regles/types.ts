@@ -73,6 +73,9 @@ export interface VersionVerif {
   niveau?: NiveauDetail
   // (consolidation 18/11) faux = étapes résumées (une par exercice principal) ; absent = vrai
   etapesDetaillees?: boolean
+  // (consolidation 24/11) solo avec étapes réelles : fiches des principaux des parties écrites, absentes des étapes ;
+  // exercices de la séance sans place dans l'ordre (niveaux-de-detail.md § 3.4) ; absent = aucun
+  principauxHorsEtapes?: string[]
 }
 
 export interface SeanceVerif {

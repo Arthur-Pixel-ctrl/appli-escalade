@@ -1,5 +1,6 @@
 // Vérifications de séance S-01 à S-09 : fiche connue, prérequis du profil, douleurs, contexte
 // (moteur-verification.md, B.5). Fonctions pures. Elles avertissent, elles ne bloquent jamais.
+// (consolidation 24/11) Un principal hors étapes est vérifié comme une étape, en portée séance (sujet = fiche, sans rang).
 import { COTATIONS_BLOC } from '../donnees/profil.ts'
 import { estDure, joursEntre, marqueursDe, zonesDouloureuses } from './base.ts'
 import { MARQUEURS_RISQUE_DOULEUR, NOMS_ZONES } from './reglesParDefaut.ts'
@@ -71,9 +72,14 @@ function verifierEtape(
   zones: string[],
   s: SeanceVerif,
   origine: 'utilisateur' | 'assistant',
-  cible: { version: 'solo' | 'groupe'; etapeIndex: number },
+  cible: { version: 'solo' | 'groupe'; etapeIndex: number } | { version: 'solo'; sujet: string },
 ): Avertissement[] {
-  const base = { portee: 'etape' as const, seanceId: s.id, version: cible.version, etapeIndex: cible.etapeIndex }
+  // Une étape : portée « etape » avec son rang. Un principal hors étapes : portée « seance », sans rang,
+  // avec l'identifiant de la fiche pour le distinguer (niveaux-de-detail.md § 3.4).
+  const base =
+    'etapeIndex' in cible
+      ? { portee: 'etape' as const, seanceId: s.id, version: cible.version, etapeIndex: cible.etapeIndex }
+      : { portee: 'seance' as const, seanceId: s.id, version: cible.version, sujet: cible.sujet }
   const alertes: Avertissement[] = []
   const { profil } = ctx
 
@@ -173,7 +179,7 @@ function verifierVersion(
   origine: 'utilisateur' | 'assistant',
 ): Avertissement[] {
   const zones = zonesDouloureuses(ctx, s.date)
-  return v.etapes.flatMap((etape: EtapeVerif, etapeIndex) => {
+  const alertesEtapes = v.etapes.flatMap((etape: EtapeVerif, etapeIndex) => {
     const fiche = ctx.fiches[etape.ficheId]
     // Une fiche inconnue ne produit que S-01 ; les autres vérifications l'ignorent.
     if (!fiche) {
@@ -192,6 +198,26 @@ function verifierVersion(
     }
     return verifierEtape(fiche, ctx, zones, s, origine, { version, etapeIndex })
   })
+  // Principaux hors étapes (solo seulement) : mêmes vérifications que pour une étape, S-01 si la fiche est inconnue.
+  const alertesPrincipaux = (v.principauxHorsEtapes ?? []).flatMap((ficheId) => {
+    const fiche = ctx.fiches[ficheId]
+    if (!fiche) {
+      return [
+        {
+          code: 'S-01',
+          niveau: 'fort' as const,
+          message: `Cet exercice n'existe pas dans ta bibliothèque (${ficheId}). Remplace-le ou supprime l'étape.`,
+          portee: 'seance' as const,
+          seanceId: s.id,
+          version,
+          sujet: ficheId,
+          source: SOURCE.S01,
+        },
+      ]
+    }
+    return verifierEtape(fiche, ctx, zones, s, origine, { version: 'solo', sujet: ficheId })
+  })
+  return [...alertesEtapes, ...alertesPrincipaux]
 }
 
 /** Applique S-01 à S-09 à la version solo, puis à la version groupe (étapes du mini-bloc). */

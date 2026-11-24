@@ -80,6 +80,14 @@ function etapesConnues(v: VersionVerif, fiches: Fiches): { etape: EtapeVerif; fi
   })
 }
 
+/** Les principaux hors étapes d'une version dont la fiche est connue, avec leur fiche (niveaux-de-detail.md § 3.4). */
+export function principauxHorsEtapesConnus(v: VersionVerif, fiches: Fiches): { ficheId: string; fiche: FicheVerif }[] {
+  return (v.principauxHorsEtapes ?? []).flatMap((ficheId) => {
+    const fiche = fiches[ficheId]
+    return fiche ? [{ ficheId, fiche }] : []
+  })
+}
+
 /** Version solo dont aucune étape n'a de fiche connue (étapes vides ou toutes inconnues). */
 export function sansContenuConnu(v: VersionVerif, fiches: Fiches): boolean {
   return etapesConnues(v, fiches).length === 0
@@ -92,6 +100,8 @@ export function sansContenuConnu(v: VersionVerif, fiches: Fiches): boolean {
 export function marqueursVersion(v: VersionVerif, fiches: Fiches): Marqueur[] {
   const marqueurs = new Set<Marqueur>()
   for (const { fiche } of etapesConnues(v, fiches)) marqueursDe(fiche).forEach((m) => marqueurs.add(m))
+  // Un principal hors étapes est un exercice de la séance : il compte pour les marqueurs, pas pour l'ordre.
+  for (const { fiche } of principauxHorsEtapesConnus(v, fiches)) marqueursDe(fiche).forEach((m) => marqueurs.add(m))
   for (const o of v.objectifs ?? []) o.marqueurs.forEach((m) => marqueurs.add(m))
   return [...marqueurs]
 }
@@ -154,6 +164,7 @@ export function chargeSemaine(lundi: Jour, seances: SeanceVerif[], fiches: Fiche
 /** Une séance sollicite les doigts si une étape connue ou un objectif de groupe les sollicite. */
 export function seanceSolliciteDoigts(s: SeanceVerif, fiches: Fiches): boolean {
   if (etapesConnues(s.solo, fiches).some(({ fiche }) => fiche.solliciteDoigts)) return true
+  if (principauxHorsEtapesConnus(s.solo, fiches).some(({ fiche }) => fiche.solliciteDoigts)) return true
   if (s.groupe?.objectifs && s.groupe.objectifs.length > 0) return true
   // Prudence : sans exercice connu, on suppose les doigts sollicités, sauf mobilité et antagonistes.
   return sansContenuConnu(s.solo, fiches) && s.qualite !== 'mobilite' && s.qualite !== 'antagonistes'

@@ -1,6 +1,11 @@
 // Tests d'intégration du moteur (moteur-verification.md, B.11) : chaque cas passe par les points d'entrée de index.ts.
 import { describe, expect, it } from 'vitest'
+import { protocoleParId } from '../donnees/bibliotheque/index.ts'
+import type { PartieSeance, SeancePlanifiee } from '../donnees/modele.ts'
+import { EXEMPLE_SEANCE_PLANIFIEE } from '../donnees/exemplesV2.ts'
+import { fichesDeLaBibliotheque } from './adaptateur.ts'
 import { contexteDeReference, PROFIL_DE_REFERENCE, seanceSolo } from './exemples.ts'
+import { etapeDepuisProtocole, formeAffichage, seanceVersVerif } from './passerelles.ts'
 import {
   cleAvertissement,
   verifierJour,
@@ -431,5 +436,84 @@ describe('dédoublonnage et tri', () => {
     ]
     const alertes = verifierPlan(plan([semaine(L1)], s), contexteDeReference())
     expect(seulement(alertes, 'W-01')).toHaveLength(1)
+  })
+})
+
+describe('B.11 : cas 19, principal hors étapes (consolidation 24/11)', () => {
+  const P = 'doigts-suspensions-max-lestees'
+  const fiches = fichesDeLaBibliotheque()
+
+  /** La séance du mercredi 25 : étapes réelles, grandes lignes avec P en principal, passée par la passerelle. */
+  function seanceDu25(surcharge: Partial<SeancePlanifiee> = {}, parties: PartieSeance[] | null = [
+    { titre: 'Échauffement', dureeMin: 30 },
+    { titre: 'Effort principal', dureeMin: 40, principal: { source: 'bibliotheque', refId: P } },
+  ]): SeanceVerif {
+    const etape = (id: string) => etapeDepuisProtocole(protocoleParId(id)!, id)
+    const planifiee: SeancePlanifiee = {
+      ...EXEMPLE_SEANCE_PLANIFIEE,
+      id: 'tp', date: '2026-11-25', qualite: 'traction_gainage', groupe: null, niveauDetail: undefined,
+      solo: {
+        nom: 'Tractions et poutre', durete: 'dure',
+        etapes: [etape('echauffement-general'), etape('traction-simple-4x5')],
+        ...(parties ? { parties } : {}), // null = parties effacées
+      },
+      ...surcharge,
+    }
+    return seanceVersVerif(planifiee, fiches)
+  }
+  const semaineDu = (s: SeanceVerif, ctx: ContexteVerif = contexteDeReference()) => {
+    const [doi, , end] = semaineConforme()
+    return toutVerifier([doi, s, end], ctx)
+  }
+  const MESSAGE_S27 =
+    "« Suspensions max lestées (López) » est dans les grandes lignes de « Tractions et poutre », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes."
+
+  it('la vue : principauxHorsEtapes et deux étapes réelles', () => {
+    const s = seanceDu25()
+    expect(s.solo.principauxHorsEtapes).toEqual([P])
+    expect(s.solo.etapes.map((e) => e.ficheId)).toEqual(['echauffement-general', 'traction-simple-4x5'])
+  })
+
+  it('cas 19 : S-03 fort, S-27 information, W-01 fort, tous sur la séance du 25, rien d\'autre', () => {
+    const alertes = semaineDu(seanceDu25())
+    expect(codes(alertes).sort()).toEqual(['S-03', 'S-27', 'W-01'])
+    expect(alertes.every((a) => a.seanceId === 'tp')).toBe(true)
+    const s03 = seulement(alertes, 'S-03')[0]
+    expect(s03).toMatchObject({ niveau: 'fort', portee: 'seance', version: 'solo', sujet: P })
+    expect(s03).not.toHaveProperty('etapeIndex')
+    expect(s03.message).toBe(
+      "« Suspensions max lestées (López) » demande : une expérience de poutre régulière. Choisis une fiche plus accessible, ou complète ton profil si c'est déjà le cas.",
+    )
+    const s27 = seulement(alertes, 'S-27')[0]
+    expect(s27).toMatchObject({ niveau: 'information', portee: 'seance', version: 'solo', sujet: P })
+    expect(s27).not.toHaveProperty('etapeIndex')
+    expect(s27.message).toBe(MESSAGE_S27)
+    expect(seulement(alertes, 'W-01')[0].niveau).toBe('fort')
+  })
+
+  it('cas 19 (a) : niveau grandes lignes, les mêmes trois avertissements', () => {
+    const alertes = semaineDu(seanceDu25({ niveauDetail: 'grandes_lignes' }))
+    expect(codes(alertes).sort()).toEqual(['S-03', 'S-27', 'W-01'])
+  })
+
+  it('cas 19 (b) : douleur aux doigts, verifierJour rend S-04 fort (même cible), forme « arret »', () => {
+    const ctx = contexteDeReference({ aujourdhui: '2026-11-25', profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['doigts'] } })
+    const s = seanceDu25()
+    const s04 = seulement(verifierJour(s, ctx, []), 'S-04')
+    expect(s04).toHaveLength(1)
+    expect(s04[0]).toMatchObject({ niveau: 'fort', portee: 'seance', version: 'solo', sujet: P })
+    expect(s04[0]).not.toHaveProperty('etapeIndex')
+    expect(formeAffichage(s04[0])).toBe('arret')
+    expect(codes(verifierJour(s, ctx, [])).filter((c) => c === 'S-27' || c === 'S-03')).toEqual([])
+  })
+
+  it('cas 19 (c) : parties effacées, champ absent et plus aucun avertissement', () => {
+    const s = seanceDu25({}, null)
+    expect(s.solo).not.toHaveProperty('principauxHorsEtapes')
+    expect(semaineDu(s)).toEqual([])
+  })
+
+  it('les 18 premiers cas restent identiques : le cas 1 est vide', () => {
+    expect(toutVerifier(semaineConforme())).toEqual([])
   })
 })
