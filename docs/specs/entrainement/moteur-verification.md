@@ -10,6 +10,8 @@ Principe : **avertir, jamais bloquer** [PLAN], [MOD], CLAUDE.md.
 
 > **(consolidation 23/11, décision F7)** Une version solo **dure** sans aucune fiche connue est une **séance dure ordinaire**, pas un effort maximal : `marqueursVersion` ne lui ajoute plus le marqueur `maximale` (la prudence du 18/11 est retirée). Ce que fait chaque règle pour cette séance : fin de B.2. S-26 reste une information, reformulée ; cas 14 et 15 de B.11 mis à jour.
 
+> **(consolidation 23/11, décision F2 point 13, et unicité)** Deux trous signalés par les développeurs. (1) **W-20**, nouvelle vérification de semaine : au plus 1 séance de résistance en voie par semaine tant que le profil est « bloc », 2 en voie (décision F2 d'Arthur, point 13 de `docs/recherche-b21/audit.md` ; constat I-8 de cet audit). Le marqueur `resistance_voie` entre dans B.1 ; la constante `RESISTANCE_VOIE_PAR_SEMAINE` dans B.2. (2) **Unicité** (B.3) : l'`Avertissement` gagne un champ `sujet`, rempli par les vérifications qui émettent plusieurs alertes du même code pour la même cible (S-22, W-05, W-18, P-11, P-12) ; sans lui, le dédoublonnage en supprimait. Cas 17 et 18 en B.11. Tâche de code : E-17 (`docs/backlog-v2.md`).
+
 Sources : mêmes codes que `regles-planification.md` (`[SYN]`, `[VER n]`, `[AUD x]`, `[PLAN]`, `[MOD]`, `[CDC]`).
 
 ---
@@ -24,6 +26,7 @@ type Qualite = 'doigts' | 'traction_gainage' | 'puissance' | 'resistance' | 'end
   | 'technique' | 'mental' | 'antagonistes' | 'mobilite' | 'echauffement' // = Qualite de la bibliothèque
 type Marqueur = 'maximale' | 'poutre_intensive' | 'bloc_limite' | 'pan_gullich' | 'arque'
   | 'bidoigts' | 'poutre' | 'trou' | 'pan' // = Marqueur de la bibliothèque
+  | 'resistance_voie'                   // (consolidation 23/11) résistance en voie : compté par W-20 ; déjà dans le type de la bibliothèque
 type ZoneDouleur = 'doigts' | 'poignet' | 'coude' | 'epaule' | 'genou' | 'dos' | 'autre'
 
 /** Ce que le moteur sait du grimpeur. null = pas encore renseigné (compte comme « non rempli »). */
@@ -185,6 +188,7 @@ interface Regles {
 | `MARQUEURS_NERVEUX` | `['maximale', 'poutre_intensive', 'bloc_limite', 'pan_gullich']` | [CDC] |
 | `MARQUEURS_QUOTA` | `['maximale', 'poutre_intensive', 'bloc_limite', 'pan_gullich', 'poutre']` | [CDC] |
 | `MARQUEURS_RISQUE_DOULEUR` | `['maximale', 'arque', 'pan_gullich', 'trou', 'pan']` | [SYN] (pendant une douleur : pas d'arqué, de pan, de trous ni d'effort maximal) |
+| `RESISTANCE_VOIE_PAR_SEMAINE` (consolidation 23/11) | `{ bloc: 1, voie: 2 }`, lu avec `profil.disciplinePrincipale` (W-20). **Constante** de `reglesParDefaut.ts`, pas un champ de `Regles` : la valeur dépend du profil (un champ de `Regles` est un seul nombre), personne ne la règle à l'écran (D-20 ne montre que la semaine allégée), et c'est une décision, comme `EFFORT_PREVU_PAR_DEFAUT`. `MARQUEURS_QUOTA` ne change pas : y mettre `resistance_voie` changerait W-05, S-21 et P-11 sans décision | Décision F2 d'Arthur, point 13 ; audit B21, I-8 (Lattice [VER 4] : 2 au plus) |
 | `marqueursDe(f)` | `f.marqueurs ?? []` | — |
 | `estNerveuse(f)` | `marqueursDe(f) ∩ MARQUEURS_NERVEUX ≠ ∅` | [CDC] |
 | `dureeEtape(e, f)` | `e.reglages?.dureeMin ?? f.dureeMin` | — |
@@ -241,12 +245,24 @@ interface Avertissement {
   etapeIndex?: number
   lundi?: Jour
   mesocycleOrdre?: number
+  sujet?: string                       // (consolidation 23/11) ce que vise l'alerte quand une vérification en émet plusieurs pour la même cible (tableau ci-dessous)
   source: string                       // texte court affichable : « Hörst, López (synthèse) »
 }
 ```
 
 - Tri : `fort` avant `information`, puis par date, puis par code.
-- Pas de doublon : un même `code` pour la même cible (`seanceId`, `version`, `etapeIndex`, `lundi`, `mesocycleOrdre`) n'apparaît qu'une fois.
+- Pas de doublon : un même `code` pour la même cible (`seanceId`, `version`, `etapeIndex`, `lundi`, `mesocycleOrdre`, `sujet`) n'apparaît qu'une fois. (consolidation 23/11) `sujet` s'ajoute à la cible : sans lui, deux objectifs oubliés la même semaine donnaient deux W-18 de même cible, et le dédoublonnage en gardait un seul. Seules ces vérifications le remplissent :
+
+| Code | Plusieurs alertes pour la même cible | `sujet` |
+|---|---|---|
+| S-22 | une par objectif de groupe sans plafond, même version | rang de l'objectif dans `objectifs`, en texte (`'0'`, `'1'`, `'2'`) : l'objectif de groupe n'a pas d'identifiant |
+| W-05 | une par fiche au-delà de son plafond, même semaine | `f.id` |
+| W-18 | une par objectif spécifique du bloc, même semaine | identifiant de l'objectif (`o.id`) |
+| P-11 | une par paire d'objectifs, même phase | `idA + '+' + idB`, dans l'ordre de `objectifsPersoIds` |
+| P-12 | une par objectif, même phase | identifiant de l'objectif |
+
+Les autres vérifications émettent au plus une alerte par cible, déjà distinguée par ses champs (vérifié sur le code livré le 24/11) : par étape, avec `etapeIndex` (S-01 à S-04, S-06 à S-13, S-15, S-18, S-19, S-24, S-25, W-11) ; par version ou par séance (S-05, S-14, S-16, S-17, S-20, S-21, S-23, S-26, W-01, W-17, W-19, P-08) ; par semaine (W-02 à W-04, W-06 à W-10, W-12 à W-16, W-20) ; par phase ou suite de semaines (P-02 à P-04, P-06, P-09, P-10) ; une fois par plan ou par jour (P-01, P-05, P-07, P-13 à P-15, J-01 à J-07 ; J-05 cite la plus ancienne douleur). Une vérification future qui émet plusieurs alertes pour la même cible remplit `sujet`.
+- (consolidation 23/11) La clé « Je garde ce choix » (`cleAvertissement`, C-01) ajoute `|{sujet}` à la fin, **seulement s'il est présent** : les clés sans `sujet` ne changent pas, et garder le W-18 d'un objectif ne replie pas celui d'un autre.
 - Les étapes dont la fiche est inconnue ne déclenchent que `S-01` ; les autres vérifications les ignorent.
 - Les deux niveaux : **information** (« à savoir, c'est peut-être voulu ») et **fort** (« risque pour ton corps ou plan incohérent : change-le, sauf raison précise »). Aucun des deux n'empêche d'enregistrer.
 
@@ -256,7 +272,7 @@ interface Avertissement {
 verifierSeance(s: SeanceVerif, ctx: ContexteVerif, origine?: 'utilisateur' | 'assistant'): Avertissement[]
   // S-01 à S-25 sur chaque version présente
 verifierSemaine(lundi: Jour, plan: PlanVerif, ctx: ContexteVerif): Avertissement[]
-  // W-02 à W-19 sur cette semaine (W-01 se calcule sur toute la frise, voir plus bas)
+  // W-02 à W-20 sur cette semaine (W-01 se calcule sur toute la frise, voir plus bas ; W-20 : consolidation 23/11)
 verifierPlan(plan: PlanVerif, ctx: ContexteVerif): Avertissement[]
   // toutes les séances, W-01 sur toute la frise, toutes les semaines, P-01 à P-14
 verifierJour(seanceDuJour: SeanceVerif, ctx: ContexteVerif, realisees: SeanceVerif[]): Avertissement[]
@@ -325,6 +341,17 @@ Chaque vérification s'applique à **chaque version** présente (`solo`, puis `g
 | **W-17** Antagonistes un jour sans grimpe | Séance qui contient une étape `antagonistes` et dont aucune étape n'a `solliciteDoigts` | information | Fais les antagonistes après une séance de grimpe, pas un jour de repos. | [VER 5] |
 | **W-18** Module d'objectif spécifique oublié ou trop fréquent | Semaine `charge` ; pour chaque objectif `o` du bloc : `n` = nb d'étapes avec `moduleObjectifId === o.id` ; `n = 0` ou `n > 2` | information | Le module « {nom} » est prévu {n} fois cette semaine : 1 à 2 fois par semaine. | [PLAN], [MOD] |
 | **W-19** Suspensions légères trop proches d'une autre séance | Une étape `doigts-abrahangs` dans une séance qui a d'autres étapes de grimpe ou de poutre, ou une séance contenant `doigts-abrahangs` le même jour qu'une autre séance | information | Laisse au moins 6 h entre les suspensions légères pieds au sol et toute autre séance. | [SYN] (Gilmore et al.), fiche `doigts-abrahangs` |
+| **W-20** Résistance en voie au-delà du plafond (consolidation 23/11) | `max = RESISTANCE_VOIE_PAR_SEMAINE[profil.disciplinePrincipale]` ; `n` = nb séances de la semaine avec `'resistance_voie' ∈ marqueursSeance(s)` ; `n > max`. Une alerte par semaine, portée semaine, avec `lundi` et sans `mesocycleOrdre` (comme W-02 à W-08) | fort | Profil bloc : {n} séances de résistance en voie cette semaine : 1 au plus avec un profil « bloc ». Garde-en une et fais le reste en bloc, ou change ton profil si ton objectif devient la voie. — Profil voie : {n} séances de résistance en voie cette semaine : 2 au plus. Remplace la dernière par de l'endurance ou de la technique. | Décision F2 d'Arthur, point 13 ; audit B21, I-8 (Lattice [VER 4] : 2 séances par semaine au plus ; Barrows : 1,5 à 2) |
+
+**W-20 : précisions** (consolidation 23/11)
+- **Ce qui compte.** Les séances qui portent le marqueur `resistance_voie` (aujourd'hui `resistance-capacity-power`, `resistance-voies-repetees`, `resistance-circuits-30-mouvements`). Une séance compte une fois, même avec deux fiches de résistance en voie. La résistance en bloc ou sur poutre n'est pas comptée : la décision vise la voie, et W-13 et W-14 demandent de la résistance chaque semaine.
+- **Séance prévue.** `marqueursSeance` porte les marqueurs de ses deux versions, par prudence (comme W-03 et W-04) : une séance dont seule la version groupe contient de la résistance en voie compte.
+- **Séance réalisée.** Seuls `realisee.marqueurs` comptent : la version faite. Une séance réalisée hors plan compte aussi (C-01 la met dans `plan.seances`) ; une séance sautée n'y est pas. Une séance prévue puis faite est une seule `SeanceVerif` : rien n'est compté deux fois.
+- **Semaine à cheval sur deux phases.** On compte par semaine du calendrier (`lundiDe(s.date) === lundi`), comme W-02 à W-08, quels que soient la phase, le type de semaine (charge, allégée, affûtage, transition) et l'accent. L'alerte porte `lundi` sans `mesocycleOrdre` : elle sort une seule fois. Une phase d'accent `resistance` ne relève pas le plafond.
+- **Profil.** Seul `disciplinePrincipale` compte, au moment de la vérification, pour toutes les semaines du plan (le profil n'a pas d'historique). Les lieux ne changent pas le plafond : ils décident seulement si la fiche est proposée (G-01), et S-09 signale déjà une fiche en voie à un bloqueur.
+- **Assureur.** « Toujours avec un assureur » est déjà couvert : les trois fiches ont `contexte.partenaire` (S-08, information, test de `bibliotheque.test.ts`). W-20 ne le répète pas.
+- **Avec W-05.** La même fiche deux fois dans la semaine donne aussi W-05, en information (`resistance_voie` n'est pas dans `MARQUEURS_QUOTA`) : c'est voulu, l'une parle de la fiche, l'autre du total.
+- **Pourquoi fort.** C'est un quota « au plus », comme W-02 à W-04, posé par Arthur ; et le test du générateur « aucun avertissement fort » (G-03) le fera respecter quand des séances types de résistance en voie entreront au catalogue.
 
 ## B.7 Vérifications du plan (P)
 
@@ -381,13 +408,13 @@ Appliqués **avant** le moteur, par le validateur de réponses (voir `assistant-
 | Groupe | Nombre | Codes |
 |---|---|---|
 | Séance | 26 | S-01 à S-26 (S-26 : consolidation 18/11) |
-| Semaine | 19 | W-01 à W-19 |
+| Semaine | 20 | W-01 à W-20 (W-20 : consolidation 23/11) |
 | Plan | 15 | P-01 à P-15 (P-15 : consolidation 18/11) |
 | Jour | 7 | J-01 à J-07 |
 | Brouillon de l'assistant | 7 | A-01 à A-07 |
-| **Total** | **74** | dont 67 dans le moteur (S, W, P, J) et 7 dans le validateur de l'assistant |
+| **Total** | **75** | dont 68 dans le moteur (S, W, P, J) et 7 dans le validateur de l'assistant |
 
-Niveau fort : S-01, S-02 (assistant), S-03 à S-07, S-10, S-12, S-13, S-15, S-18, W-01 à W-04, W-05 (fiches à quota), W-06, W-08, W-10 (oubliée), P-02, P-12, J-04, J-05.
+Niveau fort : S-01, S-02 (assistant), S-03 à S-07, S-10, S-12, S-13, S-15, S-18, W-01 à W-04, W-05 (fiches à quota), W-06, W-08, W-10 (oubliée), W-20, P-02, P-12, J-04, J-05.
 
 ## B.11 Cas chiffrés de référence
 
@@ -412,3 +439,11 @@ Ces cas servent de tests d'intégration (tâche E-07). Profil par défaut : bloc
 14. **Séance dure sans contenu** (attendu mis à jour : consolidation 23/11, F7) : le cas 1, mais la séance du jeudi 26 est remplacée par une séance le mercredi 25 : qualité `traction_gainage`, version solo dure, `etapes: []`, `dureeMin: 90`, sans version groupe. Attendu : `S-26` information sur la séance du 25, et rien d'autre. Pas de `W-01` : c'est une séance dure ordinaire, pas maximale. Pas de `W-13` : elle entretient sa qualité dominante. Pas de `W-06` : 3 jours de doigts (le 25 compris, par prudence). Pas de `W-08` : 2 séances dures pour 3 au plus.
 15. **Même séance avec un exercice principal** : la séance du 25 a une étape résumée `traction-simple-4x5` (`etapesDetaillees: false`, `dureeMin: 90`). Attendu : ni `W-01` ni `S-26` ; `S-10` muet (l'ordre n'est pas connu). (consolidation 23/11, F7) Variante : même forme, avec `traction-lestee-force-lattice` (marqueur `maximale`) comme exercice principal. Attendu : `W-01` fort sur la séance du 25 (deux séances maximales de suite, le 24 et le 25) ; `S-26` et `S-10` muets. C'est ce que propose S-26 : choisir l'exercice principal pour que la règle des 48 h le compte.
 16. **Repos raccourci selon le niveau** : le cas 10 (`doigts-suspensions-max-lestees`, `reglages.reposS: 120`) avec `niveau: 'grandes_lignes'`. Attendu : `S-15` muet. Avec `niveau: 'detaille'` : `S-15` fort.
+
+**Cas ajoutés (consolidation 23/11, W-20 et unicité)**
+
+17. **Résistance en voie** (W-20) : profil par défaut (bloc). Semaine `charge` du lundi 2026-11-23 : mardi 24 une séance de qualité `resistance` avec `resistance-voies-repetees`, jeudi 26 une autre avec `resistance-circuits-30-mouvements` (dures, sans version groupe). Attendu, avec `verifierSemaine` (on ne regarde ici que W-05 et W-20) : `W-20` fort, message « 2 séances de résistance en voie cette semaine : 1 au plus avec un profil « bloc ». Garde-en une et fais le reste en bloc, ou change ton profil si ton objectif devient la voie. » ; `W-05` muet (chaque fiche une fois). Variantes :
+    - (a) `disciplinePrincipale: 'voie'` → `W-20` muet. Plus une séance `resistance-capacity-power` le samedi 28 → `W-20` fort, message « 3 séances de résistance en voie cette semaine : 2 au plus. Remplace la dernière par de l'endurance ou de la technique. »
+    - (b) Profil bloc ; la séance du 26 a une version solo `resistance-boulder-triples` (sans marqueur) et le circuit seulement dans le mini-bloc de sa version groupe. Prévue → `W-20` fort (une séance prévue compte ses deux versions). Réalisée en solo, `realisee.marqueurs: []` → `W-20` muet (seule la version faite compte).
+    - (c) Profil bloc ; les deux séances le dimanche 29 et le lundi 30 : deux semaines du calendrier, même si le 30 ouvre une autre phase → `W-20` muet.
+18. **Deux alertes du même code pour la même cible** (unicité, B.3) : le cas 1, avec deux objectifs spécifiques `o1` et `o2` sur la phase 1 et aucun module dans la semaine. Attendu, avec `verifierSemaine` : **deux** `W-18` information, `sujet` `'o1'` et `'o2'`, chacun avec le nom de son objectif ; les deux restent après le dédoublonnage, et leurs `cleAvertissement` diffèrent. Variante, sans objectifs : `antagonistes-legers` du samedi remplacée par `antagonistes-lattice`, et `mobilite-grand-ecart-lattice` ajoutée en fin des trois séances → **deux** `W-05` information (3 fois pour un plafond de 2), `sujet` `'antagonistes-lattice'` et `'mobilite-grand-ecart-lattice'`.
