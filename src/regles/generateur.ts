@@ -12,6 +12,8 @@ import { marqueursSeanceType, seanceTypeParId, type SeanceType } from '../donnee
 import { allegerSeance } from './allegement.ts'
 import { ajouterJours, lundiDe, zonesDouloureuses } from './base.ts'
 import { seancesTypesDisponibles, trierFiches } from './banque.ts'
+// verifierPlan est défini dans index.ts, qui réexporte aussi ce fichier : cet import circulaire est sans risque,
+// car verifierPlan n'est appelée qu'à l'exécution de genererCycle, jamais au chargement des modules.
 import { verifierPlan } from './index.ts'
 import { contexteVerif, planVersVerif, seanceDepuisType } from './passerelles.ts'
 import { RESISTANCE_VOIE_PAR_SEMAINE } from './reglesParDefaut.ts'
