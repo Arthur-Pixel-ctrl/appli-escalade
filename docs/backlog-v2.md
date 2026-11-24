@@ -595,6 +595,8 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 > 3. Titre « Semaine 6 sur 12 », mention « Phase 2 · puissance » (R-2) ; cycle terminé par `cycleTermine` (F2-12).
 > 4. (consolidation 18/11) La fiche « Prochaine séance » suit le niveau affiché (`niveauAffiche`, N-01 ; `partiesAffichees`, `recommandationAffichee`, C-01) : étapes, parties ou recommandation. Toujours aucun bouton de lancement (R-6).
 
+> (livraison D-11, 24/11) Au rechargement de la page sur ordinateur, l'app revient au Tableau de bord ; les filtres de la bibliothèque restent dans l'adresse. Garder la rubrique ouverte au rechargement (état de rubrique dans l'adresse) : à faire ici, puisque D-19 modifie `MiseEnPageBureau.tsx`.
+
 #### D-26 · Fiche de séance aux trois niveaux — vague 3.11 (consolidation 18/11)
 - **Modèle** : Sonnet · **Dépend de** : D-18, N-01, C-01, G-01 · **Texte** : [plus bas](#d-26-texte-complet)
 - **Fichiers** : modifier `src/composants/FicheSeance.tsx`, `src/index.css` ; créer `src/composants/EditeurResume.tsx` (simple et grandes lignes).
