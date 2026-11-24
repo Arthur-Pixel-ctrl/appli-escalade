@@ -12,6 +12,8 @@ Principe : **avertir, jamais bloquer** [PLAN], [MOD], CLAUDE.md.
 
 > **(consolidation 23/11, décision F2 point 13, et unicité)** Deux trous signalés par les développeurs. (1) **W-20**, nouvelle vérification de semaine : au plus 1 séance de résistance en voie par semaine tant que le profil est « bloc », 2 en voie (décision F2 d'Arthur, point 13 de `docs/recherche-b21/audit.md` ; constat I-8 de cet audit). Le marqueur `resistance_voie` entre dans B.1 ; la constante `RESISTANCE_VOIE_PAR_SEMAINE` dans B.2. (2) **Unicité** (B.3) : l'`Avertissement` gagne un champ `sujet`, rempli par les vérifications qui émettent plusieurs alertes du même code pour la même cible (S-22, W-05, W-18, P-11, P-12) ; sans lui, le dédoublonnage en supprimait. Cas 17 et 18 en B.11. Tâche de code : E-17 (`docs/backlog-v2.md`).
 
+> **(consolidation 24/11)** Point signalé par les développeurs de C-01 et E-09 : une séance qui a des étapes **et** des parties écrites, dont un exercice principal manque dans les étapes. Le moteur ne le voyait pas avant la séance (ni prérequis, ni douleurs, ni 48 h). Règle (`docs/specs/niveaux-de-detail.md` § 3.4) : ce « principal hors étapes » est un exercice de la séance, sans place dans l'ordre. Nouveau champ `VersionVerif.principauxHorsEtapes` (B.1) ; il entre dans `marqueursVersion` et `seanceSolliciteDoigts` (B.2), dans W-05 (B.6) et dans les vérifications de fiche (B.5) ; jamais dans les contrôles d'ordre, de repos ni de durée. Nouvelle information **S-27**, cas 19 en B.11. Tâche de code : E-18.
+
 Sources : mêmes codes que `regles-planification.md` (`[SYN]`, `[VER n]`, `[AUD x]`, `[PLAN]`, `[MOD]`, `[CDC]`).
 
 ---
@@ -85,6 +87,8 @@ interface VersionVerif {
   dureeMin?: number                    // groupe : durée annoncée ; solo : présente seulement sans étapes réelles (somme des parties, consolidation 18/11)
   niveau?: 'simple' | 'grandes_lignes' | 'detaille' // (consolidation 18/11) niveau affiché ; absent = détaillé
   etapesDetaillees?: boolean           // (consolidation 18/11) faux = étapes résumées (une par exercice principal) ; absent = vrai
+  principauxHorsEtapes?: string[]      // (consolidation 24/11) solo avec étapes réelles : fiches des principaux des parties écrites, absentes des étapes ;
+                                       // exercices de la séance sans place dans l'ordre (niveaux-de-detail.md § 3.4) ; absent = aucun
 }
 
 interface SeanceVerif {
@@ -193,20 +197,20 @@ interface Regles {
 | `estNerveuse(f)` | `marqueursDe(f) ∩ MARQUEURS_NERVEUX ≠ ∅` | [CDC] |
 | `dureeEtape(e, f)` | `e.reglages?.dureeMin ?? f.dureeMin` | — |
 | `estCongestionnante(e, f)` | `f.qualite === 'resistance' OU (f.qualite === 'endurance' ET dureeEtape(e, f) ≥ 20)` | [SYN] (« résistance congestionnante », « gros volume ») ; 20 min : [CDC] |
-| `marqueursVersion(v)` | union des `marqueursDe(f)` des étapes connues ∪ union des `o.marqueurs` des objectifs. (consolidation 23/11, F7) Rien de plus : une version `sansContenuConnu` n'a aucun marqueur, même dure (séance dure ordinaire) | [CDC] ; décision F7 d'Arthur |
+| `marqueursVersion(v)` | union des `marqueursDe(f)` des étapes connues ∪ (consolidation 24/11) des `v.principauxHorsEtapes` connus ∪ union des `o.marqueurs` des objectifs. (consolidation 23/11, F7) Rien de plus : une version `sansContenuConnu` n'a aucun marqueur, même dure (séance dure ordinaire) | [CDC] ; décision F7 d'Arthur ; principaux : `niveaux-de-detail.md` § 3.4 |
 | `marqueursSeance(s)` | `s.realisee ? s.realisee.marqueurs : marqueursVersion(s.solo) ∪ (s.groupe ? marqueursVersion(s.groupe) : ∅)` — une séance prévue porte les marqueurs de ses deux versions, par prudence | [CDC] |
 | `estMaximale(s)` | `'maximale' ∈ marqueursSeance(s)` | [SYN] |
 | `estPoutreIntensive(s)` | `'poutre_intensive' ∈ marqueursSeance(s)` | [SYN] |
 | `estDure(s)` | `s.solo.durete === 'dure' OU s.groupe?.durete === 'dure' OU estMaximale(s)` | [CDC] |
 | `dureeVersion(v)` | `v.dureeMin ?? Σ dureeEtape(e, f)` sur les étapes connues (groupe : durée annoncée ; solo : `dureeMin` n'est posée que sans étapes réelles, consolidation 18/11) | — |
-| `sansContenuConnu(v)` (consolidation 18/11) | version **solo** dont aucune étape n'a de fiche connue (`etapes` vide ou toutes inconnues) | — |
+| `sansContenuConnu(v)` (consolidation 18/11) | version **solo** dont aucune étape n'a de fiche connue (`etapes` vide ou toutes inconnues). (consolidation 24/11) Ne lit pas `principauxHorsEtapes`, comme `dureeVersion` et `chargePrevue` : étapes seulement | — |
 | `effortPrevu(v)` | `v.effortPrevu ?? (v.durete === 'dure' ? 7 : 4)` | **[CDC]** : 7 et 4 sont des valeurs par défaut prudentes, décidées par Arthur le 17/11 (B17) |
 | `chargePrevue(s)` | `s.realisee ? s.realisee.effortPercu × s.realisee.dureeMin : max(effortPrevu(solo) × dureeVersion(solo), effortPrevu(groupe) × dureeVersion(groupe))` | [SYN], [MOD] (`chargeSeance = effort perçu × minutes`) |
 | `chargeSemaine(lundi)` | `Σ chargePrevue(s)` des séances du lundi au dimanche | [MOD] |
 | `lundiDe(jour)` | lundi de la semaine (déjà dans `src/donnees/debrief.ts`) | — |
 | `joursEntre(a, b)` | nombre de jours calendaires de `a` à `b` (b − a) | — |
 | `solliciteDoigts(f)` | faux pour les identifiants de la liste ci-dessous et pour toute fiche de qualité `antagonistes` ou `mobilite` ; vrai sinon. Exercice perso : vrai si `contexte.terrain` vaut `bloc`, `voie`, `pan` ou `poutre`, faux sinon | [VER 9] (Hörst : jours de grimpe et de poutre) ; liste : [CDC] |
-| `seanceSolliciteDoigts(s)` | une étape au moins avec `solliciteDoigts`, ou une version groupe avec au moins un objectif, ou (consolidation 18/11) `sansContenuConnu(s.solo)` ET `s.qualite ∉ {mobilite, antagonistes}` (prudence, gardée le 23/11 : elle ne dépend pas du marqueur `maximale`) | [CDC] |
+| `seanceSolliciteDoigts(s)` | une étape au moins avec `solliciteDoigts` (consolidation 24/11 : ou un principal hors étapes connu qui a `solliciteDoigts`), ou une version groupe avec au moins un objectif, ou (consolidation 18/11) `sansContenuConnu(s.solo)` ET `s.qualite ∉ {mobilite, antagonistes}` (prudence, gardée le 23/11 : elle ne dépend pas du marqueur `maximale`) | [CDC] |
 | `reposEntreEffortsS(f)` (adaptateur) | forme `essais` : `reposS` ; chrono `repetition_unique` : `reposSeriesS` ; chrono `intermittent` : `reposRepetitionsS` si `repetitions > 1`, sinon `reposSeriesS` ; chrono `depart_minute` : `creneauS − effortS` ; `echelle` et `liste` : non défini | — |
 | `zonesDouloureuses(ctx, jour)` | `profil.douleursEnCours` ∪ zones des `douleurs` ouvertes (`resolueLe` absent ou postérieur à `jour`) et déclarées avant ou le `jour` | [MOD] |
 | `itemsRouges(forme)` | nombre de valeurs ≤ 2 parmi sommeil, fatigue, courbatures, douleur, peau | [MOD] |
@@ -260,8 +264,9 @@ interface Avertissement {
 | W-18 | une par objectif spécifique du bloc, même semaine | identifiant de l'objectif (`o.id`) |
 | P-11 | une par paire d'objectifs, même phase | `idA + '+' + idB`, dans l'ordre de `objectifsPersoIds` |
 | P-12 | une par objectif, même phase | identifiant de l'objectif |
+| S-01 à S-04, S-06 à S-09, S-18, S-19, S-27 (consolidation 24/11) | une par principal hors étapes, même séance (portée `seance`, version `solo`, sans `etapeIndex`) | identifiant de la fiche (`ficheId`) |
 
-Les autres vérifications émettent au plus une alerte par cible, déjà distinguée par ses champs (vérifié sur le code livré le 24/11) : par étape, avec `etapeIndex` (S-01 à S-04, S-06 à S-13, S-15, S-18, S-19, S-24, S-25, W-11) ; par version ou par séance (S-05, S-14, S-16, S-17, S-20, S-21, S-23, S-26, W-01, W-17, W-19, P-08) ; par semaine (W-02 à W-04, W-06 à W-10, W-12 à W-16, W-20) ; par phase ou suite de semaines (P-02 à P-04, P-06, P-09, P-10) ; une fois par plan ou par jour (P-01, P-05, P-07, P-13 à P-15, J-01 à J-07 ; J-05 cite la plus ancienne douleur). Une vérification future qui émet plusieurs alertes pour la même cible remplit `sujet`.
+Les autres vérifications émettent au plus une alerte par cible, déjà distinguée par ses champs (vérifié sur le code livré le 24/11) : par étape, avec `etapeIndex` (S-01 à S-04, S-06 à S-13, S-15, S-18, S-19, S-24, S-25, W-11 ; consolidation 24/11 : sauf sur un principal hors étapes, ligne ci-dessus) ; par version ou par séance (S-05, S-14, S-16, S-17, S-20, S-21, S-23, S-26, W-01, W-17, W-19, P-08) ; par semaine (W-02 à W-04, W-06 à W-10, W-12 à W-16, W-20) ; par phase ou suite de semaines (P-02 à P-04, P-06, P-09, P-10) ; une fois par plan ou par jour (P-01, P-05, P-07, P-13 à P-15, J-01 à J-07 ; J-05 cite la plus ancienne douleur). Une vérification future qui émet plusieurs alertes pour la même cible remplit `sujet`.
 - (consolidation 23/11) La clé « Je garde ce choix » (`cleAvertissement`, C-01) ajoute `|{sujet}` à la fin, **seulement s'il est présent** : les clés sans `sujet` ne changent pas, et garder le W-18 d'un objectif ne replie pas celui d'un autre.
 - Les étapes dont la fiche est inconnue ne déclenchent que `S-01` ; les autres vérifications les ignorent.
 - Les deux niveaux : **information** (« à savoir, c'est peut-être voulu ») et **fort** (« risque pour ton corps ou plan incohérent : change-le, sauf raison précise »). Aucun des deux n'empêche d'enregistrer.
@@ -270,7 +275,7 @@ Les autres vérifications émettent au plus une alerte par cible, déjà disting
 
 ```ts
 verifierSeance(s: SeanceVerif, ctx: ContexteVerif, origine?: 'utilisateur' | 'assistant'): Avertissement[]
-  // S-01 à S-25 sur chaque version présente
+  // S-01 à S-27 sur chaque version présente (S-26 : consolidation 18/11 ; S-27 : consolidation 24/11)
 verifierSemaine(lundi: Jour, plan: PlanVerif, ctx: ContexteVerif): Avertissement[]
   // W-02 à W-20 sur cette semaine (W-01 se calcule sur toute la frise, voir plus bas ; W-20 : consolidation 23/11)
 verifierPlan(plan: PlanVerif, ctx: ContexteVerif): Avertissement[]
@@ -284,6 +289,8 @@ verifierJour(seanceDuJour: SeanceVerif, ctx: ContexteVerif, realisees: SeanceVer
 ## B.5 Vérifications d'une séance (S)
 
 (consolidation 18/11) **Selon le contenu** : quand `etapesDetaillees === false` (étapes résumées d'une séance simple ou en grandes lignes sans étapes), S-10 à S-14, S-16, S-24 et S-25 ne s'appliquent pas (l'ordre réel n'est pas connu ; P-15 le dit, et le téléphone affiche des rappels). **S-15** ne s'applique que si `niveau` est absent ou vaut `'detaille'`. Les autres vérifications s'appliquent à toutes les étapes, réelles ou résumées.
+
+(consolidation 24/11) **Principaux hors étapes** (`v.principauxHorsEtapes`, solo seulement ; `niveaux-de-detail.md` § 3.4) : S-01 à S-04, S-06 à S-09, S-18 et S-19 s'appliquent à chacun comme à une étape, mêmes conditions et mêmes messages, avec une alerte de portée `seance`, version `solo`, sans `etapeIndex`, `sujet` = identifiant de la fiche (B.3). S-17 et S-21 le voient par `marqueursVersion`. Les contrôles d'ordre (S-10 à S-14, S-16, S-24, S-25) et S-15 ne lisent que `v.etapes` : un principal hors étapes n'a pas de place dans le déroulé. S-27 le signale.
 
 Chaque vérification s'applique à **chaque version** présente (`solo`, puis `groupe`), sauf mention contraire. Dans la version groupe, les « étapes » sont celles du mini-bloc. `f` désigne `ctx.fiches[e.ficheId]`. `{nom}` est `f.nom`.
 
@@ -315,6 +322,7 @@ Chaque vérification s'applique à **chaque version** présente (`solo`, puis `g
 | **S-24** Module hors format | Étape avec `moduleObjectifId` ET (`dureeEtape < 10 OU > 15`) | information | Le module « {nom} » dure {d} min : un objectif spécifique tient en 10 à 15 min. | [PLAN], [MOD] |
 | **S-25** Module intense un jour léger | Étape avec `moduleObjectifId` ET `estNerveuse(f)` ET `v.durete === 'legere'` | information | Le module « {nom} » est un effort intense : place-le en début de séance dure, juste après l'échauffement. | [SYN] (intense à frais), [CDC] (A7-5) |
 | **S-26** Séance dure sans exercice connu (consolidation 18/11 ; message : consolidation 23/11, F7) | Solo seulement : `sansContenuConnu(v)` ET `v.durete === 'dure'` | information | « {seance} » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte. | [CDC] ; décision F7 d'Arthur |
+| **S-27** Exercice des grandes lignes absent des étapes (consolidation 24/11) | Solo seulement : pour chaque `id` de `v.principauxHorsEtapes` dont la fiche est connue (une fiche inconnue ne donne que S-01). Portée `seance`, version `solo`, `sujet` = `id` | information | « {nom} » est dans les grandes lignes de « {seance} », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes. | [CDC] (`niveaux-de-detail.md` § 3.4) |
 
 ## B.6 Vérifications d'une semaine (W)
 
@@ -326,7 +334,7 @@ Chaque vérification s'applique à **chaque version** présente (`solo`, puis `g
 | **W-02** Quota poutre intensive | `nb séances avec estPoutreIntensive > regles.poutreIntensiveParSemaine` | fort | {n} séances de poutre intensive cette semaine : {max} au plus. Allège ou déplace la dernière. | [SYN], [PLAN] |
 | **W-03** Quota bloc limite | `nb séances avec 'bloc_limite' ∈ marqueursSeance > regles.blocLimiteParSemaine` | fort | {n} séances de bloc limite cette semaine : {max} au plus. Remplace la dernière par du volume ou des intervalles plus faciles. | [SYN], [PLAN] |
 | **W-04** Poutre, tous types | `nb séances avec 'poutre' ∈ marqueursSeance > regles.poutreParSemaine` | fort | {n} séances avec poutre cette semaine : 3 au plus, tous exercices confondus. | [AUD I-8] |
-| **W-05** Plafond d'une fiche | Pour chaque fiche `f` avec `maxParSemaine` : `nb séances contenant f > f.maxParSemaine`. Niveau **fort** si `marqueursDe(f) ∩ MARQUEURS_QUOTA ≠ ∅`, **information** sinon | voir condition | « {nom} » est prévue {n} fois cette semaine ; sa fiche conseille {max} fois au plus. | Fiches de la bibliothèque |
+| **W-05** Plafond d'une fiche | Pour chaque fiche `f` avec `maxParSemaine` : `nb séances contenant f > f.maxParSemaine` (consolidation 24/11 : « contenant » = dans une étape ou parmi les principaux hors étapes). Niveau **fort** si `marqueursDe(f) ∩ MARQUEURS_QUOTA ≠ ∅`, **information** sinon | voir condition | « {nom} » est prévue {n} fois cette semaine ; sa fiche conseille {max} fois au plus. | Fiches de la bibliothèque |
 | **W-06** Trop de jours de doigts | `nb de dates distinctes portant au moins une séance avec seanceSolliciteDoigts > regles.joursDoigtsMaxParSemaine` | fort | Tu sollicites tes doigts {n} jours cette semaine : 4 au plus, et au moins 3 jours de repos des doigts. Remplace une séance par de la mobilité ou du gainage au sol. | [VER 9] (Hörst) |
 | **W-07** Plus de séances que choisi | `nb séances > plan.seancesParSemaine` | information | {n} séances prévues pour {m} choisies : ton plan est plus chargé que prévu. Retire-en une ou change ton nombre de séances. | [CDC] |
 | **W-08** Trop de séances dures | `nb séances avec estDure > nbDuresMax(plan.seancesParSemaine)` | fort | {n} séances dures cette semaine : avec {m} séances par semaine, garde-en {max} au plus et rends les autres légères. | [SYN] (semaines types), [CDC] (A.3.8) |
@@ -407,12 +415,12 @@ Appliqués **avant** le moteur, par le validateur de réponses (voir `assistant-
 
 | Groupe | Nombre | Codes |
 |---|---|---|
-| Séance | 26 | S-01 à S-26 (S-26 : consolidation 18/11) |
+| Séance | 27 | S-01 à S-27 (S-26 : consolidation 18/11 ; S-27 : consolidation 24/11) |
 | Semaine | 20 | W-01 à W-20 (W-20 : consolidation 23/11) |
 | Plan | 15 | P-01 à P-15 (P-15 : consolidation 18/11) |
 | Jour | 7 | J-01 à J-07 |
 | Brouillon de l'assistant | 7 | A-01 à A-07 |
-| **Total** | **75** | dont 68 dans le moteur (S, W, P, J) et 7 dans le validateur de l'assistant |
+| **Total** | **76** | dont 69 dans le moteur (S, W, P, J) et 7 dans le validateur de l'assistant |
 
 Niveau fort : S-01, S-02 (assistant), S-03 à S-07, S-10, S-12, S-13, S-15, S-18, W-01 à W-04, W-05 (fiches à quota), W-06, W-08, W-10 (oubliée), W-20, P-02, P-12, J-04, J-05.
 
@@ -447,3 +455,16 @@ Ces cas servent de tests d'intégration (tâche E-07). Profil par défaut : bloc
     - (b) Profil bloc ; la séance du 26 a une version solo `resistance-boulder-triples` (sans marqueur) et le circuit seulement dans le mini-bloc de sa version groupe. Prévue → `W-20` fort (une séance prévue compte ses deux versions). Réalisée en solo, `realisee.marqueurs: []` → `W-20` muet (seule la version faite compte).
     - (c) Profil bloc ; les deux séances le dimanche 29 et le lundi 30 : deux semaines du calendrier, même si le 30 ouvre une autre phase → `W-20` muet.
 18. **Deux alertes du même code pour la même cible** (unicité, B.3) : le cas 1, avec deux objectifs spécifiques `o1` et `o2` sur la phase 1 et aucun module dans la semaine. Attendu, avec `verifierSemaine` : **deux** `W-18` information, `sujet` `'o1'` et `'o2'`, chacun avec le nom de son objectif ; les deux restent après le dédoublonnage, et leurs `cleAvertissement` diffèrent. Variante, sans objectifs : `antagonistes-legers` du samedi remplacée par `antagonistes-lattice`, et `mobilite-grand-ecart-lattice` ajoutée en fin des trois séances → **deux** `W-05` information (3 fois pour un plafond de 2), `sujet` `'antagonistes-lattice'` et `'mobilite-grand-ecart-lattice'`.
+
+**Cas ajouté (consolidation 24/11, grandes lignes et étapes en désaccord)**
+
+19. **Principal hors étapes** (`niveaux-de-detail.md` § 3.4) : le cas 1, mais la séance du jeudi 26 est remplacée par une séance « Tractions et poutre » le mercredi 25 : qualité `traction_gainage`, solo dure, sans version groupe, sans niveau propre (détaillé). Étapes réelles : `echauffement-general` puis `traction-simple-4x5`. Parties écrites : « Échauffement » 30 min sans principal, puis « Effort principal » 40 min, principal `doigts-suspensions-max-lestees`. La séance est une `SeancePlanifiee` passée par `seanceVersVerif` : `principauxHorsEtapes` vaut `['doigts-suspensions-max-lestees']`, les étapes de la vue sont les deux étapes réelles. Attendu, comme au cas 1 (`verifierSemaine` et `verifierSeance` sur chaque séance), trois avertissements, tous sur la séance du 25 :
+    - `S-03` fort, portée séance, version solo, `sujet` `'doigts-suspensions-max-lestees'`, sans `etapeIndex` : « « Suspensions max lestées (López) » demande : une expérience de poutre régulière. Choisis une fiche plus accessible, ou complète ton profil si c'est déjà le cas. »
+    - `S-27` information, même cible : « « Suspensions max lestées (López) » est dans les grandes lignes de « Tractions et poutre », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes. »
+    - `W-01` fort : deux séances maximales de suite, le 24 et le 25.
+    - Rien d'autre. En particulier ni `S-10`, ni `S-11`, ni `S-15` : le principal n'a pas de place dans le déroulé (placé en dernière étape, il aurait donné `S-11`). Avant la règle du 24/11, cette semaine ne donnait **aucun** avertissement.
+
+    Variantes :
+    - (a) même séance avec `niveauDetail: 'grandes_lignes'` → les mêmes trois avertissements : le niveau affiché ne change rien.
+    - (b) `douleursEnCours: ['doigts']` → `verifierJour` sur la séance du 25 rend `S-04` fort, même cible, et rien d'autre ; `formeAffichage` donne `'arret'`.
+    - (c) parties effacées (« Recalculer les grandes lignes ») → `principauxHorsEtapes` absent, et plus aucun avertissement dans la semaine : ni `S-03`, ni `S-27`, ni `W-01`.

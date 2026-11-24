@@ -11,6 +11,7 @@
 6. **Consolidation du 18/11** (décisions F3 à F5 : banque d'exercices, trois niveaux de détail ; conception : `docs/specs/niveaux-de-detail.md`) : 7 tâches ajoutées (N-01, G-01 à G-03, D-25 à D-27, texte complet dans la section « Tâches ajoutées le 18/11 ») et des amendements marqués « (consolidation 18/11) » dans les encadrés des tâches existantes. Le modèle consolidé de `docs/architecture-v2.md` § 3 porte aussi ces ajouts.
 7. **Consolidation du 23/11** (décisions F6 et F7 d'Arthur, détail dans `docs/specs/niveaux-de-detail.md` § 1.7, § 3.3 et § 8) : aucune tâche nouvelle ; amendements marqués « (consolidation 23/11, F6) » (N-01, D-14, D-25, E-13, C-07, D-23 : niveau proposé selon les accents) ou « (consolidation 23/11, F7) » (E-02, E-04, E-05, E-06, E-08, E-09 : séance dure sans exercice connu comptée comme séance dure ordinaire).
 8. **Consolidation du 23/11, deux trous signalés par les développeurs** (détail dans `docs/specs/entrainement/moteur-verification.md`, B.2, B.3, B.6, B.11) : une tâche nouvelle, **E-17** (vague 3.5 bis : vérification **W-20**, plafond de résistance en voie selon la décision F2 d'Arthur, point 13 ; champ `sujet` des avertissements, pour que le dédoublonnage ne supprime plus le second W-18, W-05, P-11, P-12 ou S-22 d'une même cible) ; amendements marqués « (consolidation 23/11, W-20) » dans E-09 et G-03.
+9. **Consolidation du 24/11, séance avec étapes et grandes lignes** (point signalé par les développeurs de C-01 et E-09 ; règle dans `docs/specs/niveaux-de-detail.md` § 3.4, détail dans `docs/specs/entrainement/moteur-verification.md` B.1 à B.6 et B.11) : une tâche nouvelle, **E-18** (vague 3.8 : l'exercice principal d'une partie absent des étapes est vérifié comme un exercice de la séance, sans place dans l'ordre ; information **S-27**) ; amendement marqué « (consolidation 24/11) » dans D-26.
 
 ## Règles de consolidation (à joindre à chaque tâche)
 
@@ -29,11 +30,11 @@
 | Phase | Tâches | Vagues | Fin de phase quand… (plan v2) |
 |---|---|---|---|
 | 2. Fondations | 26 | 12 | L'app actuelle tourne sur la nouvelle base, sur téléphone et ordinateur |
-| 3. Plateforme ordinateur | 30 | 13 | Un plan complet se construit à la main ou avec le générateur sur ordinateur, au niveau de détail choisi |
+| 3. Plateforme ordinateur | 31 | 13 | Un plan complet se construit à la main ou avec le générateur sur ordinateur, au niveau de détail choisi |
 | 4. Téléphone sur le plan | 5 | 3 | Une semaine réelle se suit de bout en bout, à chaque niveau de détail |
 | 5. Assistant IA | 8 | 4 | Un plan se crée avec l'assistant puis se retouche à la main |
 | 6. Bilans | 2 | 2 | Les tests de fin de phase s'affichent en courbes |
-| **Total** | **71** | **34** | (D-10 est fusionnée dans F2-14 ; les phases 7 et 8 n'ont pas encore de tâches ; 7 tâches ajoutées le 18/11, 1 le 23/11 : E-17) |
+| **Total** | **72** | **34** | (D-10 est fusionnée dans F2-14 ; les phases 7 et 8 n'ont pas encore de tâches ; 7 tâches ajoutées le 18/11, 1 le 23/11 : E-17, 1 le 24/11 : E-18) |
 
 **Avant la phase 3** : recherche sourcée sur les trous de la bibliothèque (B21), vérification et audit, comme pour les 60 protocoles. Voir la dernière section.
 
@@ -452,6 +453,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 
 > (livraison 24/11, validé par le gérant) Signatures réelles, à utiliser par les tâches suivantes (D-16, D-18, E-09, G-01…) : `seanceDepuisType(st, variante, base)` où `base` contient aussi `maintenant` (dates sans horloge) ; `planVersVerif({ …, fiches })` reçoit les fiches ; `contexteVerif(…, reglages?)` accepte des réglages facultatifs. Au-delà de 5 parties, la fin est regroupée en « Complément ». Point à traiter dans E-09 : si une séance a à la fois des étapes et des parties, l'exercice principal d'une partie absent des étapes compte dans les marqueurs planifiés mais pas dans les vérifications de séance ; `verifierSeance` (agrégation de S-01 à S-26) reste à écrire dans E-09.
 
+> (consolidation 24/11) Point tranché par le concepteur (`docs/specs/niveaux-de-detail.md` § 3.4) et confié à **E-18** (vague 3.8). Précision sur le constat : `marqueursVersionPlanifiee` ne sert qu'à la séance réalisée ; la vue de la séance prévue ignorait ce principal partout, W-01 et quotas compris.
+
 #### E-07 · Vérifications du plan (P-01 à P-14)
 - **Modèle** : Sonnet · **Dépend de** : E-02, E-03 · **Texte** : [taches-entrainement.md, E-07](specs/entrainement/taches-entrainement.md#e-07--vérifications-du-plan-p-01-à-p-14)
 - **Fichiers** : créer `src/regles/verifPlan.ts`, `src/regles/verifPlan.test.ts`.
@@ -540,6 +543,8 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 
 ## Vagues 3.8 à 3.11 (consolidation 18/11 : D-16, D-17, D-18, D-19 y restent, une par vague, avec G-03, D-25 et D-26 à côté)
 
+(consolidation 24/11) E-18 rejoint la vague 3.8, en troisième tâche à côté de D-16 et G-03 : aucun fichier commun. Elle ne touche pas `src/regles/index.ts`, que G-01 (vague 3.7) puis G-03 modifient. Pas en vague 3.7 : celle-ci compte déjà trois tâches (E-16, D-13, G-01). Aucun écran n'écrit de parties avant D-26 (vague 3.11) : le trou ne peut pas toucher de vraies données d'ici là.
+
 #### D-16 · Plan : vue semaine et éditeur de séance — vague 3.8
 - **Modèle** : Sonnet · **Dépend de** : D-15, D-12, C-01, E-10 · **Texte** : [taches-design.md, D-16](specs/design/taches-design.md#d-16--plan--vue-semaine-et-éditeur-de-séance)
 - **Fichiers** : créer `src/ecrans/bureau/VueSemaine.tsx`, `src/composants/FicheSeance.tsx`, `src/composants/RailBibliotheque.tsx` ; modifier `src/ecrans/bureau/Plan.tsx`, `src/index.css`.
@@ -558,6 +563,12 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 
 > **Amendements de consolidation** : tâche nouvelle (décision F3). En parallèle de D-16 : aucun fichier commun.
 > 1. (consolidation 23/11, W-20) Dépend aussi de E-17. Comme un `maxParSemaine`, le plafond `RESISTANCE_VOIE_PAR_SEMAINE[profil.disciplinePrincipale]` se compte sur les séances déjà choisies dans la semaine (séances qui portent `resistance_voie`). Aujourd'hui aucune séance type n'en contient : rien ne change ; le test « aucun avertissement fort » couvre W-20 quand le catalogue en recevra.
+
+#### E-18 · Exercice principal des grandes lignes absent des étapes — vague 3.8 (consolidation 24/11)
+- **Modèle** : Sonnet · **Dépend de** : C-01, E-09, E-17 (livrées) · **Texte** : [plus bas](#e-18-texte-complet)
+- **Fichiers** : modifier `src/regles/types.ts`, `base.ts`, `base.test.ts`, `passerelles.ts`, `passerelles.test.ts`, `verifSeanceProfil.ts`, `verifSeanceProfil.test.ts`, `verifSeanceDeroule.ts`, `verifSeanceDeroule.test.ts`, `verifSemaineQuotas.ts`, `verifSemaineQuotas.test.ts`, `integration.test.ts`. Pas `index.ts`.
+
+> **Amendements de consolidation** : tâche nouvelle (point signalé par les développeurs de C-01 et E-09). En parallèle de D-16 et G-03 : aucun fichier commun. D-26 en dépend.
 
 #### D-17 · Plan : glisser-déposer et alternatives clavier — vague 3.9
 - **Modèle** : Sonnet · **Dépend de** : D-16 · **Texte** : [taches-design.md, D-17](specs/design/taches-design.md#d-17--plan--glisser-déposer-et-alternatives-clavier)
@@ -602,12 +613,13 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 - **Fichiers** : modifier `src/composants/FicheSeance.tsx`, `src/index.css` ; créer `src/composants/EditeurResume.tsx` (simple et grandes lignes).
 
 > **Amendements de consolidation** : tâche nouvelle (décisions F4, F5). En parallèle de D-19 : aucun fichier commun.
+> 1. (consolidation 24/11) Dépend aussi de **E-18**. Étape 5 : **S-27** (un exercice des grandes lignes absent des étapes, `niveaux-de-detail.md` § 3.4) s'affiche en tête de la fiche, comme tout avertissement de portée séance, avec deux boutons texte : « Recalculer les grandes lignes » (`Confirmation`, R-4 : titre « Recalculer les grandes lignes ? », texte « Tes grandes lignes écrites seront remplacées par celles calculées depuis les étapes. », action « Recalculer » ; puis `parties` effacé) et « Voir les étapes ». L'écran ne bloque rien et ne vérifie rien lui-même : choisir un principal absent des étapes reste permis, l'avertissement vient du moteur (D-18). Test en plus : séance avec étapes et une partie dont le principal manque dans les étapes → S-27 visible dans la fiche ; « Recalculer » confirmé → S-27 disparaît, étapes et recommandation intactes.
 
 ## Fin de phase 3
 
 **Sur un vrai téléphone** : rien de nouveau ne doit apparaître ; vérifier qu'aucune régression n'est venue des tâches partagées (séance solo, groupe, débrief, profil), et qu'un cycle **brouillon** construit sur l'ordinateur reste invisible sur le téléphone. **Sur ordinateur** : construire à la main un cycle de 12 semaines complet (3 phases, objectifs, versions solo et groupe), provoquer un avertissement des 48 h et le corriger en un clic, valider le cycle. (consolidation 18/11) Puis créer un second cycle avec « Proposer un plan » au niveau **grandes lignes**, passer une séance en simple puis en détaillé (rien ne se perd), écrire une séance simple à la main sans exercice et voir S-26. (consolidation 23/11) Dans la fenêtre « Nouveau cycle », vérifier que le niveau proposé passe de Détaillé à Grandes lignes quand les trois accents sont endurance, résistance ou technique, avec sa ligne « pourquoi » (F6) ; placer la séance dure sans exercice le lendemain d'une séance maximale : S-26 seul, pas d'avertissement des 48 h (F7).
 
-**Audit Fable** : (1) entraînement — les 65 vérifications du moteur contre `moteur-verification.md` (code, niveau, message, source), les 12 cas de B.11, les 26 séances types sans avertissement (E-16) ; (2) « avertir sans bloquer » — aucun bouton désactivé par un avertissement, signaux d'arrêt visibles ; (3) passerelles C-01 — un `null` du profil compte comme non rempli, conversion `allegee` ↔ `decharge`, marqueurs jamais stockés ; (4) exercices personnels — « je ne sais pas » produit les marqueurs prudents, aucun contenu de livre recopié ; (5) accessibilité du glisser-déposer (tout au clavier) ; (6) (consolidation 18/11) niveaux et banque — changer de niveau n'efface rien, aucun avertissement de semaine ou de plan ne disparaît en simple ou en grandes lignes, le générateur ne place aucune fiche à vérifier, de test, contre-indiquée ou hors lieux, aucun `maxParSemaine` dépassé ; (7) (consolidation 23/11) le niveau d'un cycle est toujours celui affiché dans O-13, présélectionné par `niveauPropose` (F6) ; une séance dure sans exercice connu n'a aucun marqueur et S-26 ne parle pas d'effort maximal (F7).
+**Audit Fable** : (1) entraînement — les 65 vérifications du moteur contre `moteur-verification.md` (code, niveau, message, source), les 12 cas de B.11, les 26 séances types sans avertissement (E-16) ; (2) « avertir sans bloquer » — aucun bouton désactivé par un avertissement, signaux d'arrêt visibles ; (3) passerelles C-01 — un `null` du profil compte comme non rempli, conversion `allegee` ↔ `decharge`, marqueurs jamais stockés ; (4) exercices personnels — « je ne sais pas » produit les marqueurs prudents, aucun contenu de livre recopié ; (5) accessibilité du glisser-déposer (tout au clavier) ; (6) (consolidation 18/11) niveaux et banque — changer de niveau n'efface rien, aucun avertissement de semaine ou de plan ne disparaît en simple ou en grandes lignes, le générateur ne place aucune fiche à vérifier, de test, contre-indiquée ou hors lieux, aucun `maxParSemaine` dépassé ; (7) (consolidation 23/11) le niveau d'un cycle est toujours celui affiché dans O-13, présélectionné par `niveauPropose` (F6) ; une séance dure sans exercice connu n'a aucun marqueur et S-26 ne parle pas d'effort maximal (F7) ; (8) (consolidation 24/11) un exercice des grandes lignes absent des étapes donne ses prérequis, ses douleurs et la règle des 48 h, et S-27, à tous les niveaux affichés (cas 19 de B.11).
 
 ---
 
@@ -1022,6 +1034,36 @@ Deux trous signalés par les développeurs ; conception : `docs/specs/entraineme
   - `cleAvertissement` : avec `sujet: 'o1'` → finit par `|o1` ; deux W-18 de `sujet` différents → deux clés différentes ; sans `sujet` → clé inchangée.
   - `RESISTANCE_VOIE_PAR_SEMAINE` vaut `{ bloc: 1, voie: 2 }`.
 - **Critères** : aucun message existant ne change ; les tests déjà livrés passent sans retouche ; `npm run build` et `npm run test` passent ; ligne « E-17 » au tableau « État » du README, en dernier (R-7).
+
+---
+
+# Tâche ajoutée le 24/11 (texte complet)
+
+Point signalé par les développeurs de C-01 et E-09 ; règle : `docs/specs/niveaux-de-detail.md` § 3.4 ; détail : `docs/specs/entrainement/moteur-verification.md` (ajouts « consolidation 24/11 » de B.1, B.2, B.3, B.5, B.6 et B.11). Règles à joindre : `CLAUDE.md`, R-1 à R-9, et les « Règles communes » de `taches-entrainement.md` (fonctions pures, imports en `.ts`, aucune dépendance nouvelle, tests Vitest à côté du fichier, rien dans `src/donnees/bibliotheque/`).
+
+### E-18 (texte complet)
+
+**E-18 · Exercice principal des grandes lignes absent des étapes** — phase 3, vague 3.8, Sonnet.
+- **Objectif** : une séance qui a des étapes et des parties écrites ne perd aucun avertissement de sécurité. L'exercice principal d'une partie absent des étapes (« principal hors étapes ») est vérifié comme un exercice de la séance (prérequis, douleurs, marqueurs), sans place dans l'ordre ; S-27 signale l'écart. Aujourd'hui, la séance prévue l'ignore partout (cas 19 de B.11 : aucun avertissement au lieu de S-03, S-27 et W-01).
+- **Dépend de** : C-01, E-09, E-17 (livrées). D-26 dépend de E-18.
+- **Lire** : `docs/specs/niveaux-de-detail.md` § 3.1 et § 3.4 ; `moteur-verification.md` B.1 (`VersionVerif`), B.2 (`marqueursVersion`, `seanceSolliciteDoigts`, `sansContenuConnu`), B.3 (tableau `sujet`), B.5 (paragraphe « Principaux hors étapes », S-27), B.6 (W-05), B.11 (cas 19) ; `src/regles/types.ts`, `base.ts`, `passerelles.ts`, `verifSeanceProfil.ts`, `verifSeanceDeroule.ts`, `verifSemaineQuotas.ts`, `integration.test.ts`, `exemples.ts`.
+- **Fichiers** : modifier `src/regles/types.ts`, `base.ts`, `base.test.ts`, `passerelles.ts`, `passerelles.test.ts`, `verifSeanceProfil.ts`, `verifSeanceProfil.test.ts`, `verifSeanceDeroule.ts`, `verifSeanceDeroule.test.ts`, `verifSemaineQuotas.ts`, `verifSemaineQuotas.test.ts`, `integration.test.ts`. **Ne pas toucher** `src/regles/index.ts` (G-01 puis G-03 y ajoutent leur export) : `verifierSeance`, `verifierPlan` et `verifierJour` reprennent les nouvelles alertes sans changement.
+- **Étapes**
+  1. `types.ts`, `VersionVerif` : `principauxHorsEtapes?: string[]`, avec le commentaire de B.1.
+  2. `passerelles.ts`, `soloVersVerif` : quand la version a des étapes réelles, `principauxHorsEtapes` = les `parties[].principal.refId`, dans l'ordre des parties, sans doublon, qui ne sont le `ficheId` d'aucune étape de la vue. Champ posé seulement s'il n'est pas vide. Sans étapes : rien ne change (étapes résumées). `marqueursVersionPlanifiee` ne change pas.
+  3. `base.ts` : `marqueursVersion` ajoute les marqueurs des principaux hors étapes connus ; `seanceSolliciteDoigts` est vrai aussi si un principal hors étapes connu a `solliciteDoigts`. `sansContenuConnu`, `dureeVersion` et `chargePrevue` ne changent pas (étapes seulement).
+  4. `verifSemaineQuotas.ts`, `fichesDeLaSeance` (W-05) : ajoute les principaux hors étapes de chaque version comptée.
+  5. `verifSeanceProfil.ts` : S-01 à S-04 et S-06 à S-09 sur chaque principal hors étapes, mêmes conditions et mêmes messages qu'à une étape ; alerte de portée `'seance'`, `version: 'solo'`, **sans** `etapeIndex`, `sujet` = identifiant de la fiche. `verifierEtape` reçoit pour cela une cible `{ version, etapeIndex }` ou `{ version, sujet }`.
+  6. `verifSeanceDeroule.ts` : S-18 et S-19 sur les principaux hors étapes, même cible qu'à l'étape 5. **S-27** (B.5) : une information par principal hors étapes dont la fiche est connue, même cible, message mot pour mot, source « Choix de l'app ». `verifsOrdre` et `verifRepos` (S-10 à S-16, S-24, S-25) ne lisent toujours que `v.etapes`.
+  7. Commentaires d'en-tête des fichiers modifiés : une ligne sur les principaux hors étapes, et S-27 ajouté à la liste des codes.
+- **Tests**
+  - `passerelles.test.ts` : étapes `echauffement-general`, `traction-simple-4x5` et une partie de principal `doigts-suspensions-max-lestees` → `principauxHorsEtapes: ['doigts-suspensions-max-lestees']`, étapes de la vue inchangées ; principal déjà dans les étapes → champ absent ; deux parties au même principal → une seule fois ; sans étapes → comme avant (étapes résumées, champ absent). Pour chacune de ces séances, `marqueursVersion(vue.solo)` et `marqueursVersionPlanifiee(solo)` donnent les mêmes marqueurs (la séance prévue et la séance réalisée comptent pareil).
+  - `base.test.ts` : marqueurs et doigts d'une version avec un principal hors étapes ; principal inconnu → aucun marqueur ; `sansContenuConnu` et `dureeVersion` inchangés.
+  - `verifSeanceProfil.test.ts` : S-03 et S-04 sur un principal hors étapes (portée séance, `sujet`, pas d'`etapeIndex`) ; principal inconnu → S-01 seul, même cible.
+  - `verifSeanceDeroule.test.ts` : S-27, message exact ; muette si le principal est dans les étapes, si sa fiche est inconnue, ou sans parties ; S-11 muette pour un principal `poutre_intensive` hors étapes ; S-17 sur une séance légère dont le principal hors étapes est maximal.
+  - `verifSemaineQuotas.test.ts` : W-05 compte un principal hors étapes ; W-01 entre une séance maximale et, le lendemain, une séance dont seul le principal hors étapes est maximal.
+  - `integration.test.ts` : cas 19 de B.11 et ses variantes (a), (b), (c), la séance du 25 construite comme `SeancePlanifiee` et passée par `seanceVersVerif`.
+- **Critères** : aucun message existant ne change ; les tests déjà livrés passent sans retouche (aucune séance type n'a de parties écrites) ; aucun champ calculé n'est écrit dans un document (R-8) ; `npm run build` et `npm run test` passent ; ligne « E-18 » au tableau « État » du README, en dernier (R-7).
 
 ---
 
