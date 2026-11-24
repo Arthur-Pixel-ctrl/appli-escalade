@@ -41,21 +41,21 @@ export const SECOURS: Record<'N' | 'C' | 'L' | 'H', string[]> = {
 /** La séance d'un grimpeur de voie le dernier jour, à la place de la séance habituelle. */
 export const DERNIERE_SEANCE_VOIE: ChoixSeance = ch('ST-END-03')
 
-// Samedi à 2 séances : ST-PUI-04 et ST-TRA-02 sont des séances maximales, pas des séances C.
-// La case garde la version légère (ST-END-02) ou la séance de résistance (ST-RES-01) : moins de séances dures.
+// Recopié du tableau de niveaux-de-detail.md § 2.4. À 2 séances, le samedi peut porter une séance
+// nerveuse (rôle N) : mardi et samedi sont espacés de 4 jours (décision du gérant, 24/11).
 export const SEMAINES_TYPES: Record<AccentPhase, Record<2 | 3 | 4, Case[]>> = {
   doigts: {
-    2: [[ch('ST-DOI-02'), ch('ST-DOI-01')], [ch('ST-END-02')]],
+    2: [[ch('ST-DOI-02'), ch('ST-DOI-01')], [ch('ST-PUI-04'), ch('ST-END-02')]],
     3: [[ch('ST-DOI-02'), ch('ST-DOI-01')], [ch('ST-TRA-02'), ch('ST-TRA-01')], [ch('ST-END-02')]],
     4: [[ch('ST-DOI-02'), ch('ST-DOI-01')], [ch('ST-TEC-01')], [ch('ST-PUI-02'), ch('ST-PUI-01')], [ch('ST-END-02')]],
   },
   traction_gainage: {
-    2: [[ch('ST-TRA-02'), ch('ST-TRA-01')], [ch('ST-END-02')]],
+    2: [[ch('ST-TRA-02'), ch('ST-TRA-01')], [ch('ST-PUI-04'), ch('ST-END-02')]],
     3: [[ch('ST-TRA-02'), ch('ST-TRA-01')], [ch('ST-TRA-03'), ch('ST-TRA-01')], [ch('ST-END-02')]],
     4: [[ch('ST-TRA-02'), ch('ST-TRA-01')], [ch('ST-TEC-01')], [ch('ST-TRA-03'), ch('ST-TRA-01')], [ch('ST-END-02')]],
   },
   puissance: {
-    2: [[ch('ST-PUI-02', 'poutre_entretien'), ch('ST-PUI-02'), ch('ST-PUI-01')], [ch('ST-RES-01'), ch('ST-END-02'), ch('ST-END-01')]],
+    2: [[ch('ST-PUI-02', 'poutre_entretien'), ch('ST-PUI-02'), ch('ST-PUI-01')], [ch('ST-TRA-02'), ch('ST-TRA-01')]],
     3: [[ch('ST-PUI-02', 'poutre_entretien'), ch('ST-PUI-02'), ch('ST-PUI-01')], [ch('ST-TRA-02'), ch('ST-TRA-01')], [ch('ST-END-02')]],
     4: [
       [ch('ST-PUI-03'), ch('ST-PUI-01')],
