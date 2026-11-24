@@ -1,4 +1,4 @@
-// Vérifications de semaine, espacement et quotas : W-01 à W-08
+// Vérifications de semaine, espacement et quotas : W-01 à W-08, et W-20
 // (docs/specs/entrainement/moteur-verification.md, B.6). Fonctions pures : elles avertissent, elles ne bloquent rien.
 import {
   estDure,
@@ -12,7 +12,7 @@ import {
   nbDuresMax,
   seanceSolliciteDoigts,
 } from './base.ts'
-import { MARQUEURS_QUOTA } from './reglesParDefaut.ts'
+import { MARQUEURS_QUOTA, RESISTANCE_VOIE_PAR_SEMAINE } from './reglesParDefaut.ts'
 import type { Avertissement, ContexteVerif, Jour, SeanceVerif } from './types.ts'
 
 const NOMS_JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
@@ -99,8 +99,8 @@ export function verifierQuotasSemaine(
   const { fiches, regles } = ctx
   const dansLaSemaine = seances.filter((s) => lundiDe(s.date) === lundi)
   const alertes: Avertissement[] = []
-  const ajouter = (code: string, niveau: Avertissement['niveau'], message: string, source: string) =>
-    alertes.push({ code, niveau, message, portee: 'semaine', lundi, source })
+  const ajouter = (code: string, niveau: Avertissement['niveau'], message: string, source: string, sujet?: string) =>
+    alertes.push({ code, niveau, message, portee: 'semaine', lundi, source, ...(sujet !== undefined && { sujet }) })
 
   // W-02 : poutre intensive
   const nbPoutreIntensive = dansLaSemaine.filter((s) => estPoutreIntensive(s, fiches)).length
@@ -149,6 +149,7 @@ export function verifierQuotasSemaine(
       aQuota ? 'fort' : 'information',
       `« ${fiche.nom} » est prévue ${n} fois cette semaine ; sa fiche conseille ${fiche.maxParSemaine} fois au plus.`,
       'Fiches de la bibliothèque',
+      ficheId, // plusieurs fiches peuvent dépasser leur plafond la même semaine
     )
   }
 
@@ -182,6 +183,20 @@ export function verifierQuotasSemaine(
       'fort',
       `${nbDures} séances dures cette semaine : avec ${seancesParSemaine} séances par semaine, garde-en ${maxDures} au plus et rends les autres légères.`,
       'Synthèse (semaines types), cahier des charges',
+    )
+  }
+
+  // W-20 : résistance en voie (une séance compte une fois, même avec deux fiches de ce type)
+  const nbResistanceVoie = dansLaSemaine.filter((s) => marqueursSeance(s, fiches).includes('resistance_voie')).length
+  const maxResistanceVoie = RESISTANCE_VOIE_PAR_SEMAINE[ctx.profil.disciplinePrincipale]
+  if (nbResistanceVoie > maxResistanceVoie) {
+    ajouter(
+      'W-20',
+      'fort',
+      ctx.profil.disciplinePrincipale === 'bloc'
+        ? `${nbResistanceVoie} séances de résistance en voie cette semaine : 1 au plus avec un profil « bloc ». Garde-en une et fais le reste en bloc, ou change ton profil si ton objectif devient la voie.`
+        : `${nbResistanceVoie} séances de résistance en voie cette semaine : 2 au plus. Remplace la dernière par de l'endurance ou de la technique.`,
+      "Décision d'Arthur (F2, point 13) ; audit B21, I-8 (Lattice)",
     )
   }
 

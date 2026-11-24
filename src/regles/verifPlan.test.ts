@@ -391,6 +391,16 @@ describe('verifierStructurePlan', () => {
       expect(a[0].message).toBe('« Front lever » et « Planche » comptent dans le même quota (poutre). Garde-en un pour cette phase.')
     })
 
+    it('trois objectifs portant poutre : trois P-11 de sujets distincts', () => {
+      const ctx = ctxAvecObjectifs(
+        objectif('a', { marqueurs: ['poutre'] }),
+        objectif('b', { marqueurs: ['poutre'] }),
+        objectif('c', { marqueurs: ['poutre'] }),
+      )
+      const a = verifier(planAvecObjectifs(['a', 'b', 'c']), ctx).filter((x) => x.code === 'P-11')
+      expect(a.map((x) => x.sujet)).toEqual(['a+b', 'a+c', 'b+c'])
+    })
+
     it('un marqueur hors quota partagé, ou quotas différents : rien', () => {
       const ctx = ctxAvecObjectifs(
         objectif('a', { marqueurs: ['arque'] }),
@@ -436,6 +446,19 @@ describe('verifierStructurePlan', () => {
       })
       const a = verifier(planAvecObjectifs(['os']), ctx).filter((x) => x.code === 'P-12')
       expect(a[0].message).toContain('10 tractions strictes (tu en fais 6) ; douleur déclarée (coude)')
+    })
+
+    it('deux objectifs inadaptés : deux P-12 de sujets distincts', () => {
+      const ctx = contexteDeReference({
+        fiches: contexteSansTests().fiches,
+        profil: { ...contexteDeReference().profil, tractionsStrictesMax: 6 },
+        objectifsPerso: {
+          o1: objectif('o1', { prerequis: { tractionsStrictesMin: 10 } }),
+          o2: objectif('o2', { prerequis: { tractionsStrictesMin: 10 } }),
+        },
+      })
+      const a = verifier(planAvecObjectifs(['o1', 'o2']), ctx).filter((x) => x.code === 'P-12')
+      expect(a.map((x) => x.sujet)).toEqual(['o1', 'o2'])
     })
 
     it('objectif adapté : rien', () => {

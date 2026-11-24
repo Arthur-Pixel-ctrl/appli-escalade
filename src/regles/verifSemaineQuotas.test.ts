@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { contexteDeReference, seanceSolo } from './exemples.ts'
+import { contexteDeReference, PROFIL_DE_REFERENCE, seanceSolo } from './exemples.ts'
+import { cleAvertissement } from './passerelles.ts'
 import { seanceTypeParId } from '../donnees/seancesTypes.ts'
 import { verifierEspacement, verifierQuotasSemaine } from './verifSemaineQuotas.ts'
 import type { Avertissement, SeanceVerif } from './types.ts'
@@ -313,5 +314,81 @@ describe('Cas chiffrés de B.11', () => {
     const principale = seanceSolo('princ', MER, ['traction-lestee-force-lattice'], { qualite: 'traction_gainage', dureeMin: 90 })
     const alertes = toutes([doigts(MAR), principale, endurance(SAM)])
     expect(alertes.find((a) => a.code === 'W-01')).toMatchObject({ niveau: 'fort', seanceId: 'princ' })
+  })
+})
+
+describe('W-20 · résistance en voie', () => {
+  const CAPACITY = 'resistance-capacity-power'
+  const VOIES = 'resistance-voies-repetees'
+  const CIRCUIT = 'resistance-circuits-30-mouvements'
+  const BLOCS_4X4 = 'resistance-4x4-blocs'
+  const w20 = (s: SeanceVerif[], c = ctx) => verifierQuotasSemaine(LUNDI, s, 3, c).filter((a) => a.code === 'W-20')
+  const voie = contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, disciplinePrincipale: 'voie' } })
+  const deuxSeances = () => [seanceSolo('a', MAR, [VOIES]), seanceSolo('b', JEU, [CIRCUIT])]
+
+  it('profil bloc : 2 séances déclenchent, 1 seule ne déclenche pas', () => {
+    expect(w20([seanceSolo('a', MAR, [VOIES])])).toEqual([])
+    const [alerte, ...reste] = w20(deuxSeances())
+    expect(reste).toEqual([])
+    expect(alerte).toMatchObject({ code: 'W-20', niveau: 'fort', portee: 'semaine', lundi: LUNDI })
+    expect(alerte.mesocycleOrdre).toBeUndefined()
+    expect(alerte.sujet).toBeUndefined()
+    expect(alerte.source).toBe("Décision d'Arthur (F2, point 13) ; audit B21, I-8 (Lattice)")
+    expect(alerte.message).toBe(
+      '2 séances de résistance en voie cette semaine : 1 au plus avec un profil « bloc ». ' +
+        'Garde-en une et fais le reste en bloc, ou change ton profil si ton objectif devient la voie.',
+    )
+  })
+
+  it('cas 17 (a) profil voie : 2 séances ne déclenchent pas, 3 déclenchent', () => {
+    expect(w20(deuxSeances(), voie)).toEqual([])
+    const [alerte] = w20([...deuxSeances(), seanceSolo('c', SAM, [CAPACITY])], voie)
+    expect(alerte.niveau).toBe('fort')
+    expect(alerte.message).toBe(
+      "3 séances de résistance en voie cette semaine : 2 au plus. Remplace la dernière par de l'endurance ou de la technique.",
+    )
+  })
+
+  it('cas 17 : la semaine ne déclenche pas W-05 (chaque fiche une fois)', () => {
+    expect(verifierQuotasSemaine(LUNDI, deuxSeances(), 3, ctx).filter((a) => a.code === 'W-05')).toEqual([])
+  })
+
+  it('cas 17 (b) séance prévue : les deux versions comptent ; réalisée : seule la version faite', () => {
+    const avecGroupe = (): SeanceVerif => {
+      const s = seanceSolo('b', JEU, ['resistance-boulder-triples'])
+      s.groupe = { durete: 'dure', etapes: [{ ficheId: CIRCUIT }] }
+      return s
+    }
+    expect(w20([seanceSolo('a', MAR, [VOIES]), avecGroupe()]).map((a) => a.code)).toEqual(['W-20'])
+    const faite = avecGroupe()
+    faite.realisee = { version: 'solo', finLe: '2026-11-26T19:00:00.000Z', dureeMin: 60, effortPercu: 7, marqueurs: [] } as never
+    expect(w20([seanceSolo('a', MAR, [VOIES]), faite])).toEqual([])
+  })
+
+  it('cas 17 (c) : deux semaines du calendrier (dimanche et lundi suivant) ne déclenchent pas', () => {
+    const s = [seanceSolo('a', DIM, [VOIES]), seanceSolo('b', LUN_SUIVANT, [CIRCUIT])]
+    expect(w20(s)).toEqual([])
+    expect(verifierQuotasSemaine(LUN_SUIVANT, s, 3, ctx).filter((a) => a.code === 'W-20')).toEqual([])
+  })
+
+  it('une séance avec deux fiches de résistance en voie compte une fois', () => {
+    expect(w20([seanceSolo('a', MAR, [VOIES, CIRCUIT])])).toEqual([])
+  })
+
+  it('la résistance en bloc ne compte pas', () => {
+    expect(w20([seanceSolo('a', MAR, [BLOCS_4X4]), seanceSolo('b', JEU, [VOIES])])).toEqual([])
+  })
+})
+
+describe('sujet des W-05', () => {
+  it('cas 18 : deux fiches au-delà de leur plafond donnent deux W-05 de sujets distincts', () => {
+    const s = [
+      seanceSolo('a', MAR, ['antagonistes-lattice', 'mobilite-grand-ecart-lattice']),
+      seanceSolo('b', JEU, ['antagonistes-lattice', 'mobilite-grand-ecart-lattice']),
+      seanceSolo('c', SAM, ['antagonistes-lattice', 'mobilite-grand-ecart-lattice']),
+    ]
+    const w05 = verifierQuotasSemaine(LUNDI, s, 3, ctx).filter((a) => a.code === 'W-05')
+    expect(w05.map((a) => a.sujet).sort()).toEqual(['antagonistes-lattice', 'mobilite-grand-ecart-lattice'])
+    expect(new Set(w05.map(cleAvertissement)).size).toBe(2)
   })
 })

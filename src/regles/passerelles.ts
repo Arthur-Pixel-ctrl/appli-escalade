@@ -537,7 +537,9 @@ export function etatPrerequis(
 
 /** Clé stable d'un avertissement, enregistrée dans `Cycle.avertissementsGardes` par « Je garde ce choix ». */
 export function cleAvertissement(a: Avertissement): string {
-  return [a.code, a.seanceId, a.version, a.etapeIndex, a.lundi, a.mesocycleOrdre].map((v) => v ?? '').join('|')
+  const cle = [a.code, a.seanceId, a.version, a.etapeIndex, a.lundi, a.mesocycleOrdre].map((v) => v ?? '').join('|')
+  // Le sujet n'est ajouté que s'il existe : les clés déjà gardées par l'utilisateur ne changent pas.
+  return a.sujet === undefined ? cle : `${cle}|${a.sujet}`
 }
 
 const CODES_ARRET = ['S-04', 'S-05', 'S-06', 'J-05']

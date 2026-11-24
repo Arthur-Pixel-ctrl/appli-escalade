@@ -188,5 +188,6 @@ export interface Avertissement {
   etapeIndex?: number
   lundi?: Jour
   mesocycleOrdre?: number
+  sujet?: string // ce que vise l'alerte quand une vérification en émet plusieurs pour la même cible (B.3)
   source: string // texte court affichable : « Hörst, López (synthèse) »
 }

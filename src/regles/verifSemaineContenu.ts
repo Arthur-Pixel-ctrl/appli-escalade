@@ -64,8 +64,18 @@ function avertissementSemaine(
   message: string,
   semaine: SemaineVerif,
   source: string,
+  sujet?: string,
 ): Avertissement {
-  return { code, niveau, message, portee: 'semaine', lundi: semaine.lundi, mesocycleOrdre: semaine.mesocycleOrdre, source }
+  return {
+    code,
+    niveau,
+    message,
+    portee: 'semaine',
+    lundi: semaine.lundi,
+    mesocycleOrdre: semaine.mesocycleOrdre,
+    ...(sujet !== undefined && { sujet }),
+    source,
+  }
 }
 
 // --- W-09 à W-12 : charge et nouveauté ---
@@ -307,6 +317,7 @@ function w18(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
         `Le module « ${objectif.nom} » est prévu ${n} fois cette semaine : 1 à 2 fois par semaine.`,
         semaine,
         'Plan de l’app ; synthèse (objectifs spécifiques)',
+        id, // un objectif oublié ne doit pas masquer l'autre
       ),
     )
   }

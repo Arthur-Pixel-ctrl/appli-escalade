@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { contexteDeReference, PROFIL_DE_REFERENCE, seanceSolo } from './exemples.ts'
 import type { OptionsSeanceSolo } from './exemples.ts'
+import { cleAvertissement } from './passerelles.ts'
 import { verifierContenuSemaine } from './verifSemaineContenu.ts'
 import type { Avertissement, ContexteVerif, Jour, PlanVerif, SeanceVerif, SemaineVerif } from './types.ts'
 
@@ -490,6 +491,19 @@ describe('W-18 module d’objectif spécifique', () => {
     expect(seulement(verifier('2026-11-23', pObjectif([avecModules(3)]), ctx), 'W-18')[0].message).toContain('prévu 3 fois')
     expect(seulement(verifier('2026-11-23', pObjectif([avecModules(1)]), ctx), 'W-18')).toEqual([])
     expect(seulement(verifier('2026-11-23', pObjectif([avecModules(2)]), ctx), 'W-18')).toEqual([])
+  })
+
+  it('cas 18 : deux objectifs oubliés donnent deux W-18 de sujets distincts', () => {
+    const deux = contexteDeReference({
+      objectifsPerso: {
+        o1: { id: 'o1', nom: 'Réglettes de 10 mm', marqueurs: [], prerequis: {}, contreIndications: [] },
+        o2: { id: 'o2', nom: 'Poches', marqueurs: [], prerequis: {}, contreIndications: [] },
+      },
+    })
+    const p = plan([semaine('2026-11-23')], [avecModules(0)], { mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: ['o1', 'o2'] }] })
+    const w18 = seulement(verifier('2026-11-23', p, deux), 'W-18')
+    expect(w18.map((a) => a.sujet)).toEqual(['o1', 'o2'])
+    expect(new Set(w18.map(cleAvertissement)).size).toBe(2)
   })
 
   it('pas d’objectif sur le bloc : rien', () => {
