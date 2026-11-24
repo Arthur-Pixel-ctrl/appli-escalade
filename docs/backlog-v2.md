@@ -449,6 +449,8 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 
 ## Vague 3.5
 
+> (livraison 24/11, validé par le gérant) Signatures réelles, à utiliser par les tâches suivantes (D-16, D-18, E-09, G-01…) : `seanceDepuisType(st, variante, base)` où `base` contient aussi `maintenant` (dates sans horloge) ; `planVersVerif({ …, fiches })` reçoit les fiches ; `contexteVerif(…, reglages?)` accepte des réglages facultatifs. Au-delà de 5 parties, la fin est regroupée en « Complément ». Point à traiter dans E-09 : si une séance a à la fois des étapes et des parties, l'exercice principal d'une partie absent des étapes compte dans les marqueurs planifiés mais pas dans les vérifications de séance ; `verifierSeance` (agrégation de S-01 à S-26) reste à écrire dans E-09.
+
 #### E-07 · Vérifications du plan (P-01 à P-14)
 - **Modèle** : Sonnet · **Dépend de** : E-02, E-03 · **Texte** : [taches-entrainement.md, E-07](specs/entrainement/taches-entrainement.md#e-07--vérifications-du-plan-p-01-à-p-14)
 - **Fichiers** : créer `src/regles/verifPlan.ts`, `src/regles/verifPlan.test.ts`.

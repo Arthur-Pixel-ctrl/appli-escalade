@@ -61,6 +61,9 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-20 | Profil et réglages sur ordinateur : jours, lieux, règles, clé de l'assistant gardée sur l'appareil | Fait |
 | E-02 | Moteur de vérification : fonctions de base et adaptateur de la bibliothèque | Fait |
 | E-10 | Catalogue des 26 séances types (avec leur recommandation d'une ligne) et des 21 objectifs de groupe | Fait |
+| E-03 à E-08 | Moteur de vérification : séance (S-01 à S-26), semaine (W-01 à W-19), jour (J-01 à J-07), plan (P-01 à P-15) | Fait |
+| D-14 | Plan sur ordinateur : vue 12 semaines, fenêtre « Nouveau cycle » avec niveau de détail proposé selon les accents | Fait |
+| C-01 | Passerelles entre le plan, la banque d'exercices et le moteur ; résumés des niveaux Simple et Grandes lignes | Fait |
 
 ## Ouvrir l'app
 
