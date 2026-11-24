@@ -10,6 +10,7 @@
 5. Points où Arthur agit : repérés par **[ARTHUR]**. Tâches qui attendent la recherche sur la bibliothèque : section « Tâches bloquées par les trous de la bibliothèque ».
 6. **Consolidation du 18/11** (décisions F3 à F5 : banque d'exercices, trois niveaux de détail ; conception : `docs/specs/niveaux-de-detail.md`) : 7 tâches ajoutées (N-01, G-01 à G-03, D-25 à D-27, texte complet dans la section « Tâches ajoutées le 18/11 ») et des amendements marqués « (consolidation 18/11) » dans les encadrés des tâches existantes. Le modèle consolidé de `docs/architecture-v2.md` § 3 porte aussi ces ajouts.
 7. **Consolidation du 23/11** (décisions F6 et F7 d'Arthur, détail dans `docs/specs/niveaux-de-detail.md` § 1.7, § 3.3 et § 8) : aucune tâche nouvelle ; amendements marqués « (consolidation 23/11, F6) » (N-01, D-14, D-25, E-13, C-07, D-23 : niveau proposé selon les accents) ou « (consolidation 23/11, F7) » (E-02, E-04, E-05, E-06, E-08, E-09 : séance dure sans exercice connu comptée comme séance dure ordinaire).
+8. **Consolidation du 23/11, deux trous signalés par les développeurs** (détail dans `docs/specs/entrainement/moteur-verification.md`, B.2, B.3, B.6, B.11) : une tâche nouvelle, **E-17** (vague 3.5 bis : vérification **W-20**, plafond de résistance en voie selon la décision F2 d'Arthur, point 13 ; champ `sujet` des avertissements, pour que le dédoublonnage ne supprime plus le second W-18, W-05, P-11, P-12 ou S-22 d'une même cible) ; amendements marqués « (consolidation 23/11, W-20) » dans E-09 et G-03.
 
 ## Règles de consolidation (à joindre à chaque tâche)
 
@@ -28,11 +29,11 @@
 | Phase | Tâches | Vagues | Fin de phase quand… (plan v2) |
 |---|---|---|---|
 | 2. Fondations | 26 | 12 | L'app actuelle tourne sur la nouvelle base, sur téléphone et ordinateur |
-| 3. Plateforme ordinateur | 29 | 12 | Un plan complet se construit à la main ou avec le générateur sur ordinateur, au niveau de détail choisi |
+| 3. Plateforme ordinateur | 30 | 13 | Un plan complet se construit à la main ou avec le générateur sur ordinateur, au niveau de détail choisi |
 | 4. Téléphone sur le plan | 5 | 3 | Une semaine réelle se suit de bout en bout, à chaque niveau de détail |
 | 5. Assistant IA | 8 | 4 | Un plan se crée avec l'assistant puis se retouche à la main |
 | 6. Bilans | 2 | 2 | Les tests de fin de phase s'affichent en courbes |
-| **Total** | **70** | **33** | (D-10 est fusionnée dans F2-14 ; les phases 7 et 8 n'ont pas encore de tâches ; 7 tâches ajoutées le 18/11) |
+| **Total** | **71** | **34** | (D-10 est fusionnée dans F2-14 ; les phases 7 et 8 n'ont pas encore de tâches ; 7 tâches ajoutées le 18/11, 1 le 23/11 : E-17) |
 
 **Avant la phase 3** : recherche sourcée sur les trous de la bibliothèque (B21), vérification et audit, comme pour les 60 protocoles. Voir la dernière section.
 
@@ -477,16 +478,27 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 > 3. « Créer un exercice » reste désactivé avec sa raison jusqu'à D-13.
 > 4. (consolidation 18/11, F3) L'étiquette « HORS ASSISTANT » devient **« À LA MAIN SEULEMENT »** (fiche `exclureDeLaGeneration`, ou `estTest` quand le champ existera) : ni le générateur ni l'assistant ne la proposent ; elle reste ajoutable à la main, avec sa raison.
 
+## Vague 3.5 bis (consolidation 23/11)
+
+E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livrées), donc elle passe après elles, et E-09 l'attend. Elle ne partage aucun fichier avec D-11, D-12, D-15 ni G-02.
+
+#### E-17 · Plafond de résistance en voie (W-20) et sujet des avertissements
+- **Modèle** : Sonnet · **Dépend de** : E-04, E-05, E-06, E-07, C-01 (livrées) · **Texte** : [plus bas](#e-17-texte-complet)
+- **Fichiers** : modifier `src/regles/types.ts`, `reglesParDefaut.ts`, `reglesParDefaut.test.ts`, `verifSemaineQuotas.ts`, `verifSemaineQuotas.test.ts`, `verifSemaineContenu.ts`, `verifSemaineContenu.test.ts`, `verifPlan.ts`, `verifPlan.test.ts`, `verifSeanceDeroule.ts`, `verifSeanceDeroule.test.ts`, `passerelles.ts`, `passerelles.test.ts`.
+
+> **Amendements de consolidation** : tâche nouvelle (décision F2 d'Arthur, point 13 ; unicité de B.3).
+
 ## Vague 3.6
 
 #### E-09 · Points d'entrée du moteur et tests d'intégration
-- **Modèle** : Sonnet · **Dépend de** : E-03 à E-08 · **Texte** : [taches-entrainement.md, E-09](specs/entrainement/taches-entrainement.md#e-09--points-dentrée-du-moteur-et-tests-dintégration)
+- **Modèle** : Sonnet · **Dépend de** : E-03 à E-08, (consolidation 23/11) E-17 · **Texte** : [taches-entrainement.md, E-09](specs/entrainement/taches-entrainement.md#e-09--points-dentrée-du-moteur-et-tests-dintégration)
 - **Fichiers** : créer `src/regles/index.ts`, `src/regles/integration.test.ts`.
 
 > **Amendements de consolidation**
 > 1. `index.ts` réexporte aussi les fonctions de `passerelles.ts` (C-01) : les écrans n'importent que `src/regles/index.ts`.
 > 2. (consolidation 18/11) Réexporter aussi `resumes.ts` (C-01). Tests d'intégration en plus : cas 13 à 16 de B.11 ; le plan de 12 semaines du cas 1, rendu au niveau simple (étapes gardées), donne les mêmes avertissements qu'au niveau détaillé, sauf S-15 (« aucun avertissement ne disparaît »).
 > 3. (consolidation 23/11, F7) Cas 14 et 15 dans leur version du 23/11 : cas 14 → `S-26` seul, sans `W-01` ; cas 15 → ni `W-01` ni `S-26`, et sa variante avec `traction-lestee-force-lattice` → `W-01` fort sur la séance du 25.
+> 4. (consolidation 23/11, W-20) **Dédoublonnage** (étape 3) par `code` + `seanceId` + `version` + `etapeIndex` + `lundi` + `mesocycleOrdre` + **`sujet`** (B.3 consolidé). Un champ absent compte comme vide ; ne jamais dédoublonner sur le seul `code` + `lundi` ou sur le message. `verifierSemaine` couvre W-02 à **W-20** (W-20 est dans `verifierQuotasSemaine` depuis E-17 : rien à ajouter). Tests d'intégration en plus : cas 17 et 18 de B.11 ; cas 18 → deux `W-18` (puis deux `W-05`) **après** dédoublonnage, par `verifierSemaine` et par `verifierPlan`. Critère « Un même problème ne sort qu'une fois » : il reste vrai, deux objectifs sont deux problèmes.
 
 #### D-12 · Fiche protocole en panneau latéral
 - **Modèle** : Sonnet · **Dépend de** : D-11 · **Texte** : [taches-design.md, D-12](specs/design/taches-design.md#d-12--fiche-protocole-en-panneau-latéral)
@@ -545,6 +557,7 @@ Les tâches E sont des fonctions pures dans des fichiers nouveaux (`src/regles/`
 - **Fichiers** : créer `src/regles/generateur.ts`, `generateur.test.ts`, `src/regles/allegement.ts`, `allegement.test.ts` ; modifier `src/regles/index.ts` (une ligne d'export).
 
 > **Amendements de consolidation** : tâche nouvelle (décision F3). En parallèle de D-16 : aucun fichier commun.
+> 1. (consolidation 23/11, W-20) Dépend aussi de E-17. Comme un `maxParSemaine`, le plafond `RESISTANCE_VOIE_PAR_SEMAINE[profil.disciplinePrincipale]` se compte sur les séances déjà choisies dans la semaine (séances qui portent `resistance_voie`). Aujourd'hui aucune séance type n'en contient : rien ne change ; le test « aucun avertissement fort » couvre W-20 quand le catalogue en recevra.
 
 #### D-17 · Plan : glisser-déposer et alternatives clavier — vague 3.9
 - **Modèle** : Sonnet · **Dépend de** : D-16 · **Texte** : [taches-design.md, D-17](specs/design/taches-design.md#d-17--plan--glisser-déposer-et-alternatives-clavier)
@@ -981,6 +994,32 @@ Décisions F3 à F5 ; conception : `docs/specs/niveaux-de-detail.md` (à lire en
   3. `App.tsx` : « Je grimpe seul » ouvre `SeanceSolo` si le niveau affiché est détaillé, `SeanceEnBref` sinon ; « Terminer la séance » → Trois questions → Débrief ; la séance réalisée porte `mode: 'solo'`, la durée du chrono libre, `etapes` = `etapesRealisees`, `seancePlanifieeId`, `qualite`, `marqueurs` = `marqueursVersionPlanifiee` (C-01).
 - **Tests** : `tempsEcouleS` avec une pause ; `etapesRealisees` d'une séance simple (une partie) et de trois parties ; `independance.test.ts` passe toujours.
 - **Critères** : hors ligne, tout marche ; « Stop, ça fait mal » visible sur tout l'écran, au même endroit que dans le chrono ; boutons de séance de 64 px ; la séance faite apparaît « faite » dans Aujourd'hui et sur l'ordinateur.
+
+---
+
+# Tâche ajoutée le 23/11 (texte complet)
+
+Deux trous signalés par les développeurs ; conception : `docs/specs/entrainement/moteur-verification.md` (ajouts « consolidation 23/11 » de B.1, B.2, B.3, B.6 et B.11). Règles à joindre : `CLAUDE.md`, R-1 à R-9, et les « Règles communes » de `taches-entrainement.md` (fonctions pures, imports en `.ts`, aucune dépendance nouvelle, tests Vitest à côté du fichier, rien dans `src/donnees/bibliotheque/`).
+
+### E-17 (texte complet)
+
+**E-17 · Plafond de résistance en voie (W-20) et sujet des avertissements** — phase 3, vague 3.5 bis, Sonnet.
+- **Objectif** : (1) faire respecter la décision F2 d'Arthur, point 13 : au plus 1 séance de résistance en voie par semaine tant que le profil est « bloc », 2 en voie. Les fiches portent déjà le marqueur `resistance_voie` et `maxParSemaine: 1`, mais rien ne plafonnait le total. (2) Qu'aucune alerte légitime ne disparaisse au dédoublonnage quand une vérification en émet plusieurs pour la même cible (deux objectifs oubliés, deux fiches au-delà de leur plafond…).
+- **Dépend de** : E-04, E-05, E-06, E-07, C-01 (livrées). E-09 dépend de E-17.
+- **Lire** : `moteur-verification.md` B.1 (`Marqueur`), B.2 (`RESISTANCE_VOIE_PAR_SEMAINE`), B.3 (champ `sujet` et son tableau), B.6 (W-20 et ses précisions), B.11 (cas 17 et 18) ; `docs/recherche-b21/audit.md` (I-8, décision 13) ; `src/regles/types.ts`, `reglesParDefaut.ts`, `base.ts` (`marqueursSeance`), `verifSemaineQuotas.ts`, `verifSemaineContenu.ts`, `verifPlan.ts`, `verifSeanceDeroule.ts`, `passerelles.ts` ; `src/donnees/bibliotheque/resistance.ts` (les trois fiches de résistance en voie, en lecture seule).
+- **Fichiers** : modifier `src/regles/types.ts`, `reglesParDefaut.ts`, `reglesParDefaut.test.ts`, `verifSemaineQuotas.ts`, `verifSemaineQuotas.test.ts`, `verifSemaineContenu.ts`, `verifSemaineContenu.test.ts`, `verifPlan.ts`, `verifPlan.test.ts`, `verifSeanceDeroule.ts`, `verifSeanceDeroule.test.ts`, `passerelles.ts`, `passerelles.test.ts`.
+- **Étapes**
+  1. `types.ts` : `Avertissement.sujet?: string`, avant `source`, commentaire « ce que vise l'alerte quand une vérification en émet plusieurs pour la même cible (B.3) ».
+  2. `reglesParDefaut.ts` : `export const RESISTANCE_VOIE_PAR_SEMAINE: Record<'bloc' | 'voie', number> = { bloc: 1, voie: 2 }`, commentaire « Décision F2 d'Arthur, point 13 : 1 par semaine tant que le profil est « bloc », 2 si l'objectif devient la voie (Lattice : 2 au plus). Une constante, pas un réglage : elle dépend du profil. » `Regles`, `REGLES_PAR_DEFAUT` et `MARQUEURS_QUOTA` ne changent pas.
+  3. `verifSemaineQuotas.ts`, dans `verifierQuotasSemaine`, après W-08 : **W-20** selon B.6. Compter les séances de `dansLaSemaine` dont `marqueursSeance(s, fiches)` contient `resistance_voie` ; plafond `RESISTANCE_VOIE_PAR_SEMAINE[ctx.profil.disciplinePrincipale]` ; niveau fort ; les deux messages de B.6 mot pour mot (`{n}` = nombre de séances) ; source « Décision d'Arthur (F2, point 13) ; audit B21, I-8 (Lattice) ». Mettre à jour le commentaire d'en-tête du fichier (W-01 à W-08, et W-20). La signature ne change pas.
+  4. `sujet`, selon le tableau de B.3 et nulle part ailleurs : W-05 → `fiche.id` (`ajouter` reçoit un `sujet` facultatif) ; W-18 → identifiant de l'objectif (`verifSemaineContenu.ts`) ; P-11 → `` `${a.id}+${b.id}` ``, dans l'ordre de `objectifsPersoIds`, et P-12 → identifiant de l'objectif (`verifPlan.ts`, par `extra`) ; S-22 → rang de l'objectif dans `objectifs`, `String(i)` (`verifSeanceDeroule.ts`). Aucun message ne change.
+  5. `passerelles.ts`, `cleAvertissement(a)` : ajouter `|${a.sujet}` à la fin **seulement si** `a.sujet` est présent. Une clé sans `sujet` reste identique : le test existant ne change pas.
+- **Tests**
+  - W-20 : cas 17 de B.11 et ses variantes (a), (b), (c), par `verifierQuotasSemaine`. Plus : profil bloc, une seule séance avec deux fiches de résistance en voie → muet (une séance compte une fois) ; profil bloc, une séance `resistance-4x4-blocs` et une `resistance-voies-repetees` → muet (la résistance en bloc ne compte pas) ; l'alerte a `portee: 'semaine'` et `lundi`, sans `mesocycleOrdre` ni `sujet`.
+  - `sujet` : cas 18 de B.11 (deux W-18, `sujet` `'o1'` et `'o2'` ; deux W-05) ; trois objectifs portant `poutre` sur une phase → trois P-11 de `sujet` distincts ; deux objectifs inadaptés sur une phase → deux P-12 de `sujet` distincts ; deux objectifs de groupe `bloc_limite` sans plafond → deux S-22, `sujet` `'0'` et `'1'`.
+  - `cleAvertissement` : avec `sujet: 'o1'` → finit par `|o1` ; deux W-18 de `sujet` différents → deux clés différentes ; sans `sujet` → clé inchangée.
+  - `RESISTANCE_VOIE_PAR_SEMAINE` vaut `{ bloc: 1, voie: 2 }`.
+- **Critères** : aucun message existant ne change ; les tests déjà livrés passent sans retouche ; `npm run build` et `npm run test` passent ; ligne « E-17 » au tableau « État » du README, en dernier (R-7).
 
 ---
 
