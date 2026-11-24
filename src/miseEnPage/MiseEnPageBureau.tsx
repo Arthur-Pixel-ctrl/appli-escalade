@@ -1,4 +1,5 @@
 import { BarreBureau } from '../composants/BarreBureau.tsx'
+import { Bibliotheque } from '../ecrans/bureau/Bibliotheque.tsx'
 import { EnConstruction } from '../ecrans/EnConstruction.tsx'
 import { Historique } from '../ecrans/Historique.tsx'
 import { Plan } from '../ecrans/bureau/Plan.tsx'
@@ -46,9 +47,7 @@ export function MiseEnPageBureau({
             <div className="bureau-plan"><Plan /></div>
           )}
           {rubrique === 'Bibliothèque' && (
-            <div className="bureau-lecture">
-              <EnConstruction titre="Bibliothèque" texte="Les 60 protocoles et tes exercices, filtrables." />
-            </div>
+            <div className="bureau-bibliotheque"><Bibliotheque /></div>
           )}
           {rubrique === 'Bilans' && <div className="bureau-lecture"><Historique onOuvrir={onOuvrirSeance} /></div>}
           {rubrique === 'Profil' && (
