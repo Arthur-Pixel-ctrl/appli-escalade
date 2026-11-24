@@ -371,6 +371,12 @@ describe('avertissements', () => {
     expect(cleAvertissement(a({ lundi: '2026-11-16' }))).toBe('W-01||||2026-11-16|')
     expect(cleAvertissement(a({ code: 'S-03', seanceId: 's', version: 'solo', etapeIndex: 0, mesocycleOrdre: 2 }))).toBe('S-03|s|solo|0||2')
   })
+  it('cleAvertissement : le sujet s\'ajoute à la fin, seulement s\'il existe', () => {
+    const base = { code: 'W-18', lundi: '2026-11-23', mesocycleOrdre: 1 }
+    expect(cleAvertissement(a({ ...base, sujet: 'o1' }))).toBe('W-18||||2026-11-23|1|o1')
+    expect(cleAvertissement(a({ ...base, sujet: 'o1' }))).not.toBe(cleAvertissement(a({ ...base, sujet: 'o2' })))
+    expect(cleAvertissement(a(base))).toBe('W-18||||2026-11-23|1')
+  })
   it('formeAffichage', () => {
     for (const code of ['S-04', 'S-05', 'S-06', 'J-05']) expect(formeAffichage(a({ code }))).toBe('arret')
     expect(formeAffichage(a({ code: 'W-01' }))).toBe('avertissement')

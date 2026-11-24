@@ -155,6 +155,10 @@ describe('Version groupe : S-20 à S-23', () => {
     const ok = base(groupe([obj({ accents: ['puissance'], marqueurs: ['bloc_limite'], blocs: 3, essaisMaxParBloc: 4 })]))
     expect(trouver(verifierSeanceDeroule(ok, ctx), 'S-22')).toHaveLength(0)
   })
+  it('S-22 : deux objectifs sans plafond donnent deux alertes de sujets \'0\' et \'1\'', () => {
+    const s = base(groupe([obj({ accents: ['puissance'], marqueurs: ['bloc_limite'] }), obj({ accents: ['puissance'], marqueurs: ['bloc_limite'] })]))
+    expect(trouver(verifierSeanceDeroule(s, ctx), 'S-22').map((a) => a.sujet)).toEqual(['0', '1'])
+  })
   it('S-23 : qualité dominante non travaillée', () => {
     const s = base(groupe([obj({ accents: ['puissance'] })]), 'resistance')
     expect(trouver(verifierSeanceDeroule(s, ctx), 'S-23')).toHaveLength(1)

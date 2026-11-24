@@ -260,7 +260,7 @@ export function verifierStructurePlan(plan: PlanVerif, ctx: ContexteVerif): Aver
             'information',
             `« ${objectifs[i].nom} » et « ${objectifs[j].nom} » comptent dans le même quota (${commun}). Garde-en un pour cette phase.`,
             'Modèle de données',
-            { mesocycleOrdre: bloc.ordre },
+            { mesocycleOrdre: bloc.ordre, sujet: `${objectifs[i].id}+${objectifs[j].id}` },
           ),
         )
       }
@@ -284,7 +284,7 @@ export function verifierStructurePlan(plan: PlanVerif, ctx: ContexteVerif): Aver
           'fort',
           `L'objectif « ${objectif.nom} » ne te convient pas aujourd'hui : ${raisons.join(' ; ')}.${remplacement}`,
           'Modèle de données (objectifs proposables)',
-          { mesocycleOrdre: bloc.ordre },
+          { mesocycleOrdre: bloc.ordre, sujet: id },
         ),
       )
     }

@@ -61,3 +61,9 @@ export const NOMS_ZONES: Record<ZoneDouleur, string> = {
 
 /** Effort prévu par défaut d'une version, selon sa dureté. Décidé par Arthur le 17/11 (B17). */
 export const EFFORT_PREVU_PAR_DEFAUT = { dure: 7, legere: 4 }
+
+/**
+ * Décision F2 d'Arthur, point 13 : 1 par semaine tant que le profil est « bloc », 2 si l'objectif devient la voie
+ * (Lattice : 2 au plus). Une constante, pas un réglage : elle dépend du profil.
+ */
+export const RESISTANCE_VOIE_PAR_SEMAINE: Record<'bloc' | 'voie', number> = { bloc: 1, voie: 2 }

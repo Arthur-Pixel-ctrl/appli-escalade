@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BIBLIOTHEQUE } from '../donnees/bibliotheque/index.ts'
 import {
   EFFORT_PREVU_PAR_DEFAUT,
+  RESISTANCE_VOIE_PAR_SEMAINE,
   MARQUEURS_NERVEUX,
   MARQUEURS_QUOTA,
   NOMS_QUALITES,
@@ -44,5 +45,11 @@ describe('listes de marqueurs et de qualités', () => {
 describe('effort prévu par défaut', () => {
   it('vaut 7 pour une séance dure et 4 pour une séance légère', () => {
     expect(EFFORT_PREVU_PAR_DEFAUT).toEqual({ dure: 7, legere: 4 })
+  })
+})
+
+describe('plafond de résistance en voie', () => {
+  it('vaut 1 pour un profil bloc et 2 pour un profil voie', () => {
+    expect(RESISTANCE_VOIE_PAR_SEMAINE).toEqual({ bloc: 1, voie: 2 })
   })
 })

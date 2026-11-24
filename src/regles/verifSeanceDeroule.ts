@@ -25,6 +25,7 @@ function avertir(
   s: SeanceVerif,
   version: Version,
   etapeIndex?: number,
+  sujet?: string,
 ): Avertissement {
   const a: Avertissement = {
     code,
@@ -36,6 +37,7 @@ function avertir(
     source,
   }
   if (etapeIndex !== undefined) a.etapeIndex = etapeIndex
+  if (sujet !== undefined) a.sujet = sujet
   return a
 }
 
@@ -287,7 +289,7 @@ function verifsGroupe(s: SeanceVerif, g: VersionVerif, ctx: ContexteVerif): Aver
     )
   }
 
-  for (const o of objectifs) {
+  for (const [rang, o] of objectifs.entries()) {
     const alaLimite = o.marqueurs.includes('maximale') || o.marqueurs.includes('bloc_limite')
     if (alaLimite && (o.blocs === undefined || o.essaisMaxParBloc === undefined)) {
       res.push(
@@ -298,6 +300,8 @@ function verifsGroupe(s: SeanceVerif, g: VersionVerif, ctx: ContexteVerif): Aver
           "Choix de l'app",
           s,
           'groupe',
+          undefined,
+          String(rang), // l'objectif de groupe n'a pas d'identifiant : son rang suffit
         ),
       )
     }
