@@ -65,6 +65,8 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-14 | Plan sur ordinateur : vue 12 semaines, fenêtre « Nouveau cycle » avec niveau de détail proposé selon les accents | Fait |
 | C-01 | Passerelles entre le plan, la banque d'exercices et le moteur ; résumés des niveaux Simple et Grandes lignes | Fait |
 | D-15 | Plan sur ordinateur : vue phase (4 semaines × 7 jours), ajouter, copier, déplacer, recopier une semaine | Fait |
+| G-02 | Semaines types du générateur (2 à 5 séances, 6 accents) et accents de départ selon le profil | Fait |
+| E-17 | Plafond de résistance en voie (W-20 : 1 par semaine en profil bloc, 2 en voie) et avertissements distincts par sujet | Fait |
 
 ## Ouvrir l'app
 
