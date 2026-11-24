@@ -6,13 +6,15 @@ Les amendements correspondants sont marqués « (consolidation 18/11) » dans `d
 
 (consolidation 23/11) Les décisions **F6** (niveau proposé selon l'objectif) et **F7** (séance dure sans exercice connu) sont reportées ici (§ 1.7, § 3.3, § 4.1, § 5, § 8) et dans les mêmes documents, avec la mention « (consolidation 23/11, F6) » ou « (consolidation 23/11, F7) ».
 
+(consolidation 24/11) Point signalé par les développeurs de C-01 et E-09 : une séance qui a à la fois des étapes et des parties écrites. Règle au § 3.4 ; vérification S-27 et cas 19 dans `moteur-verification.md` ; tâche E-18 et amendement de D-26 dans `docs/backlog-v2.md`.
+
 ## 0. En bref
 
 - **Le niveau est un choix d'affichage, pas un autre modèle.** Même cycle, mêmes phases, mêmes séances (date, qualité, dureté, effort, durée). Le niveau dit seulement ce que le téléphone montre de la version solo : une ligne, 3 ou 4 parties, ou toutes les étapes.
 - **Rien n'est effacé quand on change de niveau.** Les étapes restent enregistrées même quand la séance s'affiche « simple ». On peut monter ou descendre de niveau sans rien perdre.
 - **Le générateur et les séances types remplissent toujours tout** (étapes complètes + recommandation). Le niveau ne change que l'affichage. Seules les séances écrites à la main en simple ou en grandes lignes n'ont pas d'étapes.
 - **Pas de niveau imposé** (consolidation 23/11, F6). À la création d'un cycle, l'app pose la question du niveau après le choix des accents des phases, et présélectionne un niveau qui dépend d'eux (`niveauPropose`, § 1.7), avec une ligne qui dit pourquoi.
-- **Le moteur vérifie toujours le contenu le plus fin qui existe.** Un seul contrôle dépend du niveau affiché : S-15 (repos réglé dans le chrono). Aucun avertissement de semaine ou de plan ne disparaît. (consolidation 23/11, F7) Une séance dure sans aucun exercice connu compte comme une séance dure ordinaire, pas comme un effort maximal ; S-26 propose de choisir son exercice principal.
+- **Le moteur vérifie toujours le contenu le plus fin qui existe.** Un seul contrôle dépend du niveau affiché : S-15 (repos réglé dans le chrono). Aucun avertissement de semaine ou de plan ne disparaît. (consolidation 23/11, F7) Une séance dure sans aucun exercice connu compte comme une séance dure ordinaire, pas comme un effort maximal ; S-26 propose de choisir son exercice principal. (consolidation 24/11) Un exercice principal des grandes lignes absent des étapes est vérifié comme un exercice de la séance (prérequis, douleurs, 48 h, quotas), sans place dans l'ordre ; S-27 le signale (§ 3.4).
 - **La banque** = la bibliothèque (protocoles et exercices personnels) triée par une seule fonction commune au générateur (phase 3) et à l'assistant (phase 5).
 
 ---
@@ -104,7 +106,7 @@ Exemples : ST-DOI-02 → Échauffement 43 min · Effort principal 47 min (suspen
 | Simple ou grandes lignes → détaillé, **avec** étapes | Les étapes réapparaissent telles quelles. | `niveauDetail` seulement |
 | Simple ou grandes lignes → détaillé, **sans** étapes | La fiche dit « Cette séance n'a pas encore d'étapes. » et propose « Remplir depuis la séance type » (si `seanceTypeId`) ou « Ajouter une étape ». Tant qu'elle n'a pas d'étapes, le téléphone l'affiche à son niveau disponible. Recommandation et parties restent. | `niveauDetail`, puis les étapes ajoutées |
 | Retoucher la recommandation ou une partie | La valeur calculée devient une valeur écrite. « Revenir au texte proposé » efface le champ (il redevient calculé). | `recommandation` ou `parties` |
-| Grandes lignes écrites puis étapes ajoutées | Les deux coexistent : chaque niveau montre son contenu. Si les étapes changent, la fiche propose « Recalculer les grandes lignes » (efface `parties`). Le moteur vérifie les étapes. | — |
+| Grandes lignes écrites puis étapes ajoutées | Les deux coexistent : chaque niveau montre son contenu. Si les étapes changent, la fiche propose « Recalculer les grandes lignes » (efface `parties`). Le moteur vérifie les étapes ; (consolidation 24/11) un exercice principal des parties absent des étapes est vérifié lui aussi, sans place dans l'ordre, et S-27 le signale (§ 3.4). | — |
 | Niveau du cycle | Toutes les séances sans niveau propre suivent. Confirmation : « Les séances suivront ce niveau. Rien n'est effacé. {n} séances gardent leur propre niveau. » ; lien « Les passer aussi en {niveau} » (efface leur `niveauDetail`). | `Cycle.niveauDetail` (et des `SeancePlanifiee.niveauDetail` effacés si demandé) |
 
 Une séance déjà faite n'est pas touchée : la séance réalisée est un autre document.
@@ -293,7 +295,7 @@ Le moteur vérifie **le contenu enregistré, au niveau le plus fin qui existe**,
 
 | Contenu de la version solo | `etapes` de la vue | Marqueurs | Durée |
 |---|---|---|---|
-| Étapes présentes | les étapes réelles | fiches des étapes ∪ exercices principaux des parties écrites | somme des étapes |
+| Étapes présentes | les étapes réelles ; (consolidation 24/11) les principaux des parties écrites absents des étapes à part, dans `principauxHorsEtapes` (§ 3.4) | fiches des étapes ∪ exercices principaux des parties écrites | somme des étapes |
 | Pas d'étapes, des parties | une étape résumée par partie qui a un exercice principal (`ficheId` = principal, `dureeMin` = durée de la partie) | fiches des principaux | somme des parties (`VersionVerif.dureeMin`) |
 | Rien de connu (aucune fiche) | aucune | aucun (consolidation 23/11, F7 : une version dure est une séance dure ordinaire, § 3.3) | somme des parties |
 
@@ -304,14 +306,14 @@ Nouveaux champs de la vue (E-01) : `VersionVerif.niveau?: NiveauDetail` (niveau 
 | Règles | Détaillé | Grandes lignes | Simple |
 |---|---|---|---|
 | **Semaine et plan** : 48 h (W-01), quotas (W-02 à W-05), jours de doigts (W-06), séances dures (W-08), charge et semaine allégée (W-09 à W-12), entretien des qualités (W-13), accent (W-14), poutre et ancienneté (W-15), antagonistes (W-16, W-17), modules (W-18), suspensions légères (W-19), P-01 à P-14 | oui | oui | oui |
-| **Fiches citées** : fiche inconnue (S-01), à vérifier (S-02), prérequis (S-03), douleurs (S-04 à S-06), tête et partenaire (S-07, S-08), voie (S-09), bidoigts (S-18), exercice perso non qualifié (S-19) | sur les étapes | sur les étapes, sinon sur les exercices principaux des parties | sur les étapes, sinon sur l'exercice principal |
+| **Fiches citées** : fiche inconnue (S-01), à vérifier (S-02), prérequis (S-03), douleurs (S-04 à S-06), tête et partenaire (S-07, S-08), voie (S-09), bidoigts (S-18), exercice perso non qualifié (S-19) | sur les étapes et (consolidation 24/11) les principaux hors étapes (§ 3.4) | sur les étapes et les principaux hors étapes ; sans étapes, sur les exercices principaux des parties | sur les étapes et les principaux hors étapes ; sans étapes, sur l'exercice principal |
 | Dureté et effort maximal (S-17) | oui | oui | oui |
 | **Ordre du déroulé** : échauffement (S-10, S-11), effort maximal après un travail congestionnant (S-12), pan en début de séance (S-13), deux suspensions max (S-14), bloc nerveux trop long (S-16), modules (S-24, S-25) | oui | oui si la séance a des étapes ; sinon non (P-15 et rappels au téléphone) | oui si la séance a des étapes ; sinon non (P-15 et rappels au téléphone) |
 | **Repos réglé dans le chrono** (S-15) | oui | non : le chrono réglé n'est pas lancé ; le téléphone rappelle « 3 à 5 min de repos entre deux efforts maximaux » | non : même rappel |
 | Groupe (S-20 à S-23) | oui | oui | oui |
 | Jour (J-01 à J-07) | oui | oui | oui |
 
-### 3.3 Trois ajouts au moteur (amendements de `moteur-verification.md`)
+### 3.3 Ajouts au moteur (amendements de `moteur-verification.md`)
 
 - **Séance dure sans contenu connu** (B.2 ; consolidation 23/11, F7, décision d'Arthur qui remplace la prudence du 18/11) : une version solo **dure** sans aucune fiche connue est une **séance dure ordinaire**. Elle ne porte aucun marqueur (ni `maximale` ni marqueur à quota). Règle par règle :
   - **W-01** (48 h) : muette. La règle des 48 h s'applique à cette séance comme à toute séance dure : elle ne vise que les séances maximales et de poutre intensive (A3-1, A.3.8), et celle-ci n'en est pas une tant qu'aucun exercice maximal n'est choisi ;
@@ -322,8 +324,34 @@ Nouveaux champs de la vue (E-01) : `VersionVerif.niveau?: NiveauDetail` (niveau 
   - **S-26** : information ci-dessous.
 - **S-26 Séance dure sans exercice connu** — information, portée séance (consolidation 23/11, F7, nouveau texte) : « « {seance} » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte. » [CDC]
 - **P-15 Séances sans étapes** — information, portée plan, une fois : « {n} séances n'ont pas d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance. » [CDC]
+- **S-27 Exercice des grandes lignes absent des étapes** (consolidation 24/11) — information, une par exercice : texte et règle au § 3.4.
 
 Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pas sans étapes (ordre, repos) sont remplacés par des rappels affichés pendant la séance (§ 4.2), et P-15 le dit sur ordinateur.
+
+### 3.4 Étapes et grandes lignes écrites ensemble (consolidation 24/11)
+
+**Le cas.** Une séance peut avoir des étapes **et** des parties écrites : rien n'est effacé quand on change de niveau (R-9), et le § 1.5 le permet (« Grandes lignes écrites puis étapes ajoutées », ou « Modifier le texte » sur des parties calculées). L'exercice principal d'une partie peut alors manquer dans les étapes. Le téléphone montre les parties en grandes lignes, les étapes en détaillé : selon le niveau affiché, Arthur fait l'un ou l'autre.
+
+**Constat sur le code livré (24/11).** La vue du moteur ne lisait que les étapes. Ce principal n'était vérifié ni pour les prérequis, ni pour les douleurs, ni pour la règle des 48 h et les quotas de la séance prévue. Il ne comptait qu'après coup, dans les marqueurs de la séance réalisée (`marqueursVersionPlanifiee`, C-01). Exemple (cas 19 de B.11) : étapes « Échauffement complet, Tractions 4 × 5 », partie « Effort principal » sur « Suspensions max lestées (López) », le lendemain d'une séance maximale : ni S-03 (poutre régulière exigée), ni W-01 (48 h), et ni S-04 si les doigts font mal.
+
+**La règle.** Un exercice principal absent des étapes (« principal hors étapes ») est un exercice **de la séance**, **sans place dans l'ordre**.
+- **Il compte** partout où l'app se demande ce que la séance demande au corps et au profil : ses marqueurs (W-01 à W-04, W-12, W-20, S-17, S-21, J-02, J-04, P-08), les vérifications de fiche (S-01 à S-09 sauf S-05, S-18, S-19), les jours de doigts (W-06) et le plafond de sa fiche (W-05).
+- **Il ne compte pas** là où l'app lit l'ordre, les repos ou les minutes : S-10 à S-16, S-24, S-25, la durée et la charge (somme des étapes, § 1.3). Les règles d'entretien et de contenu de la semaine (W-11, W-13, W-16, W-17, W-19) restent sur les étapes.
+- **S-27** (information, une par exercice) le dit : « « {nom} » est dans les grandes lignes de « {seance} », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes. » [CDC]
+- Même règle à tous les niveaux affichés : changer de niveau ne fait apparaître ni disparaître aucun avertissement.
+- Rien n'est stocké (R-8) : la passerelle (C-01) calcule `principauxHorsEtapes` à chaque vérification. Rien n'est effacé (R-9).
+
+**En une phrase pour Arthur** : si tes grandes lignes citent un exercice absent de tes étapes, l'app le vérifie quand même (prérequis, douleurs, 48 h, quotas), sans juger sa place dans la séance, et te propose de mettre les deux d'accord.
+
+**Pourquoi** [CDC] :
+- *Prudence.* En grandes lignes, Arthur fait ce principal : ses contre-indications et ses prérequis doivent être vus avant la séance, et un effort maximal doit compter dans les 48 h. S'il suit les étapes, le compter ajoute au pire un avertissement : on avertit, on ne bloque pas.
+- *Le contenu le plus fin d'abord.* L'ordre reste celui des étapes. Ajouter le principal à la fin des étapes fausserait S-10 à S-13 (par exemple S-11 sur une poutre placée « après » tout le reste) ; résumer les étapes couperait les contrôles d'ordre d'une séance qui a un vrai déroulé.
+- *Prévu et fait comptent pareil.* Les marqueurs de la séance prévue sont ceux que la séance réalisée recopie (`marqueursVersionPlanifiee`) : la règle des 48 h voit la même chose avant et après.
+- *Pas de vérification selon le niveau affiché* : les avertissements changeraient avec le niveau, ce que le § 3.1 exclut.
+- *Pas de blocage à l'édition* : on avertit sans bloquer, et l'écart naît aussi quand on ajoute des étapes à des grandes lignes écrites.
+- *Entretien et contenu de la semaine sur les étapes* (W-11, W-13, W-16, W-17, W-19) : ce sont des informations, pas des règles de sécurité. Compter le principal pourrait en masquer une (« qualité non entretenue », « antagonistes insuffisants ») alors que la version détaillée ne le contient pas.
+
+**Écran** (D-26) : S-27 s'affiche en tête de la fiche de séance, avec « Recalculer les grandes lignes » (confirmation, puis `parties` effacé : les parties redeviennent calculées depuis les étapes) et « Voir les étapes ». Choisir un principal absent des étapes reste permis.
 
 ---
 
@@ -345,7 +373,7 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
   - *Grandes lignes* : 1 à 5 parties (titre, durée, exercice principal facultatif, consigne courte), « Ajouter une partie », « Monter », « Descendre », « Retirer » ;
   - *Détaillé* : l'éditeur actuel (D-16).
   - Une séance avec des étapes affichée en simple ou en grandes lignes montre le résumé calculé, avec « Modifier le texte » et « Voir les étapes ».
-  - Avertissements : un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape. Aucun ne disparaît.
+  - Avertissements : un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape. Aucun ne disparaît. (consolidation 24/11) S-27 propose « Recalculer les grandes lignes » et « Voir les étapes » (§ 3.4).
 - **Aucun lancement de séance sur ordinateur** (R-6, B12), à aucun niveau.
 
 ### 4.2 Téléphone
@@ -390,6 +418,8 @@ Détail et vagues dans `docs/backlog-v2.md`.
 | **D-27** | Séance en bref sur téléphone (simple, grandes lignes) | Sonnet | 4.2 |
 | Amendées | D-20 (lieux), E-01, E-02, E-04, E-06, E-07, E-09, E-10, E-16, C-01, D-11, D-14, D-16, D-19 (phase 3) ; D-22 (phase 4) ; E-11, E-12, E-13, E-14, C-07, D-23 (phase 5) | | |
 | Amendées le 23/11 | F6 : N-01, D-14, D-25 (phase 3) ; E-13, C-07, D-23 (phase 5). F7 : E-02, E-04, E-05, E-06, E-08, E-09 (phase 3) | | |
+| **E-18** (consolidation 24/11) | Principal des grandes lignes absent des étapes : vérifié comme exercice de la séance, S-27 (§ 3.4) | Sonnet | 3.8 |
+| Amendée le 24/11 | D-26 (affichage de S-27) | | |
 
 ## 8. Décisions d'Arthur sur les questions Q1 et Q2
 
