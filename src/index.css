@@ -532,6 +532,42 @@ form.pile-large { gap: 24px; }
 .fiche-grille-arret { padding-top: var(--espace-2); padding-bottom: var(--espace-2); }
 .fiche-grille-arret .avertissement-tete { font-size: 14px; }
 .bouton-texte.fiche-grille-details { width: auto; align-self: flex-start; padding: 0; text-align: left; }
-.fiche-grille-corps { display: flex; flex-direction: column; gap: var(--espace-2); padding-top: var(--espace-2); border-top: 1px solid var(--filet); font-size: 15px; }
-.fiche-grille-corps p { margin: 0; }
-.fiche-grille-corps a { display: inline-flex; align-items: center; min-height: 48px; color: var(--texte); font-weight: 600; }
+/* Toute la fiche ouvre le panneau : la zone du bouton couvre la carte, et l'anneau de focus entoure la carte. */
+.fiche-grille-details::after { content: ''; position: absolute; inset: 0; }
+.fiche-grille-details:focus-visible { outline: none; }
+.fiche-grille:has(.fiche-grille-details:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (hover: hover) { .fiche-grille:has(.fiche-grille-details) { cursor: pointer; } }
+
+/* Panneau latéral (D-12, O-07) : 560 px à droite, bord gauche encre, glisse depuis la droite. */
+.panneau { position: fixed; inset: 0 0 0 auto; margin: 0; width: 560px; max-width: 100vw; height: 100%; max-height: none; padding: 0; border: 0; border-left: 2px solid var(--texte); background: var(--fond); color: var(--texte); box-shadow: -6px 0 0 var(--relief); overscroll-behavior: contain; }
+.panneau[open] { animation: panneau-entree var(--duree-panneau) var(--courbe); }
+.panneau::backdrop { background: rgb(29 28 25 / 0.5); overscroll-behavior: contain; }
+@keyframes panneau-entree { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.panneau-contenu { height: 100%; display: flex; flex-direction: column; }
+.panneau-tete { flex: none; display: flex; justify-content: flex-end; padding: var(--espace-3) var(--espace-4) 0; }
+.bouton-second.panneau-fermer { flex: none; width: 48px; min-height: 48px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.panneau-corps { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--espace-3) var(--espace-5) var(--espace-5); }
+.panneau-pied { flex: none; display: flex; flex-direction: column; gap: var(--espace-3); padding: var(--espace-4) var(--espace-5) var(--espace-5); border-top: 2px solid var(--texte); background: var(--surface); }
+.panneau-pied .bouton-second { flex: none; }
+
+/* Contenu de la fiche en panneau */
+.fiche-detail { display: flex; flex-direction: column; gap: var(--espace-4); }
+.fiche-detail .titre.moyen { margin: 0; }
+/* Le titre reçoit le focus à l'ouverture pour être annoncé ; il n'est pas interactif, donc sans anneau. */
+.fiche-detail .titre.moyen:focus-visible { outline: none; }
+.fiche-detail p, .fiche-detail ul { margin: 0; }
+.fiche-detail-section { display: flex; flex-direction: column; gap: var(--espace-2); padding-top: var(--espace-3); border-top: 1px solid var(--filet); }
+.fiche-detail-section h3 { margin: 0; }
+.fiche-detail-reglages { font-size: 16px; overflow-wrap: anywhere; }
+.fiche-detail-liste { display: flex; flex-direction: column; gap: var(--espace-2); padding: 0; list-style: none; }
+.fiche-detail-prerequis { display: flex; align-items: baseline; gap: var(--espace-3); }
+.fiche-detail-prerequis .etiquette { flex: none; }
+.bouton-texte.fiche-detail-retour { width: auto; align-self: flex-start; padding: 0; }
+.fiche-detail-arret { padding-top: var(--espace-2); padding-bottom: var(--espace-2); }
+.fiche-detail-lien { display: inline-flex; align-items: center; min-height: 48px; color: var(--texte); font-weight: 600; }
+
+/* Aperçu du chrono : plein écran au-dessus du panneau (dans le même <dialog>), avec un bandeau qui dit que ce n'est pas une séance. */
+.apercu-chrono { position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; background: var(--fond); color: var(--texte); }
+.apercu-bandeau { flex: none; padding: var(--espace-3) var(--espace-5); text-align: center; background: var(--surface); border-bottom: 2px solid var(--texte); color: var(--texte); }
+.apercu-chrono .chrono { width: 100%; max-width: 640px; margin: 0 auto; }
+.apercu-chrono .chrono.preparation, .apercu-chrono .chrono.effort, .apercu-chrono .chrono.repos { max-width: none; }
