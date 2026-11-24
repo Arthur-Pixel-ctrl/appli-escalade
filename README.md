@@ -72,6 +72,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | E-16 | Les 26 séances types et leurs 3 variantes passent le moteur sans avertissement, aux trois niveaux de détail | Fait |
 | G-01 | Banque d'exercices : tri commun (disponible, ou indisponible avec sa raison : à vérifier, test, prérequis, douleur, lieu) | Fait |
 | D-12 | Fiche d'exercice en panneau latéral : consigne, prérequis, sécurité, source ; réglages bornés pour l'essai du chrono | Fait |
+| G-03 | Générateur de plan : cycle de 12 semaines pioché dans la banque, semaine 4 allégée, vérifié par le moteur (aucun avertissement fort pour 6 accents × 2 à 5 séances), toujours en brouillon | Fait |
 
 ## Ouvrir l'app
 
