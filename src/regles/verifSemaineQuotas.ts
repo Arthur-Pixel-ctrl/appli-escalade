@@ -1,5 +1,6 @@
 // Vérifications de semaine, espacement et quotas : W-01 à W-08, et W-20
 // (docs/specs/entrainement/moteur-verification.md, B.6). Fonctions pures : elles avertissent, elles ne bloquent rien.
+// (consolidation 24/11) W-05 compte aussi les principaux hors étapes (grandes lignes absentes des étapes).
 import {
   estDure,
   estMaximale,
@@ -86,7 +87,8 @@ function fichesDeLaSeance(s: SeanceVerif): Set<string> {
     : s.groupe
       ? [s.solo, s.groupe]
       : [s.solo]
-  return new Set(versions.flatMap((v) => v.etapes.map((e) => e.ficheId)))
+  // (consolidation 24/11) les principaux hors étapes comptent aussi
+  return new Set(versions.flatMap((v) => [...v.etapes.map((e) => e.ficheId), ...(v.principauxHorsEtapes ?? [])]))
 }
 
 /** W-02 à W-08 pour la semaine qui commence le `lundi`. */

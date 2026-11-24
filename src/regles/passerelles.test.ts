@@ -13,6 +13,7 @@ import {
   ficheDepuisExercicePerso, formeAffichage, marqueursVersionPlanifiee, planVersVerif, profilVersVerif,
   realiseeVersVerif, seanceDepuisType, seanceVersVerif, toutesLesFiches,
 } from './passerelles.ts'
+import { marqueursVersion } from './base.ts'
 import { REGLES_PAR_DEFAUT } from './reglesParDefaut.ts'
 import type { Avertissement, ContexteVerif, SeanceVerif } from './types.ts'
 import { verifierSeanceDeroule } from './verifSeanceDeroule.ts'
@@ -155,6 +156,52 @@ describe('marqueursVersionPlanifiee', () => {
     const solo = { nom: 'x', etapes: [], durete: 'dure' as const, parties: [{ titre: 'P', dureeMin: 40, principal: { source: 'bibliotheque' as const, refId: 'puissance-bloc-limite' } }] }
     expect(marqueursVersionPlanifiee(solo, fiches)).toEqual(fiches['puissance-bloc-limite'].marqueurs)
     expect(marqueursVersionPlanifiee({ nom: 'x', etapes: [], durete: 'dure' }, fiches)).toEqual([])
+  })
+})
+
+describe('principauxHorsEtapes (consolidation 24/11)', () => {
+  const etape = (id: string) => etapeDepuisProtocole(protocoleParId(id)!, id)
+  const partie = (refId: string) => ({ titre: refId, dureeMin: 30, principal: { source: 'bibliotheque' as const, refId } })
+  const seanceAvec = (etapes: string[], parties: string[]): SeancePlanifiee => ({
+    ...EXEMPLE_SEANCE_PLANIFIEE, niveauDetail: undefined, groupe: null,
+    solo: { nom: 'Tractions et poutre', durete: 'dure', etapes: etapes.map(etape), parties: parties.map(partie) },
+  })
+  const E = ['echauffement-general', 'traction-simple-4x5']
+  const P = 'doigts-suspensions-max-lestees'
+  const memesMarqueurs = (s: SeancePlanifiee) => {
+    const vue = seanceVersVerif(s, fiches)
+    const ctx = ctxComplet()
+    expect(marqueursVersion(vue.solo, ctx.fiches).sort()).toEqual(marqueursVersionPlanifiee(s.solo, fiches).sort())
+  }
+  it('principal absent des étapes : posé, étapes inchangées, marqueurs identiques prévu/réalisé', () => {
+    const s = seanceAvec(E, [P])
+    const v = seanceVersVerif(s, fiches).solo
+    expect(v.principauxHorsEtapes).toEqual([P])
+    expect(v.etapes.map((e) => e.ficheId)).toEqual(E)
+    expect(v.etapesDetaillees).toBeUndefined()
+    memesMarqueurs(s)
+  })
+  it('principal déjà dans les étapes : champ absent', () => {
+    const s = seanceAvec(E, ['traction-simple-4x5'])
+    expect(seanceVersVerif(s, fiches).solo).not.toHaveProperty('principauxHorsEtapes')
+    memesMarqueurs(s)
+  })
+  it('deux parties au même principal : une seule fois, dans l\'ordre des parties', () => {
+    const s = seanceAvec(E, [P, 'puissance-bloc-limite', P])
+    expect(seanceVersVerif(s, fiches).solo.principauxHorsEtapes).toEqual([P, 'puissance-bloc-limite'])
+    memesMarqueurs(s)
+  })
+  it('sans étapes : comme avant, étapes résumées, champ absent', () => {
+    const s = seanceAvec([], [P])
+    const v = seanceVersVerif(s, fiches).solo
+    expect(v).not.toHaveProperty('principauxHorsEtapes')
+    expect(v).toMatchObject({ etapesDetaillees: false })
+    expect(v.etapes.map((e) => e.ficheId)).toEqual([P])
+    memesMarqueurs(s)
+  })
+  it('étapes sans parties : champ absent', () => {
+    const s = { ...seanceAvec(E, []), solo: { nom: 'x', durete: 'dure' as const, etapes: E.map(etape) } }
+    expect(seanceVersVerif(s, fiches).solo).not.toHaveProperty('principauxHorsEtapes')
   })
 })
 

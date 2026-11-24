@@ -392,3 +392,26 @@ describe('sujet des W-05', () => {
     expect(new Set(w05.map(cleAvertissement)).size).toBe(2)
   })
 })
+
+describe('principaux hors étapes (consolidation 24/11)', () => {
+  const avecPrincipal = (id: string, date: string, principal: string): SeanceVerif => {
+    const s = seanceSolo(id, date, ['echauffement-general', 'traction-simple-4x5'], { durete: 'dure' })
+    s.solo.principauxHorsEtapes = [principal]
+    return s
+  }
+  it('W-05 compte un principal hors étapes', () => {
+    const s = [
+      seanceSolo('a', LUN, [MAXIMALE]),
+      seanceSolo('b', MAR, [MAXIMALE]),
+      avecPrincipal('c', JEU, MAXIMALE),
+    ]
+    const w05 = toutes(s).filter((a) => a.code === 'W-05')
+    expect(w05).toHaveLength(1)
+    expect(w05[0].message).toContain('prévue 3 fois')
+  })
+  it('W-01 entre une séance maximale et, le lendemain, une séance dont seul le principal hors étapes est maximal', () => {
+    const s = [seanceSolo('a', MAR, [MAXIMALE]), avecPrincipal('b', MER, BLOC_LIMITE)]
+    const a = verifierEspacement(s, ctx)
+    expect(a.map((x) => [x.code, x.seanceId])).toEqual([['W-01', 'b']])
+  })
+})

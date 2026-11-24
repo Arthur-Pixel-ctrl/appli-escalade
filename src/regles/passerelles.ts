@@ -3,6 +3,7 @@
 // `tractionsStrictes` devient `tractionsStrictesMax`, etc.
 // Fonctions pures : les écrans lisent la base, puis appellent ces fonctions. Rien de calculable n'est écrit
 // dans les documents (R-8). Spécification : docs/backlog-v2.md, C-01 ; docs/specs/niveaux-de-detail.md § 3.
+// (consolidation 24/11) `principauxHorsEtapes` : principaux des parties écrites absents des étapes (§ 3.4), calculés à chaque fois.
 import { protocoleParId } from '../donnees/bibliotheque/index.ts'
 import type { Protocole } from '../donnees/bibliotheque/types.ts'
 import type {
@@ -265,6 +266,13 @@ function soloVersVerif(solo: VersionSolo, niveau: VersionVerif['niveau']): Versi
   if (solo.effortPrevu !== undefined) v.effortPrevu = solo.effortPrevu
   if (solo.etapes.length > 0) {
     v.etapes = solo.etapes.map(etapeVersVerif)
+    // Principaux des parties écrites absents des étapes : vérifiés comme exercices de la séance (§ 3.4).
+    // Calculés à chaque fois, jamais stockés.
+    const dansLesEtapes = new Set(v.etapes.map((e) => e.ficheId))
+    const horsEtapes = [...new Set((solo.parties ?? []).flatMap((p) => (p.principal ? [p.principal.refId] : [])))].filter(
+      (id) => !dansLesEtapes.has(id),
+    )
+    if (horsEtapes.length > 0) v.principauxHorsEtapes = horsEtapes
     return v
   }
   // Pas d'étapes : l'ordre réel est inconnu (P-15 le dit), et la durée vient des parties.

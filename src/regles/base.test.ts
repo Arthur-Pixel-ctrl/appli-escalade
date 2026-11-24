@@ -209,3 +209,32 @@ describe('plafonds', () => {
     for (const [annees, cap] of attendu) expect(capPoutreAnciennete(annees)).toBe(cap)
   })
 })
+
+describe('principaux hors étapes (consolidation 24/11)', () => {
+  const avec = (ids: string[], fiches?: Record<string, never>) => {
+    const s = seanceSolo('a', '2026-11-25', ['antagonistes-legers'], { durete: 'dure' })
+    s.solo.principauxHorsEtapes = ids
+    return { s, fiches: fiches ?? ctx.fiches }
+  }
+  it('marqueurs et doigts du principal hors étapes comptent', () => {
+    const { s } = avec(['doigts-suspensions-max-lestees'])
+    expect(marqueursVersion(s.solo, ctx.fiches)).toEqual(expect.arrayContaining(marqueursDe(ctx.fiches['doigts-suspensions-max-lestees'])))
+    expect(marqueursVersion(s.solo, ctx.fiches)).toContain('maximale')
+    expect(seanceSolliciteDoigts(s, ctx.fiches)).toBe(true)
+    expect(seanceSolliciteDoigts({ ...s, solo: { ...s.solo, principauxHorsEtapes: undefined } }, ctx.fiches)).toBe(false)
+  })
+  it('principal inconnu : aucun marqueur', () => {
+    const { s } = avec(['fiche-qui-nexiste-pas'])
+    expect(marqueursVersion(s.solo, ctx.fiches)).toEqual([])
+    expect(seanceSolliciteDoigts(s, ctx.fiches)).toBe(false)
+  })
+  it('sansContenuConnu et dureeVersion ne lisent que les étapes', () => {
+    const { s } = avec(['doigts-suspensions-max-lestees'])
+    const sans = { ...s.solo, principauxHorsEtapes: undefined }
+    expect(sansContenuConnu(s.solo, ctx.fiches)).toBe(false)
+    expect(dureeVersion(s.solo, ctx.fiches)).toBe(dureeVersion(sans, ctx.fiches))
+    const vide: VersionVerif = { durete: 'dure', etapes: [], principauxHorsEtapes: ['doigts-suspensions-max-lestees'] }
+    expect(sansContenuConnu(vide, ctx.fiches)).toBe(true)
+    expect(dureeVersion(vide, ctx.fiches)).toBe(0)
+  })
+})

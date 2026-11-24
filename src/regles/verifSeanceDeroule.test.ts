@@ -227,3 +227,53 @@ describe('Déroulés du catalogue : aucune alerte', () => {
     expect(verifierSeanceDeroule(b, ctx)).toEqual([])
   })
 })
+
+describe('principaux hors étapes (consolidation 24/11)', () => {
+  const P = 'doigts-suspensions-max-lestees'
+  const seanceAvec = (ids: string[], options = {}, etapes = ['echauffement-general', 'traction-simple-4x5']) => {
+    const s = seanceSolo('s', J, etapes, { nom: 'Tractions et poutre', ...options })
+    if (ids.length > 0) s.solo.principauxHorsEtapes = ids
+    return s
+  }
+  it('S-27 : message exact, information, portée séance, sujet, source', () => {
+    const a = trouver(verifierSeanceDeroule(seanceAvec([P]), ctx), 'S-27')
+    expect(a).toHaveLength(1)
+    expect(a[0]).toMatchObject({ niveau: 'information', portee: 'seance', version: 'solo', sujet: P, seanceId: 's', source: "Choix de l'app" })
+    expect(a[0]).not.toHaveProperty('etapeIndex')
+    expect(a[0].message).toBe(
+      "« Suspensions max lestées (López) » est dans les grandes lignes de « Tractions et poutre », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes.",
+    )
+  })
+  it('S-27 muette : sans principal hors étapes, ou fiche inconnue', () => {
+    expect(trouver(verifierSeanceDeroule(seanceAvec([]), ctx), 'S-27')).toEqual([])
+    expect(trouver(verifierSeanceDeroule(seanceAvec(['inconnue']), ctx), 'S-27')).toEqual([])
+  })
+  it('une alerte S-27 par principal hors étapes', () => {
+    const a = trouver(verifierSeanceDeroule(seanceAvec([P, 'puissance-bloc-limite']), ctx), 'S-27')
+    expect(a.map((x) => x.sujet)).toEqual([P, 'puissance-bloc-limite'])
+  })
+  it("S-11, S-10, S-12, S-15 et S-14 ne lisent pas le principal hors étapes", () => {
+    const a = verifierSeanceDeroule(seanceAvec([P, 'doigts-reglette-minimale-lopez'], { durete: 'dure' }), ctx).map((x) => x.code)
+    expect(a).toEqual(['S-27', 'S-27'])
+  })
+  it('S-17 : séance légère dont seul le principal hors étapes est maximal', () => {
+    const a = trouver(verifierSeanceDeroule(seanceAvec([P], { durete: 'legere' }), ctx), 'S-17')
+    expect(a).toHaveLength(1)
+  })
+  it('S-18 : bidoigts sur un principal hors étapes, même cible que S-27', () => {
+    const c = contexteDeReference({ fiches: { ...ctx.fiches, bi: { ...ctx.fiches[P], nom: 'Bi', marqueurs: ['bidoigts', 'maximale'] } } })
+    const a = trouver(verifierSeanceDeroule(seanceAvec(['bi']), c), 'S-18')
+    expect(a).toHaveLength(1)
+    expect(a[0]).toMatchObject({ portee: 'seance', sujet: 'bi' })
+    expect(a[0]).not.toHaveProperty('etapeIndex')
+  })
+  it('S-19 : exercice perso non qualifié en principal hors étapes', () => {
+    const c = contexteDeReference({ fiches: { ...ctx.fiches, p: persoFiche({ nom: 'Mon test', marqueurs: null }) } })
+    const a = trouver(verifierSeanceDeroule(seanceAvec(['p']), c), 'S-19')
+    expect(a).toHaveLength(1)
+    expect(a[0]).toMatchObject({ portee: 'seance', sujet: 'p' })
+  })
+  it('S-11 muette pour un principal poutre_intensive hors étapes (même sans échauffement des doigts)', () => {
+    expect(trouver(verifierSeanceDeroule(seanceAvec(['doigts-reglette-minimale-lopez']), ctx), 'S-11')).toEqual([])
+  })
+})

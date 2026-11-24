@@ -252,3 +252,35 @@ describe('version groupe et sources', () => {
     expect(codes(verifierSeanceProfil(s, contexteDeReference(), 'utilisateur'))).toContain('S-07')
   })
 })
+
+describe('principaux hors étapes (consolidation 24/11)', () => {
+  const seanceAvec = (ids: string[], date = JOUR): SeanceVerif => {
+    const s = seanceSolo('s1', date, ['echauffement-general', 'traction-simple-4x5'], { nom: 'Tractions et poutre' })
+    s.solo.principauxHorsEtapes = ids
+    return s
+  }
+  const P = 'doigts-suspensions-max-lestees'
+  it('S-03 et S-04 : portée séance, sujet = fiche, sans etapeIndex', () => {
+    const ctx = contexteDeReference({
+      profil: profil({ experiencePoutre: 'occasionnelle', douleursEnCours: ['doigts'] }),
+    })
+    const a = verifierSeanceProfil(seanceAvec([P]), ctx, 'utilisateur')
+    for (const code of ['S-03', 'S-04']) {
+      const x = a.find((y) => y.code === code)
+      expect(x, code).toMatchObject({ niveau: 'fort', portee: 'seance', version: 'solo', sujet: P, seanceId: 's1' })
+      expect(x).not.toHaveProperty('etapeIndex')
+    }
+    expect(a.find((y) => y.code === 'S-03')?.message).toBe(
+      '« Suspensions max lestées (López) » demande : une expérience de poutre régulière. Choisis une fiche plus accessible, ou complète ton profil si c\'est déjà le cas.',
+    )
+  })
+  it('principal inconnu : S-01 seul, même cible', () => {
+    const a = verifierSeanceProfil(seanceAvec(['inconnue']), contexteDeReference(), 'utilisateur')
+    expect(a).toHaveLength(1)
+    expect(a[0]).toMatchObject({ code: 'S-01', portee: 'seance', version: 'solo', sujet: 'inconnue' })
+    expect(a[0]).not.toHaveProperty('etapeIndex')
+  })
+  it('sans principal hors étapes, rien ne change', () => {
+    expect(verifierSeanceProfil(seanceAvec([]), contexteDeReference(), 'utilisateur')).toEqual([])
+  })
+})

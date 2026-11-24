@@ -1,7 +1,17 @@
-// Vérifications de séance sur le déroulé, le groupe et les modules : S-10 à S-26
+// Vérifications de séance sur le déroulé, le groupe et les modules : S-10 à S-27
+// (consolidation 24/11) Un principal hors étapes (grandes lignes absentes des étapes) n'a pas de place dans l'ordre :
+// seuls S-17 (par les marqueurs), S-18, S-19 et S-27 le voient ; S-10 à S-16, S-24 et S-25 ne lisent que les étapes.
 // (moteur-verification.md, B.5). Fonctions pures : elles avertissent, elles ne bloquent jamais.
 // Les étapes dont la fiche est inconnue sont ignorées ici (seule S-01, ailleurs, les signale).
-import { dureeEtape, estCongestionnante, estNerveuse, marqueursDe, marqueursVersion, sansContenuConnu } from './base.ts'
+import {
+  dureeEtape,
+  estCongestionnante,
+  estNerveuse,
+  marqueursDe,
+  marqueursVersion,
+  principauxHorsEtapesConnus,
+  sansContenuConnu,
+} from './base.ts'
 import { MARQUEURS_NERVEUX, MARQUEURS_QUOTA, NOMS_QUALITES, QUALITES_PHYSIQUES } from './reglesParDefaut.ts'
 import type { Avertissement, ContexteVerif, EtapeVerif, FicheVerif, Marqueur, Qualite, SeanceVerif, VersionVerif } from './types.ts'
 
@@ -214,7 +224,7 @@ function verifRepos(s: SeanceVerif, v: VersionVerif, version: Version, ctx: Cont
   return res
 }
 
-/** S-17, S-18, S-19 : valables même quand les étapes sont résumées. */
+/** S-17, S-18, S-19, S-27 : valables même quand les étapes sont résumées. */
 function verifsFiches(s: SeanceVerif, v: VersionVerif, version: Version, ctx: ContexteVerif): Avertissement[] {
   const res: Avertissement[] = []
 
@@ -232,7 +242,12 @@ function verifsFiches(s: SeanceVerif, v: VersionVerif, version: Version, ctx: Co
     )
   }
 
-  for (const { fiche, index } of etapesConnues(v, ctx)) {
+  // Étapes (avec leur rang), puis principaux hors étapes (portée séance, sujet = fiche, sans rang).
+  const cibles: { fiche: FicheVerif; index?: number; sujet?: string }[] = [
+    ...etapesConnues(v, ctx).map(({ fiche, index }) => ({ fiche, index })),
+    ...principauxHorsEtapesConnus(v, ctx.fiches).map(({ fiche, ficheId }) => ({ fiche, sujet: ficheId })),
+  ]
+  for (const { fiche, index, sujet } of cibles) {
     const marqueurs = marqueursDe(fiche)
     // S-18 : bidoigts sous forte charge
     if (marqueurs.includes('bidoigts') && (marqueurs.includes('maximale') || marqueurs.includes('poutre_intensive'))) {
@@ -245,6 +260,7 @@ function verifsFiches(s: SeanceVerif, v: VersionVerif, version: Version, ctx: Co
           s,
           version,
           index,
+          sujet,
         ),
       )
     }
@@ -259,6 +275,22 @@ function verifsFiches(s: SeanceVerif, v: VersionVerif, version: Version, ctx: Co
           s,
           version,
           index,
+          sujet,
+        ),
+      )
+    }
+    // S-27 : le principal des grandes lignes manque dans les étapes
+    if (sujet !== undefined) {
+      res.push(
+        avertir(
+          'S-27',
+          'information',
+          `« ${fiche.nom} » est dans les grandes lignes de « ${s.nom} », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes.`,
+          "Choix de l'app",
+          s,
+          version,
+          undefined,
+          sujet,
         ),
       )
     }
@@ -360,7 +392,7 @@ function verifSansExercice(s: SeanceVerif, ctx: ContexteVerif): Avertissement[] 
   return [a]
 }
 
-/** Applique S-10 à S-26 à une séance, version solo puis version groupe. */
+/** Applique S-10 à S-27 à une séance, version solo puis version groupe. */
 export function verifierSeanceDeroule(s: SeanceVerif, ctx: ContexteVerif): Avertissement[] {
   const res: Avertissement[] = []
   const versions: [Version, VersionVerif][] = [['solo', s.solo]]
