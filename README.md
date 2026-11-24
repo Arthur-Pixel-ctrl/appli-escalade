@@ -73,6 +73,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | G-01 | Banque d'exercices : tri commun (disponible, ou indisponible avec sa raison : à vérifier, test, prérequis, douleur, lieu) | Fait |
 | D-12 | Fiche d'exercice en panneau latéral : consigne, prérequis, sécurité, source ; réglages bornés pour l'essai du chrono | Fait |
 | G-03 | Générateur de plan : cycle de 12 semaines pioché dans la banque, semaine 4 allégée, vérifié par le moteur (aucun avertissement fort pour 6 accents × 2 à 5 séances), toujours en brouillon | Fait |
+| E-18 | Un exercice écrit seulement dans les grandes lignes est contrôlé (prérequis, douleurs, récupération) ; information S-27 si grandes lignes et étapes ne correspondent pas | Fait |
 
 ## Ouvrir l'app
 

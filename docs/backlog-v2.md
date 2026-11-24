@@ -627,6 +627,8 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 
 ## Vague 4.1
 
+> (livraison E-18, 24/11) Si l'exercice principal d'une partie a une fiche inconnue, S-01 est émis en portée séance avec le message des étapes (« supprime l'étape ») : dans la fiche, afficher plutôt « remplace l'exercice principal de cette partie », sans changer le code de l'avertissement.
+
 #### D-22 · Aujourd'hui et Programme branchés sur le plan
 - **Modèle** : Sonnet · **Dépend de** : D-06, D-07, D-14, F2-12, F2-14, C-01, E-09 · **Texte** : [taches-design.md, D-22](specs/design/taches-design.md#d-22--aujourdhui-et-programme-branchés-sur-le-plan)
 - **Fichiers** : `src/ecrans/Aujourdhui.tsx`, créer `src/ecrans/Programme.tsx`, `src/miseEnPage/MiseEnPageTelephone.tsx` (onglets, au lieu de `App.tsx`), `src/App.tsx` (vues de séance), `src/ecrans/SeanceSolo.tsx`, `src/ecrans/SeanceGroupe.tsx`, `src/ecrans/Debrief.tsx`, `src/index.css`.
