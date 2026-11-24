@@ -68,6 +68,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | G-02 | Semaines types du générateur (2 à 5 séances, 6 accents) et accents de départ selon le profil | Fait |
 | E-17 | Plafond de résistance en voie (W-20 : 1 par semaine en profil bloc, 2 en voie) et avertissements distincts par sujet | Fait |
 | D-11 | Bibliothèque sur ordinateur : banque d'exercices filtrable (qualité, terrain, durée, prérequis, preuve, groupe), étiquette « À la main seulement » | Fait |
+| E-09 | Moteur de vérification : point d'entrée unique (`src/regles/index.ts`), dédoublonnage, les 18 cas d'exemple vérifiés de bout en bout | Fait |
 
 ## Ouvrir l'app
 
