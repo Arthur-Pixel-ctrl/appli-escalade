@@ -225,7 +225,7 @@ Hors du générateur en phase 3 (choix de simplicité) : le mode « objectif dat
 
 **Tableau des choix** (tâche G-02, `src/donnees/semainesTypes.ts`). Source : C.3 de `seances-types.md` pour 3 et 4 séances [SYN] ; 2 séances, 5 séances et les accents traction, endurance, technique : [CDC] construits sur A.3.6, A.3.7 et C.3. « a | b » = a, sinon b. « (v) » = variante.
 
-| Accent | 2 séances : mar N · sam C | 3 séances : mar N · jeu N/C · sam L/C | 4 séances : lun N · mar L · jeu N/C · sam C |
+| Accent | 2 séances : mar N · sam N/C (consolidation 24/11 : le rôle d'une case est celui de sa première séance type) | 3 séances : mar N · jeu N/C · sam L/C | 4 séances : lun N · mar L · jeu N/C · sam C |
 |---|---|---|---|
 | doigts | DOI-02 \| DOI-01 · PUI-04 \| END-02 | DOI-02 \| DOI-01 · TRA-02 \| TRA-01 · END-02 | DOI-02 \| DOI-01 · TEC-01 · PUI-02 \| PUI-01 · END-02 |
 | traction_gainage | TRA-02 \| TRA-01 · PUI-04 \| END-02 | TRA-02 \| TRA-01 · TRA-03 \| TRA-01 · END-02 | TRA-02 \| TRA-01 · TEC-01 · TRA-03 \| TRA-01 · END-02 |
