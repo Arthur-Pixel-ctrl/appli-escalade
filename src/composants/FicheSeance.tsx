@@ -163,7 +163,8 @@ function ObjectifGroupeEditeur({ numero, objectif, peutRetirer, couleurs, fiches
       <div className="objectif-grille">
         <div className="champ">
           <label htmlFor={idType}>Choisir un objectif type</label>
-          <select id={idType} value="" onChange={(e) => { const t = OBJECTIFS_GROUPE.find((o) => o.id === e.target.value); if (t) onChanger(objectifDepuisType(t)) }}>
+          {/* La valeur suit le modèle appliqué : au clavier, les flèches passent d'un objectif type au suivant. */}
+          <select id={idType} value={objectif.modeleId ?? ''} onChange={(e) => { const t = OBJECTIFS_GROUPE.find((o) => o.id === e.target.value); if (t) onChanger(objectifDepuisType(t)) }}>
             <option value="">Catalogue…</option>
             {OBJECTIFS_GROUPE.map((o) => <option key={o.id} value={o.id}>{o.libelle}</option>)}
           </select>
