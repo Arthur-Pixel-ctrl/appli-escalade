@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
 import type { Cycle, NiveauDetail, ObjectifSpecifique, PhaseCycle, SeancePlanifiee } from '../../donnees/modele.ts'
@@ -6,25 +6,23 @@ import { enregistrerCycle, enregistrerPhase, enregistrerSeancePlanifiee, lireCyc
 import { ecrire, lireTous, supprimer, surDonneesChangees } from '../../donnees/stockage.ts'
 import { NouveauCycle } from './NouveauCycle.tsx'
 import { cycleAMontrer, nouveauCycleVide, type DemandeCycle } from './Plan.outils.ts'
+import { positionDeLaSemaine, semaineAChange } from './VueSemaine.outils.ts'
 import { VueCycle, type ObjectifChoisi } from './VueCycle.tsx'
 import { VuePhase, type ChangementSeances } from './VuePhase.tsx'
+import { VueSemaine } from './VueSemaine.tsx'
 
 const DELAI_NOUVEL_ESSAI_MS = 5000
 
-type Vue = 'cycle' | 'phase'
+type Vue = 'cycle' | 'phase' | 'semaine'
 
-// Choix de vue (encre = sélectionné). « Semaine » arrive avec la tâche suivante.
+// Choix de vue (encre = sélectionné).
 function SelecteurVue({ vue, onChoisir }: { vue: Vue; onChoisir: (v: Vue) => void }) {
-  const idNote = useId()
   return (
-    <>
-      <div className="choix trois" role="group" aria-label="Vue du plan" aria-describedby={idNote}>
-        <button type="button" aria-pressed={vue === 'cycle'} onClick={() => onChoisir('cycle')}>12 semaines</button>
-        <button type="button" aria-pressed={vue === 'phase'} onClick={() => onChoisir('phase')}>Phase</button>
-        <button type="button" aria-pressed="false" disabled>Semaine</button>
-      </div>
-      <p className="texte-3" id={idNote}>La vue Semaine arrive dans un prochain lot.</p>
-    </>
+    <div className="choix trois" role="group" aria-label="Vue du plan">
+      <button type="button" aria-pressed={vue === 'cycle'} onClick={() => onChoisir('cycle')}>12 semaines</button>
+      <button type="button" aria-pressed={vue === 'phase'} onClick={() => onChoisir('phase')}>Phase</button>
+      <button type="button" aria-pressed={vue === 'semaine'} onClick={() => onChoisir('semaine')}>Semaine</button>
+    </div>
   )
 }
 
@@ -52,19 +50,38 @@ export function Plan() {
   const [nouveau, setNouveau] = useState(false)
   const [vue, setVue] = useState<Vue>('cycle')
   const [ordrePhase, setOrdrePhase] = useState<1 | 2 | 3>(1)
+  const [numeroSemaine, setNumeroSemaine] = useState(1)
+  const [changeSurTelephone, setChangeSurTelephone] = useState(false)
+  const vueRef = useRef<Vue>('cycle')
+  const numeroRef = useRef(1)
   const [seancesParSemaineProfil, setSeancesParSemaineProfil] = useState(3)
   // Les écritures en attente, une par document : un changement n'est jamais perdu, il est retenté.
   const enAttente = useRef(new Map<string, () => Promise<void>>())
   const minuteur = useRef<number | undefined>(undefined)
 
   const recharger = useCallback(() => {
-    lireDonnees().then((d) => { setDonnees(d); setEchecLecture(false) }).catch(() => setEchecLecture(true))
+    lireDonnees().then((d) => { setDonnees(d); setEchecLecture(false); setChangeSurTelephone(false) }).catch(() => setEchecLecture(true))
   }, [])
   useEffect(() => {
     recharger()
     lireProfil().then((p) => p && setSeancesParSemaineProfil(p.seancesParSemaine)).catch(() => {})
-    return surDonneesChangees(() => { if (enAttente.current.size === 0) recharger() })
+    // Un changement venu d'un autre appareil : dans la vue Semaine, on ne remplace pas ce que tu édites,
+    // on le signale si la semaine affichée a changé (la dernière modification gagne).
+    return surDonneesChangees(() => {
+      if (enAttente.current.size > 0) return
+      lireDonnees().then((d) => {
+        setEchecLecture(false)
+        setDonnees((ancien) => {
+          if (vueRef.current === 'semaine' && ancien && d && semaineAChange(ancien, d, numeroRef.current)) {
+            setChangeSurTelephone(true)
+            return ancien
+          }
+          return d
+        })
+      }).catch(() => setEchecLecture(true))
+    })
   }, [recharger])
+  useEffect(() => { vueRef.current = vue; numeroRef.current = numeroSemaine }, [vue, numeroSemaine])
   useEffect(() => () => window.clearTimeout(minuteur.current), [])
 
   const viderLaFile = useCallback(async function vider() {
@@ -165,12 +182,26 @@ export function Plan() {
   }
 
   const selecteurVue = <SelecteurVue vue={vue} onChoisir={setVue} />
+  const ouvrirSemaine = (numero: number) => { setNumeroSemaine(numero); setOrdrePhase(positionDeLaSemaine(numero).ordre); setVue('semaine') }
   return (
     <main className="ecran plan-ecran">
       {echecEcriture && (
         <Avertissement niveau="avertissement" titre="Changement pas encore enregistré">Nouvel essai dans quelques secondes. Tes changements restent à l’écran.</Avertissement>
       )}
-      {vue === 'phase' ? (
+      {vue === 'semaine' ? (
+        <VueSemaine
+          cycle={donnees.cycle}
+          phases={donnees.phases}
+          seances={donnees.seances}
+          aujourdhui={jourLocal()}
+          numero={numeroSemaine}
+          selecteurVue={selecteurVue}
+          changeSurTelephone={changeSurTelephone}
+          onVoirNouvelle={recharger}
+          onChoisirSemaine={ouvrirSemaine}
+          onChangerSeances={changerSeances}
+        />
+      ) : vue === 'phase' ? (
         <VuePhase
           cycle={donnees.cycle}
           phases={donnees.phases}
@@ -193,6 +224,7 @@ export function Plan() {
           onObjectifs={changerObjectifs}
           onNiveau={changerNiveau}
           onNouveauCycle={() => setNouveau(true)}
+          onOuvrirSemaine={ouvrirSemaine}
           selecteurVue={selecteurVue}
         />
       )}
