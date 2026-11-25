@@ -290,6 +290,23 @@ describe('realiseeVersVerif', () => {
   })
 })
 
+describe('horsPlan (consolidation 25/11, audit phase 3)', () => {
+  it('realiseeVersVerif pose horsPlan: true', () => {
+    expect(realiseeVersVerif(realisee({ mode: 'libre' })).horsPlan).toBe(true)
+  })
+  it('seanceVersVerif ne le pose jamais, même pour une séance faite', () => {
+    const s = seanceVersVerif(depuisType('ST-DOI-02'), fiches, realisee({ mode: 'libre' }))
+    expect(s).not.toHaveProperty('horsPlan')
+  })
+  it('cleAvertissement ne lit ni seanceLieeId ni nonRenseignes', () => {
+    const base = { code: 'W-01', niveau: 'fort' as const, message: 'm', portee: 'seance' as const, seanceId: 'b', source: 's' }
+    const cle = cleAvertissement(base)
+    expect(cleAvertissement({ ...base, seanceLieeId: 'a' })).toBe(cle)
+    expect(cleAvertissement({ ...base, nonRenseignes: ['adulte'] })).toBe(cle)
+    expect(cle).toBe('W-01|b||||')
+  })
+})
+
 describe('planVersVerif', () => {
   const seance = (id: string, date: string, surcharge: Partial<SeancePlanifiee> = {}): SeancePlanifiee =>
     ({ ...depuisType('ST-DOI-02', undefined, { id, date }), ...surcharge })
@@ -320,6 +337,19 @@ describe('planVersVerif', () => {
   it('une séance réalisée hors plan compte', () => {
     const p = planVersVerif(entrees([], { realisees: [realisee({ id: 'libre', mode: 'libre' }), realisee({ id: 'sup', supprimeLe: MAINTENANT })] }))
     expect(p.seances.map((s) => s.id)).toEqual(['libre'])
+  })
+  it('horsPlan : une séance réalisée qui cite une séance planifiée du plan donne une seule vue, sans horsPlan', () => {
+    const a = seance('a', '2026-11-17')
+    const p = planVersVerif(entrees([a], { realisees: [realisee({ id: 'ra', seancePlanifieeId: 'a' })] }))
+    expect(p.seances.map((s) => s.id)).toEqual(['a'])
+    expect(p.seances[0]).not.toHaveProperty('horsPlan')
+  })
+  it('horsPlan : une séance réalisée sans séance planifiée dans ce plan, ou dont elle a été supprimée, porte horsPlan', () => {
+    const supprimee = seance('s', '2026-11-18', { supprimeLe: MAINTENANT })
+    const p = planVersVerif(entrees([supprimee], {
+      realisees: [realisee({ id: 'libre', mode: 'libre' }), realisee({ id: 'orpheline', seancePlanifieeId: 's' })],
+    }))
+    expect(p.seances.map((s) => [s.id, s.horsPlan])).toEqual([['libre', true], ['orpheline', true]])
   })
   it('objectif daté : mode, affûtage compté, réduction de la première semaine', () => {
     const phases = EXEMPLE_PHASES.map((ph, i) => i < 2 ? ph : { ...ph, semaines: ph.semaines.map((w) => w.numero >= 3 ? { ...w, type: 'affutage' as const, reductionPct: 45 } : w) })

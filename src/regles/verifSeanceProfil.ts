@@ -1,5 +1,6 @@
 // Vérifications de séance S-01 à S-09 : fiche connue, prérequis du profil, douleurs, contexte
 // (moteur-verification.md, B.5). Fonctions pures. Elles avertissent, elles ne bloquent jamais.
+// (consolidation 25/11) S-03 dit les prérequis non renseignés (`nonRenseignes`) ; S-01 a un message propre pour un exercice principal de partie.
 // (consolidation 24/11) Un principal hors étapes est vérifié comme une étape, en portée séance (sujet = fiche, sans rang).
 import { COTATIONS_BLOC } from '../donnees/profil.ts'
 import { estDure, joursEntre, marqueursDe, zonesDouloureuses } from './base.ts'
@@ -10,6 +11,7 @@ import type {
   EtapeVerif,
   FicheVerif,
   Prerequis,
+  PrerequisNonRenseigne,
   ProfilVerif,
   SeanceVerif,
   VersionVerif,
@@ -65,6 +67,19 @@ export function manquesPrerequis(prerequis: Prerequis, profil: ProfilVerif): str
   return manques
 }
 
+/**
+ * Les prérequis demandés par la fiche dont la valeur du profil est null, dans l'ordre de B.5 (S-03).
+ * Une valeur false ou trop basse est renseignée : elle n'y figure pas. Sert à l'écran (« Ton profil ne dit pas encore : … »).
+ */
+export function prerequisNonRenseignes(prerequis: Prerequis, profil: ProfilVerif): PrerequisNonRenseigne[] {
+  const liste: PrerequisNonRenseigne[] = []
+  if (prerequis.tractionsStrictesMin !== undefined && profil.tractionsStrictesMax === null) liste.push('tractionsStrictesMax')
+  if (prerequis.test15sSur25mm && profil.test15sSur25mm === null) liste.push('test15sSur25mm')
+  if (prerequis.niveauBlocMin !== undefined && profil.niveauBloc === null) liste.push('niveauBloc')
+  if (prerequis.adulte && profil.adulte === null) liste.push('adulte')
+  return liste
+}
+
 /** Vérifications d'une étape dont la fiche est connue (S-02 à S-09). */
 function verifierEtape(
   fiche: FicheVerif,
@@ -101,11 +116,13 @@ function verifierEtape(
   // S-03 : prérequis non remplis (une seule alerte par fiche, qui liste tous les manques)
   const manques = manquesPrerequis(fiche.prerequis, profil)
   if (manques.length > 0) {
+    const nonRenseignes = prerequisNonRenseignes(fiche.prerequis, profil)
     alertes.push({
       ...base,
       code: 'S-03',
       niveau: 'fort',
       message: `« ${fiche.nom} » demande : ${manques.join(' ; ')}. Choisis une fiche plus accessible, ou complète ton profil si c'est déjà le cas.`,
+      ...(nonRenseignes.length > 0 ? { nonRenseignes } : {}),
       source: SOURCE.S03,
     })
   }
@@ -171,6 +188,13 @@ function verifierEtape(
   return alertes
 }
 
+/** S-01 : fiche inconnue. Une étape réelle peut être supprimée ; un exercice principal de partie se remplace (B.5). */
+function messageFicheInconnue(ficheId: string, principalDePartie: boolean): string {
+  return principalDePartie
+    ? `Cet exercice n'existe pas dans ta bibliothèque (${ficheId}). Choisis un autre exercice principal pour la partie qui le cite.`
+    : `Cet exercice n'existe pas dans ta bibliothèque (${ficheId}). Remplace-le ou supprime l'étape.`
+}
+
 function verifierVersion(
   v: VersionVerif,
   version: 'solo' | 'groupe',
@@ -187,7 +211,8 @@ function verifierVersion(
         {
           code: 'S-01',
           niveau: 'fort' as const,
-          message: `Cet exercice n'existe pas dans ta bibliothèque (${etape.ficheId}). Remplace-le ou supprime l'étape.`,
+          // Étape résumée (version sans étapes détaillées) : c'est l'exercice principal d'une partie.
+          message: messageFicheInconnue(etape.ficheId, v.etapesDetaillees === false),
           portee: 'etape' as const,
           seanceId: s.id,
           version,
@@ -206,7 +231,7 @@ function verifierVersion(
         {
           code: 'S-01',
           niveau: 'fort' as const,
-          message: `Cet exercice n'existe pas dans ta bibliothèque (${ficheId}). Remplace-le ou supprime l'étape.`,
+          message: messageFicheInconnue(ficheId, true),
           portee: 'seance' as const,
           seanceId: s.id,
           version,

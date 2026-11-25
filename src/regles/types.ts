@@ -93,6 +93,10 @@ export interface SeanceVerif {
     marqueurs: Marqueur[]
     peau?: 1 | 2 | 3
   }
+  // (consolidation 25/11, audit phase 3) Séance réalisée sans séance planifiée dans ce plan (faite hors plan,
+  // ou sa séance planifiée a été supprimée) : son `id` est celui de la séance réalisée.
+  // Posé par `realiseeVersVerif` ; absent = séance du plan (prévue, ou prévue puis faite). Calculé, jamais stocké (R-8).
+  horsPlan?: true
 }
 
 export interface SemaineVerif {
@@ -181,6 +185,9 @@ export interface Regles {
   joursSansPoutreAvantObjectif: number // [CDC]
 }
 
+/** (consolidation 25/11, audit phase 3) Noms des champs de ProfilVerif qu'un prérequis de fiche peut demander et qui peuvent valoir null. */
+export type PrerequisNonRenseigne = 'tractionsStrictesMax' | 'test15sSur25mm' | 'niveauBloc' | 'adulte'
+
 export interface Avertissement {
   code: string // "W-01"
   niveau: Niveau
@@ -192,5 +199,11 @@ export interface Avertissement {
   lundi?: Jour
   mesocycleOrdre?: number
   sujet?: string // ce que vise l'alerte quand une vérification en émet plusieurs pour la même cible (B.3)
+  // (consolidation 25/11, audit phase 3) W-01 seulement : la séance d'avant (`a`), quand c'est une séance du plan ;
+  // absent si elle a été réalisée hors plan (`a.horsPlan`). Ni dans la cible, ni dans `cleAvertissement`.
+  seanceLieeId?: string
+  // (consolidation 25/11, audit phase 3) S-03 seulement : prérequis demandés que le profil laisse à null,
+  // dans l'ordre de `PrerequisNonRenseigne` ; absent si aucun. Ni dans la cible, ni dans `cleAvertissement`.
+  nonRenseignes?: PrerequisNonRenseigne[]
   source: string // texte court affichable : « Hörst, López (synthèse) »
 }

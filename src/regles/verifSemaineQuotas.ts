@@ -1,5 +1,6 @@
 // Vérifications de semaine, espacement et quotas : W-01 à W-08, et W-20
 // (docs/specs/entrainement/moteur-verification.md, B.6). Fonctions pures : elles avertissent, elles ne bloquent rien.
+// (consolidation 25/11) W-01 dit quelle séance d'avant il cite (`seanceLieeId`), sauf si elle a été faite hors plan.
 // (consolidation 24/11) W-05 compte aussi les principaux hors étapes (grandes lignes absentes des étapes).
 import {
   estDure,
@@ -73,6 +74,8 @@ export function verifierEspacement(seances: SeanceVerif[], ctx: ContexteVerif): 
           `deux séances ${type.libelle}. Décale-la d'un jour ou fais sa version légère.`,
         portee: 'seance',
         seanceId: b.id,
+        // La séance d'avant, par identifiant (B.3) ; rien si elle a été faite hors plan : aucune vue du plan ne la montre (B.6).
+        ...(a.horsPlan ? {} : { seanceLieeId: a.id }),
         source: 'Synthèse (48 h, López), modèle',
       })
     }
