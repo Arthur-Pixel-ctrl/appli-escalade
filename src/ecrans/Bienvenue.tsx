@@ -77,7 +77,7 @@ export function Bienvenue({ onValider, onProfilRetrouve, onCompte }: Props) {
         <p className="surtitre">Get me to 9a</p>
         <p className="texte-2">
           Cette app guide tes séances d’escalade, seul ou en groupe, et garde la trace de ta progression.
-          Tes réponses restent sur ton téléphone. Tu pourras tout modifier ensuite dans l’onglet Profil.
+          Tes réponses restent sur cet appareil. Tu pourras tout modifier ensuite dans Profil.
         </p>
         {sauvegarde}
       </div>
