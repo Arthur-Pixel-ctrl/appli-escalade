@@ -60,7 +60,8 @@ function ApercuChrono({ entree, forme, onFermer }: { entree: EntreeBibliotheque;
 }
 
 // Écran O-07 : tout savoir d'un protocole avant de le poser dans le plan. Rien ne se lance d'ici (R-6).
-export function FicheDetail({ donnees, onFermer }: { donnees: DonneesFiche; onFermer: () => void }) {
+// `onAjouter` : posé par la vue Semaine du plan, il active « Ajouter au plan » ; depuis la bibliothèque il reste absent.
+export function FicheDetail({ donnees, onFermer, onAjouter }: { donnees: DonneesFiche; onFermer: () => void; onAjouter?: () => void }) {
   const { entree, etat, forme, reference, contexte } = donnees
   const idTitre = useId()
   const idSeries = useId()
@@ -81,11 +82,15 @@ export function FicheDetail({ donnees, onFermer }: { donnees: DonneesFiche; onFe
 
   const pied = (
     <>
-      {/* Seule action en résine du panneau ; elle s'active avec l'éditeur de séance du plan (D-16). */}
-      <button type="button" className="bouton principal" disabled>
-        <strong>Ajouter au plan</strong>
-        <span>Bientôt disponible : l’éditeur de séance arrive avec le plan</span>
-      </button>
+      {/* Seule action en résine du panneau ; active seulement quand l'éditeur de séance du plan est là (D-16). */}
+      {onAjouter ? (
+        <button type="button" className="bouton principal" aria-haspopup="dialog" onClick={onAjouter}><strong>Ajouter au plan</strong></button>
+      ) : (
+        <button type="button" className="bouton principal" disabled>
+          <strong>Ajouter au plan</strong>
+          <span>Depuis la vue Semaine du plan</span>
+        </button>
+      )}
       {config && (
         <button type="button" className="bouton-second" aria-haspopup="dialog" onClick={() => setApercu(true)}>Essayer le chrono</button>
       )}

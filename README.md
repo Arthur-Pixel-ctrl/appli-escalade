@@ -74,6 +74,8 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-12 | Fiche d'exercice en panneau latéral : consigne, prérequis, sécurité, source ; réglages bornés pour l'essai du chrono | Fait |
 | G-03 | Générateur de plan : cycle de 12 semaines pioché dans la banque, semaine 4 allégée, vérifié par le moteur (aucun avertissement fort pour 6 accents × 2 à 5 séances), toujours en brouillon | Fait |
 | E-18 | Un exercice écrit seulement dans les grandes lignes est contrôlé (prérequis, douleurs, récupération) ; information S-27 si grandes lignes et étapes ne correspondent pas | Fait |
+| E-14 | Consignes (prompt système) de l'assistant IA, recopiées mot pour mot de la spécification (`src/assistant/promptSysteme.ts`) | Fait |
+| D-16 | Plan sur ordinateur : vue semaine (rail de la bibliothèque, 7 jours, séances types proposées d'abord) et fiche de séance (dureté, qualité, effort prévu, étapes, version groupe avec objectifs types) ; tout se fait au clavier | Fait |
 
 ## Ouvrir l'app
 

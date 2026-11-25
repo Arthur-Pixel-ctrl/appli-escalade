@@ -571,3 +571,65 @@ form.pile-large { gap: 24px; }
 .apercu-bandeau { flex: none; padding: var(--espace-3) var(--espace-5); text-align: center; background: var(--surface); border-bottom: 2px solid var(--texte); color: var(--texte); }
 .apercu-chrono .chrono { width: 100%; max-width: 640px; margin: 0 auto; }
 .apercu-chrono .chrono.preparation, .apercu-chrono .chrono.effort, .apercu-chrono .chrono.repos { max-width: none; }
+
+/* Plan sur ordinateur : vue Semaine (D-16, O-05). Rail de bibliothèque de 312 px, semaine au centre. */
+.semaine-ouvrir { width: auto; align-self: flex-start; padding: 0; text-align: left; }
+.semaine-corps { display: grid; grid-template-columns: 312px minmax(0, 1fr); gap: var(--espace-5); align-items: start; }
+.rail { position: sticky; top: var(--espace-4); display: flex; flex-direction: column; gap: var(--espace-3); max-height: calc(100vh - 64px - 2 * var(--espace-4)); overflow-y: auto; padding: 2px 4px 2px 2px; }
+.rail-titre { margin: 0; }
+.rail-filtres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espace-2); }
+.rail-compteur { margin: 0; font-size: 15px; }
+.rail-liste { display: flex; flex-direction: column; gap: var(--espace-3); margin: 0; padding: 0 var(--espace-1) var(--espace-2) 0; list-style: none; }
+.rail-fiche { display: flex; flex-direction: column; gap: var(--espace-2); padding: var(--espace-3); box-shadow: none; }
+.rail-fiche.pointille { border-style: dashed; }
+.rail-nom { margin: 0; font-family: var(--police-titre); font-size: 22px; font-weight: 800; line-height: 1.05; }
+.rail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-2); }
+.rail-actions .bouton-second { flex: none; width: auto; min-height: 48px; padding: 0 var(--espace-3); box-shadow: none; }
+.rail-actions .bouton-texte { width: auto; padding: 0; }
+.rail-vider { width: auto; align-self: flex-start; padding: 0; }
+.rail-remplacement { align-items: center; justify-content: space-between; padding: var(--espace-2); border: 2px dashed var(--accent); border-radius: var(--rayon-controle); background: var(--accent-doux); color: var(--texte); }
+.bouton-texte.bouton-en-ligne { display: inline; width: auto; min-height: 48px; padding: 0 var(--espace-1); }
+.avertissement-ligne { max-width: 640px; }
+.semaine-colonne { min-width: 0; }
+.semaine-resume { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: var(--espace-3); }
+.semaine-resume .titre { margin: 0; }
+.semaine-ajouter { width: auto; min-width: 240px; }
+.semaine-navigation { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
+.semaine-navigation .bouton-second { flex: none; width: auto; padding: 0 var(--espace-4); }
+.semaine-jours { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.jour-ligne { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--espace-3); padding: var(--espace-3) 0; border-top: 1px solid var(--filet-fort); }
+.jour-ligne.aujourdhui .jour-nom { box-shadow: inset 3px 0 0 var(--accent); padding-left: var(--espace-2); }
+.jour-nom { display: flex; flex-direction: column; gap: 2px; }
+.jour-repos { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--espace-2); min-height: 56px; padding: 0 var(--espace-3); border: 1.5px dashed var(--filet-fort); border-radius: var(--rayon-controle); background: var(--surface-creuse); }
+.jour-actions { display: flex; flex-wrap: wrap; gap: var(--espace-2) var(--espace-4); }
+.jour-actions .bouton-texte { width: auto; }
+
+/* Fiche de séance */
+.fiche-seance { display: flex; flex-direction: column; gap: var(--espace-4); }
+.fiche-seance-tete { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-3); }
+.fiche-seance-nom { flex: 1; min-width: 160px; min-height: 48px; padding: 0 var(--espace-2); border: 0; border-bottom: 2px dashed var(--filet-fort); background: transparent; color: var(--texte); font-family: var(--police-titre); font-size: 26px; font-weight: 800; }
+.fiche-seance-nom:focus-visible { border-bottom-color: var(--accent); }
+.fiche-seance-version { width: 200px; }
+.fiche-seance-reglages { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--espace-4); align-items: start; }
+.etapes-liste { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.etape-ligne { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto auto; align-items: center; gap: var(--espace-3); min-height: 56px; padding: var(--espace-2) 0; border-top: 1px solid var(--filet); }
+.etape-ligne.a-remplacer { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.etape-corps { display: flex; flex-direction: column; gap: var(--espace-1); min-width: 0; }
+.etape-titre { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.menu-etape { position: relative; right: auto; bottom: auto; }
+.menu-etape .menu-case-liste { top: 100%; bottom: auto; }
+.objectif-groupe { display: flex; flex-direction: column; gap: var(--espace-3); margin: 0; padding: var(--espace-3); border: 2px solid var(--filet-fort); border-radius: var(--rayon-controle); min-width: 0; }
+.objectif-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espace-3); }
+.objectif-couleur { display: flex; align-items: center; gap: var(--espace-2); }
+.objectif-couleur select { flex: 1; }
+.objectif-retirer { width: auto; align-self: flex-start; padding: 0; }
+.fiche-seance-pied { display: flex; flex-direction: column; align-items: flex-start; gap: var(--espace-2); }
+.fiche-seance-pied .bouton-second { flex: none; width: auto; padding: 0 var(--espace-4); }
+.fiche-seance-retirer { width: auto; align-self: flex-start; padding: 0; }
+
+/* Menu « Ajouter une séance type » */
+.liste-choix { display: flex; flex-direction: column; gap: var(--espace-2); margin: 0; padding: 0; list-style: none; }
+.choix-seance-type { width: 100%; min-height: 64px; padding: var(--espace-2) var(--espace-3); display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 2px solid var(--texte); border-radius: var(--rayon-controle); background: var(--surface); color: var(--texte); text-align: left; }
+.choix-seance-type.pointille { border: 2px dashed var(--filet-fort); background: var(--surface-creuse); }
+@media (hover: hover) { .choix-seance-type:hover { background: var(--surface-creuse); } }
+@media (max-width: 1199px) { .semaine-corps { grid-template-columns: 280px minmax(0, 1fr); } .objectif-grille { grid-template-columns: 1fr; } }

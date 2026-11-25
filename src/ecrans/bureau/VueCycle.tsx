@@ -26,6 +26,8 @@ interface Props {
   /** Change le niveau du cycle ; `effacerNiveauxPropres` remet aussi les séances au niveau du cycle. */
   onNiveau: (niveau: NiveauDetail, effacerNiveauxPropres: boolean) => void
   onNouveauCycle: () => void
+  /** Mène à la vue Semaine (« Ouvrir la semaine N », clic sur une semaine). */
+  onOuvrirSemaine: (numero: number) => void
   /** Le sélecteur « 12 semaines / Phase / Semaine », tenu par Plan.tsx. */
   selecteurVue: ReactNode
 }
@@ -33,11 +35,10 @@ interface Props {
 const TYPES_CHOISIS: SemainePlan['type'][] = ['charge', 'allegee', 'affutage']
 
 // Écran O-03 : la structure du cycle, en trois colonnes de phases.
-export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, selecteurVue }: Props) {
+export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, onOuvrirSemaine, selecteurVue }: Props) {
   const [niveauDemande, setNiveauDemande] = useState<NiveauDetail | null>(null)
   const [validation, setValidation] = useState(false)
   const [phaseObjectifs, setPhaseObjectifs] = useState<PhaseCycle | null>(null)
-  const [ligneChoisie, setLigneChoisie] = useState<number | null>(null)
   const lignes = useRef(new Map<number, HTMLElement>())
   const enregistrerLigne = useCallback((numero: number, el: HTMLElement | null) => {
     if (el) lignes.current.set(numero, el); else lignes.current.delete(numero)
@@ -48,13 +49,6 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
   const minutesMax = Math.max(0, ...phases.flatMap((p) => p.semaines.map((s) => resumeSemaine(seances, p.id, s.numero).minutes)))
   const aDesSeances = seances.length > 0
   const numeroAOuvrir = position?.numero ?? (aujourdhui > finCycle(cycle) ? cycle.nbSemaines : 1)
-
-  const allerALaSemaine = (numero: number) => {
-    setLigneChoisie(numero)
-    const ligne = lignes.current.get(numero)
-    ligne?.scrollIntoView({ block: 'center' })
-    ligne?.focus()
-  }
 
   const niveauCycle = cycle.niveauDetail ?? 'detaille'
 
@@ -94,7 +88,7 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
             <button type="button" className="bouton-second" onClick={() => setValidation(true)}>Valider le cycle</button>
           )}
           <button type="button" className="bouton-second" onClick={onNouveauCycle}>Nouveau cycle</button>
-          <button type="button" className="bouton principal centre" onClick={() => allerALaSemaine(numeroAOuvrir)}>
+          <button type="button" className="bouton principal centre" onClick={() => onOuvrirSemaine(numeroAOuvrir)}>
             <strong>{position ? 'Ouvrir la semaine en cours' : `Ouvrir la semaine ${numeroAOuvrir}`}</strong>
           </button>
         </div>
@@ -110,8 +104,7 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
           faite: ajouterJours(debutSemaine(cycle, { ordre: s.phase }, s.semaine), 6) < aujourdhui,
         }))}
         numeroEnCours={position?.numero ?? null}
-        numeroOuvert={ligneChoisie}
-        onChoisir={allerALaSemaine}
+        onChoisir={onOuvrirSemaine}
       />
 
       <div className="plan-phases">
@@ -127,6 +120,7 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
             enregistrerLigne={enregistrerLigne}
             onPhase={onPhase}
             onChoisirObjectifs={() => setPhaseObjectifs(phase)}
+            onOuvrirSemaine={onOuvrirSemaine}
           />
         ))}
       </div>
@@ -235,7 +229,7 @@ function ObjectifDuCycle({ cycle, onChanger }: { cycle: Cycle; onChanger: (o: Cy
 
 // ——— Colonne d'une phase ———
 
-function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCours, enregistrerLigne, onPhase, onChoisirObjectifs }: {
+function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCours, enregistrerLigne, onPhase, onChoisirObjectifs, onOuvrirSemaine }: {
   cycle: Cycle
   phase: PhaseCycle
   seances: SeancePlanifiee[]
@@ -245,6 +239,7 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
   enregistrerLigne: (numero: number, el: HTMLElement | null) => void
   onPhase: (p: PhaseCycle) => void
   onChoisirObjectifs: () => void
+  onOuvrirSemaine: (numero: number) => void
 }) {
   const idTitre = useId()
   const idAideObjectifs = useId()
@@ -320,6 +315,7 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
               <div className="barre-charge" role="img" aria-label={resume.minutes === 0 ? 'Charge : aucune' : `Charge : ${resume.minutes} minutes`}>
                 <span style={{ width: `${Math.round(chargeRelative(resume.minutes, minutesMax) * 100)}%` }} />
               </div>
+              <button type="button" className="bouton-texte semaine-ouvrir" onClick={() => onOuvrirSemaine(numero)}>Ouvrir la semaine {numero}</button>
               <label className="champ semaine-type">Type de semaine {numero}
                 <select value={s.type} onChange={(e) => changerSemaine(s.numero, { type: e.target.value as SemainePlan['type'] })}>
                   {TYPES_CHOISIS.concat(s.type === 'transition' ? ['transition'] : []).map((t) => (
