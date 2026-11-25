@@ -24,6 +24,7 @@ import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
 import { MiseEnPageBureau } from './miseEnPage/MiseEnPageBureau.tsx'
 import { MiseEnPageTelephone } from './miseEnPage/MiseEnPageTelephone.tsx'
 import { ongletPourRubrique, rubriquePourOnglet, type Onglet, type RubriqueBureau } from './miseEnPage/navigation.ts'
+import { hashAvecRubrique, rubriqueDepuisAdresse } from './miseEnPage/rubriqueAdresse.ts'
 import { useEcranLarge } from './miseEnPage/useEcranLarge.ts'
 
 // Ce qui occupe l'écran. Une séance suit toujours le même chemin :
@@ -39,9 +40,16 @@ type Vue =
 
 // Ordinateur pour organiser, téléphone pour exécuter : les séances se lancent depuis le téléphone.
 export default function App() {
-  const [onglet, setOnglet] = useState<Onglet>('Aujourd’hui')
-  const [rubrique, setRubrique] = useState<RubriqueBureau>('Tableau de bord')
+  // Au rechargement, on revient à la rubrique gardée dans l'adresse (l'onglet jumeau suit).
+  const [rubrique, setRubrique] = useState<RubriqueBureau>(() => rubriqueDepuisAdresse(window.location.hash) ?? 'Tableau de bord')
+  const [onglet, setOnglet] = useState<Onglet>(() => ongletPourRubrique(rubrique))
   const large = useEcranLarge()
+  // Sur ordinateur seulement, l'adresse suit la rubrique ; sans nouvelle entrée d'historique, sans toucher au « ? » des filtres.
+  useEffect(() => {
+    if (!large) return
+    const url = `${window.location.pathname}${window.location.search}${hashAvecRubrique(window.location.hash, rubrique)}`
+    window.history.replaceState(window.history.state, '', url)
+  }, [large, rubrique])
   // Les deux mises en page partagent l'écran courant : changer de l'une met l'autre à jour,
   // pour qu'un redimensionnement ou une rotation retombe sur le même écran.
   const choisirOnglet = (o: Onglet) => { setOnglet(o); setRubrique(rubriquePourOnglet(o)) }

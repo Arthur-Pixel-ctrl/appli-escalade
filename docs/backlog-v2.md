@@ -612,6 +612,8 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 
 > (livraison D-11, 24/11) Au rechargement de la page sur ordinateur, l'app revient au Tableau de bord ; les filtres de la bibliothèque restent dans l'adresse. Garder la rubrique ouverte au rechargement (état de rubrique dans l'adresse) : à faire ici, puisque D-19 modifie `MiseEnPageBureau.tsx`.
 
+> (livraison 25/11, validé par le gérant) Rubrique gardée dans `#rubrique=` (le `?` appartient aux filtres de la bibliothèque, qui le réécrivent). `Plan` reçoit `semaineInitiale` pour s'ouvrir sur une semaine. « Reprendre un cycle précédent » est visible mais désactivé tant qu'aucune reprise n'existe ; les lignes « Avertissements ouverts » ne mènent pas encore au plan.
+
 #### D-26 · Fiche de séance aux trois niveaux — vague 3.11 (consolidation 18/11)
 - **Modèle** : Sonnet · **Dépend de** : D-18, N-01, C-01, G-01 · **Texte** : [plus bas](#d-26-texte-complet)
 - **Fichiers** : modifier `src/composants/FicheSeance.tsx`, `src/index.css` ; créer `src/composants/EditeurResume.tsx` (simple et grandes lignes).

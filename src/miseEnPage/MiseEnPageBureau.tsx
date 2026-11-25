@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { BarreBureau } from '../composants/BarreBureau.tsx'
 import { Bibliotheque } from '../ecrans/bureau/Bibliotheque.tsx'
-import { EnConstruction } from '../ecrans/EnConstruction.tsx'
 import { Historique } from '../ecrans/Historique.tsx'
 import { Plan } from '../ecrans/bureau/Plan.tsx'
 import { Reglages } from '../ecrans/bureau/Reglages.tsx'
+import { TableauDeBord } from '../ecrans/bureau/TableauDeBord.tsx'
 import { appliquerMiseAJour } from '../miseAJour.ts'
 import type { ActionsEcrans } from './MiseEnPageTelephone.tsx'
 import { RUBRIQUES_BUREAU, type RubriqueBureau } from './navigation.ts'
@@ -21,12 +22,14 @@ export function MiseEnPageBureau({
   rubrique, onChoisirRubrique, avecCompte, profil, majPrete,
   onOuvrirSeance, onEnregistrerProfil, onMisesEnGarde, onCompte, onDonneesImportees,
 }: Props) {
+  // Semaine demandée par le Tableau de bord ; oubliée dès qu'on choisit une rubrique par la barre du haut.
+  const [semaineDemandee, setSemaineDemandee] = useState<number | undefined>(undefined)
   return (
     <div className="bureau">
       <BarreBureau
         rubriques={RUBRIQUES_BUREAU}
         rubrique={rubrique}
-        onChoisir={(r) => onChoisirRubrique(r as RubriqueBureau)}
+        onChoisir={(r) => { setSemaineDemandee(undefined); onChoisirRubrique(r as RubriqueBureau) }}
         avecCompte={avecCompte}
         idContenu={ID_CONTENU}
       />
@@ -36,15 +39,16 @@ export function MiseEnPageBureau({
             <button className="bandeau" onClick={appliquerMiseAJour}>Nouvelle version disponible · <b>Mettre à jour</b></button>
           )}
           {rubrique === 'Tableau de bord' && (
-            <div className="bureau-lecture">
-              <EnConstruction
-                titre="Tableau de bord"
-                texte="Ton plan de la semaine s’affichera ici. Les séances se lancent depuis ton téléphone."
+            <div className="bureau-tableau">
+              <TableauDeBord
+                onOuvrirSemaine={(numero) => { setSemaineDemandee(numero); onChoisirRubrique('Plan') }}
+                onOuvrirPlan={() => { setSemaineDemandee(undefined); onChoisirRubrique('Plan') }}
+                onOuvrirBilans={() => onChoisirRubrique('Bilans')}
               />
             </div>
           )}
           {rubrique === 'Plan' && (
-            <div className="bureau-plan"><Plan onOuvrirProfil={() => onChoisirRubrique('Profil')} /></div>
+            <div className="bureau-plan"><Plan onOuvrirProfil={() => onChoisirRubrique('Profil')} semaineInitiale={semaineDemandee} /></div>
           )}
           {rubrique === 'Bibliothèque' && (
             <div className="bureau-bibliotheque"><Bibliotheque /></div>

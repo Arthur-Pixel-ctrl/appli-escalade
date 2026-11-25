@@ -19,6 +19,8 @@ const DELAI_NOUVEL_ESSAI_MS = 5000
 
 type Vue = 'cycle' | 'phase' | 'semaine'
 
+const borner = (numero: number, max: number) => Math.min(Math.max(1, Math.round(numero)), max)
+
 // Choix de vue (encre = sélectionné).
 function SelecteurVue({ vue, onChoisir }: { vue: Vue; onChoisir: (v: Vue) => void }) {
   return (
@@ -66,17 +68,29 @@ async function lireDonneesMoteur(): Promise<DonneesMoteur> {
 
 // Rubrique Plan (ordinateur) : le cycle de 12 semaines. Les écritures passent par `src/donnees/plan.ts`.
 // `onOuvrirProfil` : ouvre la rubrique Profil (donné par la mise en page) ; sans lui, la fenêtre n'affiche pas le lien.
-export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
+// `semaineInitiale` : ouvre le Plan en vue Semaine sur ce numéro (borné au cycle) ; sans elle, rien ne change.
+export function Plan({ onOuvrirProfil, semaineInitiale }: { onOuvrirProfil?: () => void; semaineInitiale?: number } = {}) {
   const [donnees, setDonnees] = useState<Donnees | null | undefined>(undefined) // undefined = chargement
   const [echecLecture, setEchecLecture] = useState(false)
   const [echecEcriture, setEchecEcriture] = useState(false)
   const [nouveau, setNouveau] = useState(false)
-  const [vue, setVue] = useState<Vue>('cycle')
-  const [ordrePhase, setOrdrePhase] = useState<1 | 2 | 3>(1)
-  const [numeroSemaine, setNumeroSemaine] = useState(1)
+  const [vue, setVue] = useState<Vue>(semaineInitiale !== undefined ? 'semaine' : 'cycle')
+  const [ordrePhase, setOrdrePhase] = useState<1 | 2 | 3>(semaineInitiale !== undefined ? positionDeLaSemaine(borner(semaineInitiale, 12)).ordre : 1)
+  const [numeroSemaine, setNumeroSemaine] = useState(semaineInitiale !== undefined ? borner(semaineInitiale, 12) : 1)
   const [changeSurTelephone, setChangeSurTelephone] = useState(false)
-  const vueRef = useRef<Vue>('cycle')
-  const numeroRef = useRef(1)
+  // La demande du Tableau de bord change alors que le Plan est déjà là : il suit. On compare pendant l'affichage
+  // (et non dans un effet) pour ne pas faire un second affichage.
+  const [semaineVue, setSemaineVue] = useState(semaineInitiale)
+  if (semaineInitiale !== semaineVue) {
+    setSemaineVue(semaineInitiale)
+    if (semaineInitiale !== undefined) {
+      setNumeroSemaine(borner(semaineInitiale, 12))
+      setOrdrePhase(positionDeLaSemaine(borner(semaineInitiale, 12)).ordre)
+      setVue('semaine')
+    }
+  }
+  const vueRef = useRef<Vue>(semaineInitiale !== undefined ? 'semaine' : 'cycle')
+  const numeroRef = useRef(semaineInitiale !== undefined ? borner(semaineInitiale, 12) : 1)
   const [profil, setProfil] = useState<Profil | null>(null)
   const [moteur, setMoteur] = useState<DonneesMoteur | null>(null)
   // Ce que le générateur vient de proposer : montré en tête de la vue 12 semaines (jamais bloquant).
@@ -288,7 +302,7 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
           phases={donnees.phases}
           seances={donnees.seances}
           aujourdhui={jourLocal()}
-          numero={numeroSemaine}
+          numero={borner(numeroSemaine, donnees.cycle.nbSemaines)}
           selecteurVue={selecteurVue}
           changeSurTelephone={changeSurTelephone}
           onVoirNouvelle={recharger}
