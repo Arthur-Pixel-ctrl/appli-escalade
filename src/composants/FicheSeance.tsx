@@ -6,7 +6,7 @@ import { Icone } from './Icone.tsx'
 import { Confirmation } from './Confirmation.tsx'
 import { ChoixExercice, EditeurResume } from './EditeurResume.tsx'
 import {
-  ajouterEtapeDepuisFiche, changerNiveau, etapesDepuisSeanceType, poserPrincipal, recalculerGrandesLignes,
+  ajouterEtapeDepuisFiche, changerNiveau, etapesDepuisSeanceType, nomCibleCachee, poserPrincipal, recalculerGrandesLignes,
 } from './EditeurResume.outils.ts'
 import { nomQualite, QUALITES, texteContreIndication, etatDe, type ContexteFiltre, type EntreeBibliotheque } from '../donnees/bibliotheque/filtres.ts'
 import type { Cycle, ExercicePerso, NiveauDetail, SeancePlanifiee, VersionGroupe } from '../donnees/modele.ts'
@@ -49,11 +49,8 @@ export interface AvertissementsFiche {
 // Un avertissement du moteur : phrase, « Pourquoi ? » = la source, correction en un clic pour W-01 seulement.
 export function AvertissementDuMoteur({ entree, actions }: { entree: EntreeAvertissement; actions: AvertissementsFiche }) {
   const decalable = actions.peutDecaler(entree)
-  // S-01 sur l'exercice principal d'une partie (portée séance) : il n'y a pas d'étape à supprimer (E-18).
-  const messageAffiche = entree.avertissement.code === 'S-01' && entree.avertissement.portee === 'seance'
-    ? entree.avertissement.message.replace('Remplace-le ou supprime l\'étape.', 'Remplace l\'exercice principal de cette partie.')
-    : entree.avertissement.message
-  const { titre, suite } = scinderMessage(messageAffiche)
+  // Le message vient du moteur tel quel (S-01 d'un exercice principal compris, AUD3-01).
+  const { titre, suite } = scinderMessage(entree.avertissement.message)
   return (
     <Avertissement
       niveau={entree.forme}
@@ -150,7 +147,7 @@ function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement,
               <p className="etape-titre"><span className="cache">Étape {i + 1} : </span>{e.titre}</p>
               <ul className="fiche-grille-etiquettes">
                 {etat && etat.manques.length > 0 && <li><span className="etiquette attente" title={etat.manques.join(' ; ')}>Prérequis</span></li>}
-                {entree?.aVerifier !== undefined && <li><span className="etiquette contour">À vérifier</span></li>}
+                {entree?.aVerifier !== undefined && <li><span className="etiquette contour" title={entree.aVerifier}>Réglage estimé</span></li>}
                 {e.origine?.source === 'perso' && <li><span className="etiquette">Perso</span></li>}
               </ul>
               {etat && etat.contreIndications.length > 0 && <p className="texte-3 message-erreur">{texteContreIndication(etat.contreIndications)}</p>}
@@ -394,7 +391,7 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
           })}
           {surEtapeCachee.map((e) => (
             <div key={e.cle} className="pile">
-              <p className="texte-3">Étape « {seance.solo.etapes[e.avertissement.etapeIndex ?? 0]?.titre ?? 'inconnue'} »</p>
+              <p className="texte-3">{nomCibleCachee(seance, e.avertissement.etapeIndex ?? 0)}</p>
               <AvertissementDuMoteur entree={e} actions={avertissements} />
             </div>
           ))}

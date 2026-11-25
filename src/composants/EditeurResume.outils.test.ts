@@ -5,7 +5,7 @@ import { contexteDeReference } from '../regles/exemples.ts'
 import { fichesDeLaBibliotheque, seanceVersVerif, verifierSeance } from '../regles/index.ts'
 import {
   ajouterPartie, changerNiveau, ecrireDureeSimple, ecrireRecommandation, etapesDepuisSeanceType, figerParties, figerRecommandation,
-  modifierPartie, monterPartie, poserPrincipal, recalculerGrandesLignes, retirerPartie, revenirAuTexteProposé,
+  modifierPartie, monterPartie, nomCibleCachee, poserPrincipal, recalculerGrandesLignes, retirerPartie, revenirAuTexteProposé,
 } from './EditeurResume.outils.ts'
 
 const fiches = fichesDeLaBibliotheque()
@@ -102,5 +102,28 @@ describe('séance type', () => {
   it('sans séance type connue, rien à recopier', () => {
     expect(etapesDepuisSeanceType(seance())).toBeUndefined()
     expect(etapesDepuisSeanceType(seance({}, { seanceTypeId: 'ST-DOI-02' }))?.length).toBeGreaterThan(0)
+  })
+})
+
+describe('nomCibleCachee (AUD3-05)', () => {
+  it('avec étapes, nomme l\'étape visée', () => {
+    expect(nomCibleCachee(seance(), 1)).toBe(`Étape « ${etape('traction-simple-4x5').titre} »`)
+  })
+
+  it('sans étapes, nomme la partie qui a l\'exercice principal', () => {
+    const sansEtapes = seance({
+      etapes: [],
+      parties: [
+        { titre: 'Échauffement', dureeMin: 10 },
+        { titre: 'Effort principal', dureeMin: 40, principal: { source: 'bibliotheque', refId: 'traction-simple-4x5' } },
+      ],
+    })
+    expect(nomCibleCachee(sansEtapes, 0)).toBe('Partie « Effort principal »')
+  })
+
+  it('index hors liste : étape inconnue', () => {
+    expect(nomCibleCachee(seance(), 9)).toBe('Étape « inconnue »')
+    // Sans étapes, la seule partie avec exercice principal est à l'index 0 : l'index 1 n'existe pas.
+    expect(nomCibleCachee(seance({ etapes: [] }), 1)).toBe('Étape « inconnue »')
   })
 })

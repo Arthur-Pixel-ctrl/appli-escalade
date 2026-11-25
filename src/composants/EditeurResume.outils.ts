@@ -158,6 +158,20 @@ export function etapesDepuisSeanceType(seance: SeancePlanifiee): EtapeSeance[] |
   return modele.solo.etapes
 }
 
+/**
+ * Le nom de l'étape visée par un avertissement, pour la ligne qui le précède. Sans étapes détaillées, l'étape visée
+ * est l'exercice principal d'une partie (AUD3-05) : on nomme donc la partie, dans le même ordre que le moteur.
+ */
+export function nomCibleCachee(seance: SeancePlanifiee, etapeIndex: number): string {
+  const etapes = seance.solo.etapes
+  if (etapes.length > 0) {
+    const titre = etapes[etapeIndex]?.titre
+    return titre !== undefined ? `Étape « ${titre} »` : 'Étape « inconnue »'
+  }
+  const partie = (seance.solo.parties ?? []).filter((p) => p.principal)[etapeIndex]
+  return partie ? `Partie « ${partie.titre} »` : 'Étape « inconnue »'
+}
+
 /** Ajoute une étape recopiée depuis une fiche ; `undefined` si la fiche est introuvable (exercice perso sans sa liste). */
 export function ajouterEtapeDepuisFiche(solo: VersionSolo, ficheId: string, persos: ExercicePerso[]): VersionSolo | undefined {
   const etape = etapeDepuisFiche(ficheId, persos, solo.etapes)
