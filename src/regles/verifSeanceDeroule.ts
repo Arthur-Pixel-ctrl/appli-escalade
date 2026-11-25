@@ -12,7 +12,7 @@ import {
   principauxHorsEtapesConnus,
   sansContenuConnu,
 } from './base.ts'
-import { MARQUEURS_NERVEUX, MARQUEURS_QUOTA, NOMS_QUALITES, QUALITES_PHYSIQUES } from './reglesParDefaut.ts'
+import { MARQUEURS_NERVEUX, MARQUEURS_QUOTA, NOMS_MARQUEURS, NOMS_QUALITES, QUALITES_PHYSIQUES } from './reglesParDefaut.ts'
 import type { Avertissement, ContexteVerif, EtapeVerif, FicheVerif, Marqueur, Qualite, SeanceVerif, VersionVerif } from './types.ts'
 
 type Version = 'solo' | 'groupe'
@@ -361,15 +361,21 @@ function verifsGroupe(s: SeanceVerif, g: VersionVerif, ctx: ContexteVerif): Aver
 function verifIntensiteSoloGroupe(s: SeanceVerif, g: VersionVerif, ctx: ContexteVerif): Avertissement[] {
   const solo = marqueursQuota(s.solo, ctx)
   const groupe = marqueursQuota(g, ctx)
-  const differents = [...solo.filter((m) => !groupe.includes(m)), ...groupe.filter((m) => !solo.includes(m))]
-  const dureteDiffere = s.solo.durete !== g.durete
-  if (differents.length === 0 && !dureteDiffere) return []
-  const parties: string[] = [...differents]
-  if (dureteDiffere) parties.push('dureté')
+  // Parcours dans l'ordre de MARQUEURS_QUOTA, pour que le message soit stable d'une séance à l'autre.
+  const parties: string[] = []
+  for (const m of MARQUEURS_QUOTA) {
+    if (solo.includes(m) && !groupe.includes(m)) parties.push(`${NOMS_MARQUEURS[m]} en solo seulement`)
+    if (groupe.includes(m) && !solo.includes(m)) parties.push(`${NOMS_MARQUEURS[m]} en groupe seulement`)
+  }
+  if (s.solo.durete !== g.durete) {
+    const nomDurete = (d: 'dure' | 'legere') => (d === 'dure' ? 'dure' : 'légère')
+    parties.push(`solo ${nomDurete(s.solo.durete)}, groupe ${nomDurete(g.durete)}`)
+  }
+  if (parties.length === 0) return []
   const a = avertir(
     'S-21',
     'information',
-    `Les versions solo et groupe de « ${s.nom} » n'ont pas la même intensité (${parties.join(', ')}). Aligne-les pour que la semaine reste équilibrée quel que soit ton choix.`,
+    `Les versions solo et groupe de « ${s.nom} » n'ont pas la même intensité (${parties.join(' ; ')}). Aligne-les pour que la semaine reste équilibrée quel que soit ton choix.`,
     "Choix de l'app",
     s,
     'solo',

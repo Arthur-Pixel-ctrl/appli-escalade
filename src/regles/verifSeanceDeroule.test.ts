@@ -141,12 +141,20 @@ describe('Version groupe : S-20 à S-23', () => {
     s.groupe = groupe([obj({ accents: ['puissance'] })])
     const a = trouver(verifierSeanceDeroule(s, ctx), 'S-21')
     expect(a).toHaveLength(1)
-    expect(a[0].message).toContain('bloc_limite')
+    // Ordre de MARQUEURS_QUOTA : l'effort maximal vient avant le bloc limite ; aucun identifiant brut.
+    expect(a[0].message).toContain('(effort maximal en solo seulement ; bloc limite en solo seulement ; solo dure, groupe légère)')
+    expect(a[0].message).not.toContain('_')
     expect(a[0].portee).toBe('seance')
+  })
+  it('S-21 : marqueur présent en groupe seulement, et dureté différente', () => {
+    const s = base(groupe([obj({ accents: ['puissance'], marqueurs: ['maximale'] })], [], 'dure'))
+    expect(trouver(verifierSeanceDeroule(s, ctx), 'S-21')[0].message).toBe(
+      "Les versions solo et groupe de « s » n'ont pas la même intensité (effort maximal en groupe seulement ; solo légère, groupe dure). Aligne-les pour que la semaine reste équilibrée quel que soit ton choix.",
+    )
   })
   it('S-21 : seule la dureté diffère, puis rien si identiques', () => {
     const s = base(groupe([obj({ accents: ['puissance'] })], [], 'dure'))
-    expect(trouver(verifierSeanceDeroule(s, ctx), 'S-21')[0].message).toContain('(dureté)')
+    expect(trouver(verifierSeanceDeroule(s, ctx), 'S-21')[0].message).toContain('(solo légère, groupe dure)')
     expect(trouver(verifierSeanceDeroule(base(groupe([obj({ accents: ['puissance'] })])), ctx), 'S-21')).toHaveLength(0)
   })
   it('S-22 : objectif à la limite sans plafond', () => {

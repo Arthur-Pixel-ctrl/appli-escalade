@@ -7,7 +7,7 @@ import {
   sansContenuConnu,
   zonesDouloureuses,
 } from './base.ts'
-import { MARQUEURS_QUOTA, NOMS_QUALITES, NOMS_ZONES } from './reglesParDefaut.ts'
+import { MARQUEURS_QUOTA, NOMS_MARQUEURS, NOMS_QUALITES, NOMS_ZONES } from './reglesParDefaut.ts'
 import { manquesPrerequis } from './verifSeanceProfil.ts'
 import type { Avertissement, ContexteVerif, Jour, Niveau, PlanVerif, Qualite, SemaineVerif } from './types.ts'
 
@@ -61,7 +61,7 @@ export function verifierStructurePlan(plan: PlanVerif, ctx: ContexteVerif): Aver
       alerte(
         'P-01',
         'information',
-        "Ton cycle s'écarte du format 12 semaines en 3 blocs de 4. C'est possible, mais les repères de l'app sont faits pour ce format.",
+        "Ton cycle s'écarte du format 12 semaines en 3 phases de 4. C'est possible, mais les repères de l'app sont faits pour ce format.",
         'Plan de l\'app',
       ),
     )
@@ -258,7 +258,7 @@ export function verifierStructurePlan(plan: PlanVerif, ctx: ContexteVerif): Aver
           alerte(
             'P-11',
             'information',
-            `« ${objectifs[i].nom} » et « ${objectifs[j].nom} » comptent dans le même quota (${commun}). Garde-en un pour cette phase.`,
+            `« ${objectifs[i].nom} » et « ${objectifs[j].nom} » comptent dans le même quota (${NOMS_MARQUEURS[commun]}). Garde-en un pour cette phase.`,
             'Modèle de données',
             { mesocycleOrdre: bloc.ordre, sujet: `${objectifs[i].id}+${objectifs[j].id}` },
           ),
