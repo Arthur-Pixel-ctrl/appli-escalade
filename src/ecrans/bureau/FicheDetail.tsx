@@ -44,7 +44,7 @@ function ChoixReglage({ id, libelle, aide, borne, valeur, formate, onChoisir }: 
 
 // Aperçu du chrono : la même horloge que sur le téléphone, mais rien n'est enregistré et ce n'est pas une séance (R-6).
 // Échap est géré par le panneau (qui ferme l'aperçu d'abord).
-function ApercuChrono({ entree, forme, onFermer }: { entree: EntreeBibliotheque; forme: Extract<Forme, { forme: 'chrono' }>; onFermer: () => void }) {
+export function ApercuChrono({ entree, forme, onFermer }: { entree: EntreeBibliotheque; forme: Extract<Forme, { forme: 'chrono' }>; onFermer: () => void }) {
   const volet = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const origine = document.activeElement instanceof HTMLElement ? document.activeElement : null
