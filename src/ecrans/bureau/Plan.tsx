@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
-import type { Cycle, NiveauDetail, ObjectifSpecifique, PhaseCycle, SeancePlanifiee } from '../../donnees/modele.ts'
-import { enregistrerCycle, enregistrerPhase, enregistrerSeancePlanifiee, lireCycles, lirePlanDuCycle } from '../../donnees/plan.ts'
-import { ecrire, lireTous, supprimer, surDonneesChangees } from '../../donnees/stockage.ts'
+import type { AccentPhase, Cycle, DouleurDeclaree, NiveauDetail, ObjectifSpecifique, PhaseCycle, Profil, Reglages, SeancePlanifiee } from '../../donnees/modele.ts'
+import { PROFIL_VIDE } from '../../donnees/profil.ts'
+import { enregistrerCycle, enregistrerPhase, enregistrerSeancePlanifiee, lireCycles, lireExercicesPerso, lirePlanDuCycle } from '../../donnees/plan.ts'
+import { ecrire, lireTous, lireUn, supprimer, surDonneesChangees } from '../../donnees/stockage.ts'
+import { genererCycle } from '../../regles/index.ts'
 import { NouveauCycle } from './NouveauCycle.tsx'
+import { phraseBandeauPlanPropose } from './NouveauCycle.outils.ts'
 import { cycleAMontrer, nouveauCycleVide, type DemandeCycle } from './Plan.outils.ts'
 import { positionDeLaSemaine, semaineAChange } from './VueSemaine.outils.ts'
 import { VueCycle, type ObjectifChoisi } from './VueCycle.tsx'
@@ -43,7 +46,8 @@ async function lireDonnees(): Promise<Donnees | null> {
 }
 
 // Rubrique Plan (ordinateur) : le cycle de 12 semaines. Les écritures passent par `src/donnees/plan.ts`.
-export function Plan() {
+// `onOuvrirProfil` : ouvre la rubrique Profil (donné par la mise en page) ; sans lui, la fenêtre n'affiche pas le lien.
+export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
   const [donnees, setDonnees] = useState<Donnees | null | undefined>(undefined) // undefined = chargement
   const [echecLecture, setEchecLecture] = useState(false)
   const [echecEcriture, setEchecEcriture] = useState(false)
@@ -54,7 +58,9 @@ export function Plan() {
   const [changeSurTelephone, setChangeSurTelephone] = useState(false)
   const vueRef = useRef<Vue>('cycle')
   const numeroRef = useRef(1)
-  const [seancesParSemaineProfil, setSeancesParSemaineProfil] = useState(3)
+  const [profil, setProfil] = useState<Profil | null>(null)
+  // Ce que le générateur vient de proposer : montré en tête de la vue 12 semaines (jamais bloquant).
+  const [planPropose, setPlanPropose] = useState<{ cycleId: string; phrase: string; manques: string[] } | null>(null)
   // Les écritures en attente, une par document : un changement n'est jamais perdu, il est retenté.
   const enAttente = useRef(new Map<string, () => Promise<void>>())
   const minuteur = useRef<number | undefined>(undefined)
@@ -64,7 +70,7 @@ export function Plan() {
   }, [])
   useEffect(() => {
     recharger()
-    lireProfil().then((p) => p && setSeancesParSemaineProfil(p.seancesParSemaine)).catch(() => {})
+    lireProfil().then(setProfil).catch(() => {})
     // Un changement venu d'un autre appareil : dans la vue Semaine, on ne remplace pas ce que tu édites,
     // on le signale si la semaine affichée a changé (la dernière modification gagne).
     return surDonneesChangees(() => {
@@ -152,8 +158,39 @@ export function Plan() {
     recharger()
   }
 
+  // « Proposer un plan » : le générateur compose, puis on enregistre tout. Rien n'est écrit tant qu'il n'a pas fini.
+  const proposer = async (demande: DemandeCycle) => {
+    const [a, b, c] = demande.accents
+    if (!a || !b || !c) throw new Error('Accents incomplets')
+    const accents: [AccentPhase, AccentPhase, AccentPhase] = [a, b, c]
+    const [douleurs, exercicesPerso, reglages] = await Promise.all([
+      lireTous<DouleurDeclaree>('douleurs'), lireExercicesPerso(), lireUn<Reglages>('reglages', 'reglages'),
+    ])
+    const maintenant = new Date().toISOString()
+    const plan = genererCycle({
+      profil: profil ?? PROFIL_VIDE, douleurs, exercicesPerso,
+      ...(reglages ? { reglages: { reglesSecurite: reglages.reglesSecurite } } : {}),
+      debut: demande.debut, nom: demande.nom.trim(), seancesParSemaine: demande.seancesParSemaine,
+      accents, niveauDetail: demande.niveauDetail,
+      aujourdhui: jourLocal(), maintenant, nouvelId: () => crypto.randomUUID(),
+    })
+    try {
+      await enregistrerCycle(plan.cycle)
+      for (const p of plan.phases) await enregistrerPhase(p)
+      for (const s of plan.seances) await enregistrerSeancePlanifiee(s)
+    } catch (erreur) {
+      // Écriture interrompue : on retire le cycle (suppression douce) pour qu'un nouvel essai ne laisse pas un plan à moitié écrit.
+      await supprimer('cycles', plan.cycle.id).catch(() => {})
+      throw erreur
+    }
+    setPlanPropose({ cycleId: plan.cycle.id, phrase: phraseBandeauPlanPropose(plan), manques: plan.manques })
+    setVue('cycle')
+    setNouveau(false)
+    recharger()
+  }
+
   const fenetre = nouveau && (
-    <NouveauCycle seancesParSemaineProfil={seancesParSemaineProfil} onCreer={creer} onAnnuler={() => setNouveau(false)} />
+    <NouveauCycle profil={profil} onProposer={proposer} onCommencerVide={creer} onAnnuler={() => setNouveau(false)} onOuvrirProfil={onOuvrirProfil} />
   )
 
   if (donnees === undefined) {
@@ -173,7 +210,7 @@ export function Plan() {
           <p className="surtitre">Plan</p>
           <h1 className="titre">Ton cycle de 12 semaines</h1>
           <p className="texte-2">Trois phases de 4 semaines, chacune avec son accent. Crée ton premier cycle, puis remplis-le séance par séance.</p>
-          <p className="annotation">Commence par un cycle vide</p>
+          <p className="annotation">Laisse l’app proposer un plan, ou commence par un cycle vide</p>
           <button type="button" className="bouton principal centre" onClick={() => setNouveau(true)}><strong>Crée ton premier cycle</strong></button>
         </div>
         {fenetre}
@@ -187,6 +224,12 @@ export function Plan() {
     <main className="ecran plan-ecran">
       {echecEcriture && (
         <Avertissement niveau="avertissement" titre="Changement pas encore enregistré">Nouvel essai dans quelques secondes. Tes changements restent à l’écran.</Avertissement>
+      )}
+      {planPropose && planPropose.cycleId === donnees.cycle.id && vue === 'cycle' && (
+        <div className="pile">
+          <Avertissement niveau="information" titre={planPropose.phrase} />
+          {planPropose.manques.map((m) => <Avertissement key={m} niveau="information" titre={m} />)}
+        </div>
       )}
       {vue === 'semaine' ? (
         <VueSemaine

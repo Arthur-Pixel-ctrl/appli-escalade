@@ -44,7 +44,7 @@ export function MiseEnPageBureau({
             </div>
           )}
           {rubrique === 'Plan' && (
-            <div className="bureau-plan"><Plan /></div>
+            <div className="bureau-plan"><Plan onOuvrirProfil={() => onChoisirRubrique('Profil')} /></div>
           )}
           {rubrique === 'Bibliothèque' && (
             <div className="bureau-bibliotheque"><Bibliotheque /></div>

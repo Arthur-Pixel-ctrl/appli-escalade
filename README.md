@@ -78,6 +78,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-16 | Plan sur ordinateur : vue semaine (rail de la bibliothèque, 7 jours, séances types proposées d'abord) et fiche de séance (dureté, qualité, effort prévu, étapes, version groupe avec objectifs types) ; tout se fait au clavier | Fait |
 | SPEC-PROMPT | Consignes de l'assistant corrigées : il ne choisit jamais le niveau de détail (règle F-10) ; repères d'assiette rattachés à leur source, chiffre de boisson non vérifié retiré | Fait |
 | E-11 | Format des réponses de l'assistant et contrôle avant affichage (A-01 à A-07, F-1 à F-10) | Fait |
+| D-25 | Nouveau cycle : rappel des jours et lieux du profil, accents préremplis selon le profil, niveau proposé selon les accents, « Proposer un plan » (cycle complet en brouillon, vérifié par le moteur) ou « Commencer vide » | Fait |
 
 ## Ouvrir l'app
 

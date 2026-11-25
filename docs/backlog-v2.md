@@ -587,6 +587,8 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 
 > (livraison D-14, 23/11) Les listes d'accents existent déjà dans `NouveauCycle.tsx` : D-25 y branche `accentsDeDepart` comme présélection au lieu de « Pas encore choisi », sans les recréer.
 
+> (livraison 25/11, validé par le gérant) Plus d'option « Pas encore choisi » : le générateur exige trois accents, donc « Commencer vide » les écrit aussi. Si l'écriture du plan proposé s'interrompt, le cycle est retiré (suppression douce) et la fenêtre propose de réessayer. Le lien « Modifier dans ton profil » passe par la prop `onOuvrirProfil` de `Plan`, branchée par le gérant dans `MiseEnPageBureau.tsx`.
+
 #### D-18 · Avertissements de sécurité en direct — vague 3.10
 - **Modèle** : Sonnet · **Dépend de** : D-17, E-09, C-01 · **Texte** : [taches-design.md, D-18](specs/design/taches-design.md#d-18--avertissements-de-sécurité-en-direct)
 - **Fichiers** : `VueSemaine.tsx`, `FicheSeance.tsx`, `VuePhase.tsx`, `VueCycle.tsx`, `src/composants/Avertissement.tsx`.
