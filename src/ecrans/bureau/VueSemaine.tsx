@@ -462,7 +462,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
                     {j.seances.map((s) => (
                       <FicheSeance key={s.id} persos={persos} seance={s} cycle={cycle} fiches={fiches} entrees={parId} contexte={contexte.filtre} couleurs={couleurs}
                         remplacement={remplacement?.seanceId === s.id ? remplacement.index : null}
-                        glisse={glisseDe(s)}
+                        glisse={glisseDe(s)} onAnnoncer={setMessage}
                         avertissements={actionsFiche(s)}
                         onGlisserEtape={(e, liste, index, titre) => glisse.demarrer(e, { type: 'etape', seanceId: s.id, liste, index, titre }, titre, rappelsGlisser)}
                         onChanger={ecrire} onSupprimer={() => setARetirer(s)} onVoirFiche={setFicheOuverte}

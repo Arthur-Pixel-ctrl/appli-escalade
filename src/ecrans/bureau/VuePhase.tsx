@@ -8,7 +8,7 @@ import { useGlisser, type RappelsGlisser } from '../../composants/useGlisser.ts'
 import type { Cycle, DateISO, PhaseCycle, SeancePlanifiee } from '../../donnees/modele.ts'
 import { dureeVersionSolo } from '../../donnees/niveaux.ts'
 import { ajouterJours, debutSemaine } from '../../donnees/plan.ts'
-import { compter, entreesDesSeances, nombreDuRepere, phraseCompte, type AvertissementsDuPlan } from './avertissementsPlan.ts'
+import { compter, entreesDesSeances, formeDuRepere, nombreDuRepere, phraseCompte, type AvertissementsDuPlan } from './avertissementsPlan.ts'
 import {
   ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, chargeRelative, dateCourte, resumeSemaine, semaineDuJour, semainesAPlat,
 } from './Plan.outils.ts'
@@ -190,7 +190,7 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
                     const texte = glisse.etat ? texteDepot(glisse.etat.charge, zone) : null
                     return (
                       <td key={jour} data-zone={zone}
-                        className={`case-jour${dateDeLaCase(cycle, phase, semaine, jour) === aujourdhui ? ' aujourdhui' : ''}${nombreDuRepere(duCase) > 0 ? ' case-avertie' : ''}${texte !== null ? ' zone-valable' : ''}${glisse.etat?.zone === zone ? ' zone-survolee' : ''}`}>
+                        className={`case-jour${dateDeLaCase(cycle, phase, semaine, jour) === aujourdhui ? ' aujourdhui' : ''}${nombreDuRepere(duCase) > 0 ? ' case-avertie' : ''}${formeDuRepere(duCase) === 'arret' ? ' case-arret' : ''}${texte !== null ? ' zone-valable' : ''}${glisse.etat?.zone === zone ? ' zone-survolee' : ''}`}>
                         {texte !== null && <p className="zone-texte">{texte}</p>}
                         {nombreDuRepere(duCase) > 0 && <RepereAvertissements entrees={duCase} />}
                         {dedans.map((s) => (
@@ -272,8 +272,8 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
 // Repère ambre « triangle + nombre » : le détail est dans la vue Semaine. Les avertissements gardés restent comptés.
 function RepereAvertissements({ entrees }: { entrees: ReturnType<typeof entreesDesSeances> }) {
   return (
-    <span className="repere-avertissements" role="img" aria-label={phraseCompte(compter(entrees))}>
-      <Icone nom="avertissement" taille={16} /><span aria-hidden="true">{nombreDuRepere(entrees)}</span>
+    <span className={`repere-avertissements${formeDuRepere(entrees) === 'arret' ? ' repere-arret' : ''}`} role="img" aria-label={phraseCompte(compter(entrees))}>
+      <Icone nom={formeDuRepere(entrees)} taille={16} /><span aria-hidden="true">{nombreDuRepere(entrees)}</span>
     </span>
   )
 }

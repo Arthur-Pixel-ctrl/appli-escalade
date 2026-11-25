@@ -727,3 +727,8 @@ body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-s
 .avertissement-suite, .etapes-vides-actions { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
 .avertissement-suite .bouton-texte { width: auto; }
 .etapes-vides-actions .bouton-second { flex: none; width: auto; padding: 0 var(--espace-4); }
+
+/* Repère d'un signal d'arrêt (vues Phase et 12 semaines) : couleur et forme « arrêt », pas le triangle ambre. */
+.repere-avertissements.repere-arret { background: var(--arret-fond); color: var(--arret); border-color: var(--rubalise-arret); }
+.case-jour.case-arret { box-shadow: inset 0 -4px 0 var(--rubalise-arret); background: var(--arret-fond); }
+.semaine-ligne.avertie.arret { border-top-color: var(--rubalise-arret); }

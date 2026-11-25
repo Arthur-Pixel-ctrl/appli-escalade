@@ -4,8 +4,9 @@ import { seanceTypeParId } from '../../donnees/seancesTypes.ts'
 import { seanceDepuisType, type Avertissement } from '../../regles/index.ts'
 import { nouveauCycleVide } from './Plan.outils.ts'
 import { nouvelleSeanceVide } from './VuePhase.outils.ts'
+import type { EntreeAvertissement } from './avertissementsPlan.ts'
 import {
-  avecGarde, calculerAvertissements, compter, decalerAuLendemain, entreesDesSeances, nombreDuRepere, peutDecaler, phraseCompte, ranger, scinderMessage,
+  arretsEnPremier, avecGarde, calculerAvertissements, formeDuRepere, compter, decalerAuLendemain, entreesDesSeances, nombreDuRepere, peutDecaler, phraseCompte, ranger, scinderMessage,
 } from './avertissementsPlan.ts'
 
 let n = 0
@@ -97,5 +98,21 @@ describe('rangement et textes', () => {
   it('scinde le message à la première phrase', () => {
     expect(scinderMessage('Deux séances. Décale-la d’un jour.')).toEqual({ titre: 'Deux séances.', suite: 'Décale-la d’un jour.' })
     expect(scinderMessage('Une seule phrase.')).toEqual({ titre: 'Une seule phrase.', suite: '' })
+  })
+})
+
+describe('signaux d’arrêt : toujours devant, repère « arrêt »', () => {
+  const entree = (cle: string, forme: EntreeAvertissement['forme']) =>
+    ({ cle, forme, garde: false, semaine: 1, phaseOrdre: 1, avertissement: { code: 'X', message: cle } }) as unknown as EntreeAvertissement
+
+  it('un arrêt passe devant trois avertissements forts, sans changer l’ordre des autres', () => {
+    const rangees = arretsEnPremier([entree('a', 'avertissement'), entree('b', 'avertissement'), entree('c', 'avertissement'), entree('arret', 'arret')])
+    expect(rangees.map((e) => e.cle)).toEqual(['arret', 'a', 'b', 'c'])
+  })
+
+  it('la forme du repère vaut « arrêt » dès qu’un arrêt est dans la liste', () => {
+    expect(formeDuRepere([entree('a', 'avertissement'), entree('z', 'arret')])).toBe('arret')
+    expect(formeDuRepere([entree('a', 'avertissement')])).toBe('avertissement')
+    expect(formeDuRepere([])).toBe('avertissement')
   })
 })

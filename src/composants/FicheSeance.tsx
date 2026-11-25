@@ -80,6 +80,8 @@ interface Props {
   avertissements?: AvertissementsFiche
   /** Exercices personnels : sans eux, « Ajouter une étape » ne propose que la bibliothèque. */
   persos?: ExercicePerso[]
+  /** Annonce un texte dans la zone `aria-live` de l'écran (Monter, Descendre). */
+  onAnnoncer?: (texte: string) => void
   onGlisserEtape?: (e: PointerEvent<HTMLElement>, liste: ListeEtapesNom, index: number, titre: string) => void
   onChanger: (s: SeancePlanifiee) => void
   onSupprimer: () => void
@@ -118,10 +120,10 @@ function MenuActions({ nom, actions }: { nom: string; actions: { libelle: string
   )
 }
 
-function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement, glisse, avertissements, onGlisserEtape, onChanger, onVoirFiche, onRemplacer }: {
+function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement, glisse, avertissements, onGlisserEtape, onAnnoncer, onChanger, onVoirFiche, onRemplacer }: {
   seanceId: string; liste: ListeEtapesNom; avertissements?: { de: (index: number) => EntreeAvertissement[]; actions: AvertissementsFiche }
   etapes: EtapeSeance[]; entrees: Map<string, EntreeBibliotheque>; contexte: ContexteFiltre; remplacement: number | null
-  glisse?: GlisseFiche | null; onGlisserEtape?: Props['onGlisserEtape']
+  glisse?: GlisseFiche | null; onGlisserEtape?: Props['onGlisserEtape']; onAnnoncer?: (texte: string) => void
   onChanger: (e: EtapeSeance[]) => void; onVoirFiche: (id: string) => void; onRemplacer: (i: number) => void
 }) {
   return (
@@ -164,8 +166,8 @@ function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement,
             <MenuActions nom={e.titre} actions={[
               { libelle: 'Voir la fiche', action: () => e.origine && onVoirFiche(e.origine.refId), inactif: !e.origine },
               { libelle: 'Remplacer', action: () => onRemplacer(i) },
-              { libelle: 'Monter', action: () => onChanger(monterOuDescendre(etapes, i, -1)), inactif: i === 0 },
-              { libelle: 'Descendre', action: () => onChanger(monterOuDescendre(etapes, i, 1)), inactif: i === etapes.length - 1 },
+              { libelle: 'Monter', action: () => { onChanger(monterOuDescendre(etapes, i, -1)); onAnnoncer?.(`« ${e.titre} » déplacée en position ${i}.`) }, inactif: i === 0 },
+              { libelle: 'Descendre', action: () => { onChanger(monterOuDescendre(etapes, i, 1)); onAnnoncer?.(`« ${e.titre} » déplacée en position ${i + 2}.`) }, inactif: i === etapes.length - 1 },
               { libelle: 'Retirer', action: () => onChanger(retirerDe(etapes, i)) },
             ]} />
           </li>
@@ -280,7 +282,7 @@ function NomEditable({ nom, onChanger }: { nom: string; onChanger: (nom: string)
 
 // La fiche d'une séance (O-05) : en-tête, réglages choisis, puis la version solo ou la version groupe.
 // Le niveau choisi décide de l'éditeur de la version solo ; changer de niveau n'efface rien (R-9).
-export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs, remplacement, glisse, avertissements, persos, onGlisserEtape, onChanger, onSupprimer, onVoirFiche, onRemplacer, onAnnulerRemplacement }: Props) {
+export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs, remplacement, glisse, avertissements, persos, onGlisserEtape, onAnnoncer, onChanger, onSupprimer, onVoirFiche, onRemplacer, onAnnulerRemplacement }: Props) {
   const [version, setVersion] = useState<'solo' | 'groupe'>('solo')
   // « Voir les étapes » ouvre l'éditeur détaillé sans changer le niveau choisi (rien n'est écrit).
   const [etapesOuvertes, setEtapesOuvertes] = useState(false)
@@ -325,9 +327,12 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
   const propres = avertissements?.propres ?? []
   const deSeance = propres.filter((e) => e.avertissement.etapeIndex === undefined)
   // Un avertissement qui vise une étape cachée monte en tête de la fiche, avec le nom de l'étape : aucun ne disparaît.
-  const surEtapeCachee = surGroupe || etapesVisibles
-    ? []
-    : propres.filter((e) => e.avertissement.etapeIndex !== undefined && e.avertissement.version !== 'groupe')
+  // Sur l'onglet GROUPE, les signaux d'arrêt de la version solo restent en tête : un arrêt ne se cache jamais.
+  const surEtapeCachee = surGroupe
+    ? propres.filter((e) => e.forme === 'arret' && e.avertissement.etapeIndex !== undefined && e.avertissement.version !== 'groupe')
+    : etapesVisibles
+      ? []
+      : propres.filter((e) => e.avertissement.etapeIndex !== undefined && e.avertissement.version !== 'groupe')
   const deEtape = (liste: ListeEtapesNom) => (index: number) =>
     propres.filter((e) => e.avertissement.etapeIndex === index && (e.avertissement.version === 'groupe') === (liste === 'minibloc'))
   const etapesAvert = (liste: ListeEtapesNom) => (avertissements ? { de: deEtape(liste), actions: avertissements } : undefined)
@@ -462,7 +467,7 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
                 </div>
               </div>
             )
-            : <ListeEtapes seanceId={seance.id} liste="solo" glisse={glisse} avertissements={etapesAvert('solo')} onGlisserEtape={onGlisserEtape} etapes={seance.solo.etapes} entrees={entrees} contexte={contexte} remplacement={remplacement}
+            : <ListeEtapes seanceId={seance.id} liste="solo" glisse={glisse} avertissements={etapesAvert('solo')} onGlisserEtape={onGlisserEtape} onAnnoncer={onAnnoncer} etapes={seance.solo.etapes} entrees={entrees} contexte={contexte} remplacement={remplacement}
                 onChanger={(etapes) => changerSolo({ etapes })} onVoirFiche={onVoirFiche} onRemplacer={onRemplacer} />}
           {seance.solo.etapes.length > 0 && (
             <button type="button" className="bouton-texte" onClick={() => setAjoutEtape(true)}>Ajouter une étape</button>
@@ -506,7 +511,7 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
             </fieldset>
             {groupe.miniBloc && (groupe.miniBloc.etapes.length === 0
               ? <p className="texte-3">Mini-bloc vide : « Ajouter à… » dans la bibliothèque propose « mini-bloc de la version groupe ».</p>
-              : <ListeEtapes seanceId={seance.id} liste="minibloc" glisse={glisse} avertissements={etapesAvert('minibloc')} onGlisserEtape={onGlisserEtape} etapes={groupe.miniBloc.etapes} entrees={entrees} contexte={contexte} remplacement={null}
+              : <ListeEtapes seanceId={seance.id} liste="minibloc" glisse={glisse} avertissements={etapesAvert('minibloc')} onGlisserEtape={onGlisserEtape} onAnnoncer={onAnnoncer} etapes={groupe.miniBloc.etapes} entrees={entrees} contexte={contexte} remplacement={null}
                   onChanger={(etapes) => changerGroupe({ ...groupe, miniBloc: { moment: groupe.miniBloc!.moment, etapes } })}
                   onVoirFiche={onVoirFiche} onRemplacer={() => {}} />)}
           </div>
