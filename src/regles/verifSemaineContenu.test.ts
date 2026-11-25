@@ -149,7 +149,7 @@ describe('W-10 semaine allégée (cas 7)', () => {
     expect(w10).toHaveLength(1)
     expect(w10[0].niveau).toBe('fort')
     expect(w10[0].message).toBe(
-      'Ta semaine allégée est presque aussi chargée qu’une semaine normale. Divise les séries par deux et vise environ 800 unités.',
+      "Ta semaine allégée est presque aussi chargée qu'une semaine normale. Divise les séries par deux et vise environ 800 unités.",
     )
   })
 
@@ -224,7 +224,7 @@ describe('W-11 exercice nouveau en semaine allégée ou d’affûtage', () => {
     expect(w11[0].seanceId).toBe('b')
     expect(w11[0].etapeIndex).toBe(2)
     expect(w11[0].message).toMatch(
-      /^« .+ » n’apparaît pas dans tes semaines de charge : en semaine allégée, garde des exercices connus\.$/,
+      /^« .+ » n'apparaît pas dans tes semaines de charge : en semaine allégée, garde des exercices connus\.$/,
     )
   })
 
@@ -255,7 +255,7 @@ describe('W-11 exercice nouveau en semaine allégée ou d’affûtage', () => {
     )
     const w11 = seulement(verifier('2026-11-16', p), 'W-11')
     expect(w11).toHaveLength(1)
-    expect(w11[0].message).toContain('en semaine d’affûtage')
+    expect(w11[0].message).toContain("en semaine d'affûtage")
     expect(w11[0].etapeIndex).toBe(2)
   })
 
@@ -371,7 +371,7 @@ describe('W-14 accent de la phase', () => {
   it('aucune séance de l’accent : message 1', () => {
     const w14 = seulement(verifier('2026-11-23', pAccentPuissance([s('a', '2026-11-24', 'technique')])), 'W-14')
     expect(w14).toHaveLength(1)
-    expect(w14[0].message).toBe('Cette phase met en avant puissance, mais aucune séance de la semaine n’a cette qualité.')
+    expect(w14[0].message).toBe("Cette phase met en avant puissance, mais aucune séance de la semaine n'a cette qualité.")
   })
 
   it('deux séances résistance et une puissance : message 2', () => {
@@ -379,7 +379,7 @@ describe('W-14 accent de la phase', () => {
     const w14 = seulement(verifier('2026-11-23', pAccentPuissance(seances)), 'W-14')
     expect(w14).toHaveLength(1)
     expect(w14[0].message).toBe(
-      'Plus de séances résistance que de séances puissance, l’accent de cette phase. C’est voulu ?',
+      "Plus de séances résistance que de séances puissance, l'accent de cette phase. C'est voulu ?",
     )
   })
 
@@ -414,7 +414,7 @@ describe('W-15 poutre et ancienneté', () => {
   it('0,5 an, une séance : message « Moins d’un an »', () => {
     const ctx = contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, anneesPratique: 0.5 } })
     const w15 = seulement(verifier('2026-11-23', plan([semaine('2026-11-23')], [poutre('a', '2026-11-23')]), ctx), 'W-15')
-    expect(w15[0].message).toBe('Moins d’un an de pratique : la grimpe suffit, la poutre viendra après un an sans blessure.')
+    expect(w15[0].message).toBe("Moins d'un an de pratique : la grimpe suffit, la poutre viendra après un an sans blessure.")
   })
 
   it('une séance pour 4 ans : rien ; s’applique aussi hors semaine de charge', () => {
@@ -436,13 +436,13 @@ describe('W-16 antagonistes insuffisants', () => {
     const w16 = seulement(verifier('2026-11-23', avec(1)), 'W-16')
     expect(w16).toHaveLength(1)
     expect(w16[0].message).toBe(
-      'Une seule séance d’antagonistes cette semaine : 2 courtes séances après la grimpe protègent épaules et coudes.',
+      "Une seule séance d'antagonistes cette semaine : 2 courtes séances après la grimpe protègent épaules et coudes.",
     )
   })
 
   it('aucune étape : « Aucune séance »', () => {
     const p = plan([semaine('2026-11-23')], [seanceSolo('a', '2026-11-24', [ECHAUFFEMENT, 'technique-tout-en-drapeau'])])
-    expect(seulement(verifier('2026-11-23', p), 'W-16')[0].message).toMatch(/^Aucune séance d’antagonistes/)
+    expect(seulement(verifier('2026-11-23', p), 'W-16')[0].message).toMatch(/^Aucune séance d'antagonistes/)
   })
 
   it('deux étapes : rien ; semaine allégée : rien', () => {

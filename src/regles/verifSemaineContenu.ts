@@ -123,7 +123,7 @@ function w10(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
       avertissementSemaine(
         'W-10',
         'fort',
-        `Ta semaine allégée est presque aussi chargée qu’une semaine normale. Divise les séries par deux et vise environ ${cibleArrondie} unités.`,
+        `Ta semaine allégée est presque aussi chargée qu'une semaine normale. Divise les séries par deux et vise environ ${cibleArrondie} unités.`,
         semaine,
         source,
       ),
@@ -156,7 +156,7 @@ function w11(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
       for (const { fiche } of [...etapesSolo(s, ctx), ...etapesGroupe(s, ctx)]) connus.add(fiche.id)
     }
   }
-  const sorte = semaine.type === 'decharge' ? 'allégée' : 'd’affûtage'
+  const sorte = semaine.type === 'decharge' ? 'allégée' : "d'affûtage"
   const resultat: Avertissement[] = []
   for (const s of seancesDeLaSemaine(semaine.lundi, plan)) {
     for (const { fiche, index } of etapesSolo(s, ctx)) {
@@ -164,7 +164,7 @@ function w11(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
       resultat.push({
         code: 'W-11',
         niveau: 'information',
-        message: `« ${fiche.nom} » n’apparaît pas dans tes semaines de charge : en semaine ${sorte}, garde des exercices connus.`,
+        message: `« ${fiche.nom} » n'apparaît pas dans tes semaines de charge : en semaine ${sorte}, garde des exercices connus.`,
         portee: 'etape',
         seanceId: s.id,
         version: 'solo',
@@ -240,13 +240,13 @@ function w14(semaine: SemaineVerif, plan: PlanVerif): Avertissement[] {
   if (!accent) return [] // accent pas encore choisi
   const seances = seancesDeLaSemaine(semaine.lundi, plan)
   const nombre = (q: Qualite) => seances.filter((s) => s.qualite === q).length
-  const source = 'Plan de l’app (accent tournant)'
+  const source = "Plan de l’app (accent tournant) ; choix de l'app"
   if (nombre(accent) === 0) {
     return [
       avertissementSemaine(
         'W-14',
         'information',
-        `Cette phase met en avant ${NOMS_QUALITES[accent]}, mais aucune séance de la semaine n’a cette qualité.`,
+        `Cette phase met en avant ${NOMS_QUALITES[accent]}, mais aucune séance de la semaine n'a cette qualité.`,
         semaine,
         source,
       ),
@@ -261,7 +261,7 @@ function w14(semaine: SemaineVerif, plan: PlanVerif): Avertissement[] {
     avertissementSemaine(
       'W-14',
       'information',
-      `Plus de séances ${NOMS_QUALITES[concurrente]} que de séances ${NOMS_QUALITES[accent]}, l’accent de cette phase. C’est voulu ?`,
+      `Plus de séances ${NOMS_QUALITES[concurrente]} que de séances ${NOMS_QUALITES[accent]}, l'accent de cette phase. C'est voulu ?`,
       semaine,
       source,
     ),
@@ -275,7 +275,7 @@ function w15(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
   if (n <= cap) return []
   const message =
     cap === 0
-      ? 'Moins d’un an de pratique : la grimpe suffit, la poutre viendra après un an sans blessure.'
+      ? "Moins d'un an de pratique : la grimpe suffit, la poutre viendra après un an sans blessure."
       : `Avec ${ctx.profil.anneesPratique} ans de pratique, Bechtel conseille ${cap} séance${cap > 1 ? 's' : ''} de poutre par semaine au plus. Tu en prévois ${n}.`
   return [avertissementSemaine('W-15', 'information', message, semaine, 'Bechtel ; coachs Lattice (synthèse)')]
 }
@@ -292,7 +292,7 @@ function w16(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
     avertissementSemaine(
       'W-16',
       'information',
-      `${debut} d’antagonistes cette semaine : 2 courtes séances après la grimpe protègent épaules et coudes.`,
+      `${debut} d'antagonistes cette semaine : 2 courtes séances après la grimpe protègent épaules et coudes.`,
       semaine,
       'Vérification de la synthèse (antagonistes)',
     ),
@@ -316,7 +316,7 @@ function w18(semaine: SemaineVerif, plan: PlanVerif, ctx: ContexteVerif): Averti
         'information',
         `Le module « ${objectif.nom} » est prévu ${n} fois cette semaine : 1 à 2 fois par semaine.`,
         semaine,
-        'Plan de l’app ; synthèse (objectifs spécifiques)',
+        "Plan de l'app, modèle de données",
         id, // un objectif oublié ne doit pas masquer l'autre
       ),
     )

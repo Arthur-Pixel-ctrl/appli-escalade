@@ -52,7 +52,7 @@ export interface ContexteAssistant {
       seanceTypeId?: string
       etapes: string[] // sans étapes : les exercices principaux des parties
       objectifsGroupe: string[]
-      niveau: string // niveau affiché
+      niveau: string // niveau choisi par l'utilisateur (`niveauChoisi`), pas le niveau affiché
     }[]
   }
   historique: {

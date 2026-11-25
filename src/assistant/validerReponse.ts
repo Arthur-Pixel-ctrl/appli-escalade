@@ -26,7 +26,7 @@ export interface IdsAutorises {
   aujourdhui: string
   /** Niveau de détail envoyé à l'assistant (contexte.niveauDetail ; 'detaille' pour un brouillon de cycle). */
   niveauDetail: NiveauDetail
-  /** Id → niveau affiché de chaque séance de planEnCours.seancesAVenir (niveau attendu du `par` d'un remplacer_seance). */
+  /** Id → niveau choisi par l'utilisateur (`niveauChoisi`), pas le niveau affiché, de chaque séance de planEnCours.seancesAVenir (niveau attendu du `par` d'un remplacer_seance). */
   niveauxSeancesAVenir: Map<string, NiveauDetail>
 }
 
