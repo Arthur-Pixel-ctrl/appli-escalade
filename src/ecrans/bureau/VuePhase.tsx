@@ -1,7 +1,10 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { BandeSemaines } from '../../composants/BandeSemaines.tsx'
 import { Confirmation } from '../../composants/Confirmation.tsx'
 import { Icone } from '../../composants/Icone.tsx'
+import { idZone, lireZone } from '../../composants/glisser.ts'
+import { FantomeGlisse } from '../../composants/FantomeGlisse.tsx'
+import { useGlisser, type RappelsGlisser } from '../../composants/useGlisser.ts'
 import type { Cycle, DateISO, PhaseCycle, SeancePlanifiee } from '../../donnees/modele.ts'
 import { dureeVersionSolo } from '../../donnees/niveaux.ts'
 import { ajouterJours, debutSemaine } from '../../donnees/plan.ts'
@@ -29,6 +32,10 @@ interface Props {
 
 interface Case { semaine: NumeroSemaine; jour: number }
 
+function jourDeLaSeance(cycle: Cycle, phase: PhaseCycle, seance: SeancePlanifiee): number {
+  return Math.max(0, JOURS_COURTS.findIndex((_, j) => dateDeLaCase(cycle, phase, seance.semaine, j) === seance.date))
+}
+
 // Écran O-04 : les 4 semaines d'une phase, jour par jour. Aucun lancement de séance ici (R-6).
 export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurVue, onChoisirPhase, onChangerSeances }: Props) {
   const phase = phases.find((p) => p.ordre === ordre) ?? phases[0]
@@ -38,6 +45,7 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
   const [aDeplacer, setADeplacer] = useState<SeancePlanifiee | null>(null)
   const [message, setMessage] = useState('')
   const [semaineOuverte, setSemaineOuverte] = useState<number | null>(null)
+  const glisse = useGlisser<SeancePlanifiee>()
   const lignes = useRef(new Map<number, HTMLElement>())
   const idTitre = useId()
   const idNoteRecopie = useId()
@@ -72,6 +80,26 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
       (ignorees > 0 ? ` ${ignorees} case${ignorees > 1 ? 's déjà prises n’ont' : ' déjà prise n’a'} pas été touchée${ignorees > 1 ? 's' : ''}.` : ''),
     )
   }
+  // Le bouton « Déplacer » et le glisser passent par la même fonction.
+  const deplacer = (seance: SeancePlanifiee, semaine: NumeroSemaine, jour: number) => {
+    onChangerSeances({ ecrites: [deplacerSurCase(seance, cycle, phase, semaine, jour)], retirees: [] })
+    setMessage(`Séance déplacée : ${nomCase({ semaine, jour })}.`)
+  }
+  // Une case est valable si elle est libre et si ce n'est pas la place actuelle de la séance.
+  const texteDepot = (seance: SeancePlanifiee, zone: string): string | null => {
+    const { type, parties } = lireZone(zone)
+    if (type !== 'case') return null
+    const c: Case = { semaine: Number(parties[0]) as NumeroSemaine, jour: Number(parties[1]) }
+    const memePlace = c.semaine === seance.semaine && c.jour === jourDeLaSeance(cycle, phase, seance)
+    if (memePlace || dansLaCase(c).length > 0) return null
+    return `Dépose ici pour déplacer « ${seance.solo.nom} » : ${nomCase(c)}`
+  }
+  const rappelsGlisser: RappelsGlisser<SeancePlanifiee> = {
+    estValable: (seance, zone) => texteDepot(seance, zone) !== null,
+    onDepot: (seance, zone) => { const { parties } = lireZone(zone); deplacer(seance, Number(parties[0]) as NumeroSemaine, Number(parties[1])) },
+    onAnnule: (_s, cause) => setMessage(cause === 'echap' ? 'Glisser annulé, rien n’a changé.' : 'Rien n’a été déposé : aucune case libre.'),
+  }
+
   const allerALaSemaine = (numero: number) => {
     const phaseVisee = (Math.floor((numero - 1) / 4) + 1) as 1 | 2 | 3
     if (phaseVisee !== phase.ordre) onChoisirPhase(phaseVisee)
@@ -152,10 +180,15 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
                     const c: Case = { semaine, jour }
                     const dedans = dansLaCase(c)
                     const cle = `${semaine}-${jour}`
+                    const zone = idZone('case', semaine, jour)
+                    const texte = glisse.etat ? texteDepot(glisse.etat.charge, zone) : null
                     return (
-                      <td key={jour} className={`case-jour${dateDeLaCase(cycle, phase, semaine, jour) === aujourdhui ? ' aujourdhui' : ''}`}>
+                      <td key={jour} data-zone={zone}
+                        className={`case-jour${dateDeLaCase(cycle, phase, semaine, jour) === aujourdhui ? ' aujourdhui' : ''}${texte !== null ? ' zone-valable' : ''}${glisse.etat?.zone === zone ? ' zone-survolee' : ''}`}>
+                        {texte !== null && <p className="zone-texte">{texte}</p>}
                         {dedans.map((s) => (
-                          <EtiquetteSeance key={s.id} seance={s} cycle={cycle} onDeplacer={() => setADeplacer(s)} />
+                          <EtiquetteSeance key={s.id} seance={s} cycle={cycle} saisie={glisse.etat?.charge.id === s.id}
+                            onGlisser={(e) => glisse.demarrer(e, s, s.solo.nom, rappelsGlisser)} onDeplacer={() => setADeplacer(s)} />
                         ))}
                         {dedans.length === 0 && (
                           <button type="button" className="case-ajouter" aria-label={`Ajouter une séance, ${nomCase(c)}`} onClick={() => ajouter(c)}>
@@ -221,22 +254,22 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
           phase={phase}
           seances={seances}
           onAnnuler={() => setADeplacer(null)}
-          onDeplacer={(semaine, jour) => {
-            onChangerSeances({ ecrites: [deplacerSurCase(aDeplacer, cycle, phase, semaine, jour)], retirees: [] })
-            setMessage(`Séance déplacée : ${nomCase({ semaine, jour })}.`)
-            setADeplacer(null)
-          }}
+          onDeplacer={(semaine, jour) => { deplacer(aDeplacer, semaine, jour); setADeplacer(null) }}
         />
       )}
+      {glisse.etat && <FantomeGlisse libelle={glisse.etat.libelle} x={glisse.etat.x} y={glisse.etat.y} />}
     </div>
   )
 }
 
 // L'étiquette compacte : dureté, icônes de version, nom, durée, et une ligne de contenu selon le niveau.
-function EtiquetteSeance({ seance, cycle, onDeplacer }: { seance: SeancePlanifiee; cycle: Cycle; onDeplacer: () => void }) {
+// Toute l'étiquette se saisit à la souris ou au doigt (D-17) ; le bouton « Déplacer » reste l'alternative clavier.
+function EtiquetteSeance({ seance, cycle, saisie, onGlisser, onDeplacer }: {
+  seance: SeancePlanifiee; cycle: Cycle; saisie: boolean; onGlisser: (e: PointerEvent<HTMLElement>) => void; onDeplacer: () => void
+}) {
   const duree = formatDuree(dureeVersionSolo(seance.solo))
   return (
-    <div className="seance-etiquette">
+    <div className={`seance-etiquette glissable${saisie ? ' glisse-source' : ''}`} onPointerDown={onGlisser} onContextMenu={(e) => e.preventDefault()}>
       <div className="seance-etiquette-tete">
         <span className={seance.solo.durete === 'dure' ? 'etiquette' : 'etiquette contour'}>{seance.solo.durete === 'dure' ? 'Dure' : 'Légère'}</span>
         <span className="seance-icones">
@@ -294,7 +327,7 @@ function DeplacerSeance({ seance, cycle, phase, seances, onAnnuler, onDeplacer }
   const dialogue = useRef<HTMLDialogElement>(null)
   const idTitre = useId()
   const idAide = useId()
-  const jourActuel = Math.max(0, JOURS_COURTS.findIndex((_, j) => dateDeLaCase(cycle, phase, seance.semaine, j) === seance.date))
+  const jourActuel = jourDeLaSeance(cycle, phase, seance)
   const [semaine, setSemaine] = useState<NumeroSemaine>(seance.semaine)
   const [jour, setJour] = useState(jourActuel)
   useEffect(() => {
