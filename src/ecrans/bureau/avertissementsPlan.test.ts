@@ -8,6 +8,7 @@ import { nouvelleSeanceVide } from './VuePhase.outils.ts'
 import type { EntreeAvertissement } from './avertissementsPlan.ts'
 import {
   arretsEnPremier, avecGarde, calculerAvertissements, formeDuRepere, compter, decalerAuLendemain, entreesDesSeances, nombreDuRepere, peutDecaler, phraseCompte, ranger, scinderMessage,
+  enumerer, nomDuJour, nonRenseignesDe, phraseProfilIncomplet, regrouperS03, joursDuGroupe,
 } from './avertissementsPlan.ts'
 
 let n = 0
@@ -158,5 +159,71 @@ describe('signaux d’arrêt : toujours devant, repère « arrêt »', () => {
     expect(formeDuRepere([entree('a', 'avertissement'), entree('z', 'arret')])).toBe('arret')
     expect(formeDuRepere([entree('a', 'avertissement')])).toBe('avertissement')
     expect(formeDuRepere([])).toBe('avertissement')
+  })
+})
+
+describe('profil non renseigné et S-03 regroupés (M-3)', () => {
+  const entree = (code: string, nonRenseignes?: Avertissement['nonRenseignes'], garde = false): EntreeAvertissement => ({
+    avertissement: { code, message: 'm', nonRenseignes } as Avertissement, cle: `${code}-${nonRenseignes?.join('') ?? ''}`,
+    forme: 'avertissement', garde, semaine: 1, phaseOrdre: 1,
+  })
+
+  it('enumerer : 1, 2 et 3 mots', () => {
+    expect(enumerer(['a'])).toBe('a')
+    expect(enumerer(['a', 'b'])).toBe('a et b')
+    expect(enumerer(['a', 'b', 'c'])).toBe('a, b et c')
+  })
+  it('phraseProfilIncomplet', () => {
+    expect(phraseProfilIncomplet(['tractionsStrictesMax'])).toBe('Ton profil ne dit pas encore : combien de tractions strictes tu fais.')
+    expect(phraseProfilIncomplet(['tractionsStrictesMax', 'adulte'])).toBe('Ton profil ne dit pas encore : combien de tractions strictes tu fais et si tu as 18 ans ou plus.')
+    expect(phraseProfilIncomplet(['tractionsStrictesMax', 'test15sSur25mm', 'niveauBloc', 'adulte'])).toBe(
+      'Ton profil ne dit pas encore : combien de tractions strictes tu fais, si tu tiens 15 s sur une réglette de 25 mm, ton niveau en bloc et si tu as 18 ans ou plus.')
+  })
+  it('nonRenseignesDe : réunion sans doublon, dans l\'ordre, gardés compris, autres codes ignorés', () => {
+    expect(nonRenseignesDe([entree('S-03', ['adulte']), entree('S-03', ['tractionsStrictesMax', 'adulte'])])).toEqual(['tractionsStrictesMax', 'adulte'])
+    expect(nonRenseignesDe([entree('S-03', ['niveauBloc'], true)])).toEqual(['niveauBloc'])
+    expect(nonRenseignesDe([entree('S-04', ['adulte'])])).toEqual([])
+    expect(nonRenseignesDe([])).toEqual([])
+  })
+  it('nomDuJour', () => {
+    expect(nomDuJour('2026-11-24')).toBe('mardi')
+  })
+
+  // ST-TRA-02 mardi, jeudi et samedi de la semaine du 30/11 (posés dans le désordre pour vérifier le tri par date).
+  const tractions = (id: string, date: string) => seanceDepuisType(seanceTypeParId('ST-TRA-02')!, undefined, base(id, 1, date))
+  const trois = [tractions('c', '2026-12-05'), tractions('a', '2026-12-01'), tractions('b', '2026-12-03')]
+
+  it('trois séances de la même fiche : un groupe, dans l\'ordre des dates, et les comptes ne changent pas', () => {
+    const { plan } = verifier(trois)
+    const semaine = plan.parSemaine.get(1) ?? []
+    const lignes = regrouperS03(semaine, trois)
+    const groupes = lignes.filter((l) => l.type === 'groupe')
+    expect(groupes.length).toBeGreaterThan(0)
+    for (const g of groupes) {
+      if (g.type !== 'groupe') continue
+      expect(g.seanceIds).toEqual(['a', 'b', 'c'])
+      expect(g.entrees.every((e) => e.avertissement.code === 'S-03')).toBe(true)
+    }
+    const nbEntrees = lignes.reduce((t, l) => t + (l.type === 'groupe' ? l.entrees.length : 1), 0)
+    expect(nbEntrees).toBe(semaine.length)
+    expect(lignes.length).toBeLessThan(semaine.length)
+    expect(compter(semaine).total).toBe(semaine.length)
+    expect(joursDuGroupe(['a', 'b', 'c'], trois)).toBe('mardi, jeudi et samedi')
+  })
+  it('une seule séance : pas de groupe', () => {
+    const une = [tractions('a', '2026-12-01')]
+    const { plan } = verifier(une)
+    expect(regrouperS03(plan.entrees, une).every((l) => l.type === 'seule')).toBe(true)
+  })
+  it('deux messages différents : deux lignes ; un S-04 n\'est jamais regroupé ; ordre reçu gardé', () => {
+    const e = (cle: string, code: string, message: string, seanceId: string): EntreeAvertissement => ({
+      avertissement: { code, message } as Avertissement, cle, forme: 'avertissement', garde: false, seanceId, semaine: 1, phaseOrdre: 1,
+    })
+    const ss = [tractions('a', '2026-12-01'), tractions('b', '2026-12-03')]
+    const lignes = regrouperS03([
+      e('1', 'S-03', 'x', 'a'), e('2', 'S-04', 'x', 'a'), e('3', 'S-03', 'y', 'a'),
+      e('4', 'S-04', 'x', 'b'), e('5', 'S-03', 'x', 'b'), e('6', 'S-03', 'y', 'b'),
+    ], ss)
+    expect(lignes.map((l) => l.type === 'groupe' ? `G${l.entrees.map((x) => x.cle).join('')}` : l.entree.cle)).toEqual(['G15', '2', 'G36', '4'])
   })
 })
