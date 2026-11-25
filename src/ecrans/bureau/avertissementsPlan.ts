@@ -184,6 +184,16 @@ export function nombreDuRepere(entrees: readonly EntreeAvertissement[]): number 
   return entrees.filter((e) => e.forme !== 'information').length
 }
 
+/** Les signaux d'arrêt passent devant, le reste garde son ordre (tri stable). */
+export function arretsEnPremier(entrees: readonly EntreeAvertissement[]): EntreeAvertissement[] {
+  return [...entrees.filter((e) => e.forme === 'arret'), ...entrees.filter((e) => e.forme !== 'arret')]
+}
+
+/** Forme du repère d'une case ou d'une semaine : « arrêt » dès qu'un signal d'arrêt s'y trouve, sinon « avertissement ». */
+export function formeDuRepere(entrees: readonly EntreeAvertissement[]): 'arret' | 'avertissement' {
+  return entrees.some((e) => e.forme === 'arret') ? 'arret' : 'avertissement'
+}
+
 /** Les entrées d'une liste de séances, sans doublon (une même entrée peut viser une séance et en lier une autre). */
 export function entreesDesSeances(plan: AvertissementsDuPlan, ids: readonly string[]): EntreeAvertissement[] {
   const vues = new Set<EntreeAvertissement>()

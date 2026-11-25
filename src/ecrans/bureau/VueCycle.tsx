@@ -8,7 +8,7 @@ import { ajouterJours, debutPhase, debutSemaine, finCycle } from '../../donnees/
 import { estProposeSeulementALaMain, objectifsPourAccent } from '../../donnees/objectifsSpecifiques.ts'
 import { AvertissementDuMoteur, type AvertissementsFiche } from '../../composants/FicheSeance.tsx'
 import { Icone } from '../../composants/Icone.tsx'
-import { compter, nombreDuRepere, phraseCompte, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
+import { compter, formeDuRepere, nombreDuRepere, phraseCompte, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
 import {
   ACCENTS, ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, NB_OBJECTIFS_MAX, REDUCTIONS_ALLEGEE, REDUCTION_PAR_DEFAUT,
   chargeRelative, dateCourte, dateLongue, estUnLundi, resumeSemaine, semaineDuJour, semainesAPlat, seancesAvecNiveauPropre,
@@ -328,15 +328,15 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
               key={s.numero}
               ref={(el) => enregistrerLigne(numero, el)}
               tabIndex={-1}
-              className={`semaine-ligne${allegee ? ' allegee' : ''}${repere > 0 ? ' avertie' : ''}${numero === numeroEnCours ? ' en-cours' : ''}`}
+              className={`semaine-ligne${allegee ? ' allegee' : ''}${repere > 0 ? ' avertie' : ''}${formeDuRepere(deLaSemaine) === 'arret' ? ' arret' : ''}${numero === numeroEnCours ? ' en-cours' : ''}`}
               aria-current={numero === numeroEnCours ? 'date' : undefined}
             >
               <div className="semaine-tete">
                 <span className="mention">S{numero} · {dateCourte(debutSemaine(cycle, phase, s.numero))}</span>
                 {allegee && <span className="etiquette contour">{ETIQUETTES_TYPE_SEMAINE[s.type]}</span>}
                 {repere > 0 && (
-                  <span className="repere-avertissements" role="img" aria-label={phraseCompte(compter(deLaSemaine))}>
-                    <Icone nom="avertissement" taille={16} /><span aria-hidden="true">{repere}</span>
+                  <span className={`repere-avertissements${formeDuRepere(deLaSemaine) === 'arret' ? ' repere-arret' : ''}`} role="img" aria-label={phraseCompte(compter(deLaSemaine))}>
+                    <Icone nom={formeDuRepere(deLaSemaine)} taille={16} /><span aria-hidden="true">{repere}</span>
                   </span>
                 )}
               </div>

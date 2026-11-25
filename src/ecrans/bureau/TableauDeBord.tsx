@@ -11,7 +11,7 @@ import { lireCycles, lireExercicesPerso, lirePlanDuCycle } from '../../donnees/p
 import { lireTous, lireUn, surDonneesChangees } from '../../donnees/stockage.ts'
 import { toutesLesFiches } from '../../regles/index.ts'
 import {
-  AUCUN_AVERTISSEMENT, calculerAvertissements, nombreDuRepere, phraseCompte, compter, ranger, scinderMessage,
+  AUCUN_AVERTISSEMENT, arretsEnPremier, calculerAvertissements, phraseCompte, compter, ranger, scinderMessage,
 } from './avertissementsPlan.ts'
 import { cycleAMontrer, dateLongue, ETIQUETTES_ACCENT } from './Plan.outils.ts'
 import {
@@ -157,7 +157,10 @@ export function TableauDeBord({ onOuvrirSemaine, onOuvrirPlan, onOuvrirBilans }:
   const prochaine = prochaineSeance(donnees.seances, donnees.realisees, aujourdhui)
   const objectifs = objectifsDeLaPhase(donnees.phases, donnees.objectifs, semaine.phase)
   const delaSemaine = avertissements.parSemaine.get(semaine.numero) ?? []
-  const ouverts = delaSemaine.filter((e) => e.forme !== 'information')
+  // Les signaux d'arrêt d'abord, tous affichés ; la limite de 3 ne vaut que pour les autres avertissements.
+  const ouverts = arretsEnPremier(delaSemaine.filter((e) => e.forme !== 'information'))
+  const arrets = ouverts.filter((e) => e.forme === 'arret')
+  const autres = ouverts.filter((e) => e.forme !== 'arret')
   const libelleAction = semaine.commence ? 'Ouvrir la semaine en cours' : 'Ouvrir la semaine 1'
 
   return (
@@ -212,10 +215,10 @@ export function TableauDeBord({ onOuvrirSemaine, onOuvrirPlan, onOuvrirBilans }:
             ) : (
               <>
                 <p className="texte-2">{phraseCompte(compter(delaSemaine))}</p>
-                {ouverts.slice(0, 3).map((e) => (
+                {[...arrets, ...autres.slice(0, 3)].map((e) => (
                   <Avertissement key={e.cle} niveau={e.forme === 'arret' ? 'arret' : 'avertissement'} titre={scinderMessage(e.avertissement.message).titre} />
                 ))}
-                {nombreDuRepere(delaSemaine) > 3 && <p className="texte-3">et {nombreDuRepere(delaSemaine) - 3} autre(s), à voir dans le Plan.</p>}
+                {autres.length > 3 && <p className="texte-3">et {autres.length - 3} autre(s), à voir dans le Plan.</p>}
               </>
             )}
           </section>

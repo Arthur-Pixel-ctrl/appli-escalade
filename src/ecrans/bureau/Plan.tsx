@@ -3,7 +3,7 @@ import { Avertissement } from '../../composants/Avertissement.tsx'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
 import type { AccentPhase, Cycle, DouleurDeclaree, ExercicePerso, FormeDuJour, NiveauDetail, ObjectifSpecifique, PhaseCycle, Profil, Reglages, SeancePlanifiee, SeanceRealisee } from '../../donnees/modele.ts'
 import { PROFIL_VIDE } from '../../donnees/profil.ts'
-import { enregistrerCycle, enregistrerPhase, enregistrerSeancePlanifiee, lireCycles, lireExercicesPerso, lirePlanDuCycle } from '../../donnees/plan.ts'
+import { enregistrerCycle, enregistrerPhase, enregistrerSeancePlanifiee, lireCycles, lireExercicesPerso, lirePlanDuCycle, supprimerCycle } from '../../donnees/plan.ts'
 import { ecrire, lireTous, lireUn, supprimer, surDonneesChangees } from '../../donnees/stockage.ts'
 import { genererCycle } from '../../regles/index.ts'
 import { AUCUN_AVERTISSEMENT, avecGarde, calculerAvertissements, decalerAuLendemain, ranger } from './avertissementsPlan.ts'
@@ -217,8 +217,8 @@ export function Plan({ onOuvrirProfil, semaineInitiale }: { onOuvrirProfil?: () 
       for (const p of plan.phases) await enregistrerPhase(p)
       for (const s of plan.seances) await enregistrerSeancePlanifiee(s)
     } catch (erreur) {
-      // Écriture interrompue : on retire le cycle (suppression douce) pour qu'un nouvel essai ne laisse pas un plan à moitié écrit.
-      await supprimer('cycles', plan.cycle.id).catch(() => {})
+      // Écriture interrompue : on retire tout le cycle (phases et séances comprises), sans rien laisser d'orphelin.
+      await supprimerCycle(plan.cycle.id).catch(() => {})
       throw erreur
     }
     setPlanPropose({ cycleId: plan.cycle.id, phrase: phraseBandeauPlanPropose(plan), manques: plan.manques })
