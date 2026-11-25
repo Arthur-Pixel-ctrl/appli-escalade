@@ -1,9 +1,9 @@
 import { BarreBureau } from '../composants/BarreBureau.tsx'
 import { Bibliotheque } from '../ecrans/bureau/Bibliotheque.tsx'
-import { EnConstruction } from '../ecrans/EnConstruction.tsx'
 import { Historique } from '../ecrans/Historique.tsx'
 import { Plan } from '../ecrans/bureau/Plan.tsx'
 import { Reglages } from '../ecrans/bureau/Reglages.tsx'
+import { TableauDeBord } from '../ecrans/bureau/TableauDeBord.tsx'
 import { appliquerMiseAJour } from '../miseAJour.ts'
 import type { ActionsEcrans } from './MiseEnPageTelephone.tsx'
 import { RUBRIQUES_BUREAU, type RubriqueBureau } from './navigation.ts'
@@ -36,10 +36,13 @@ export function MiseEnPageBureau({
             <button className="bandeau" onClick={appliquerMiseAJour}>Nouvelle version disponible · <b>Mettre à jour</b></button>
           )}
           {rubrique === 'Tableau de bord' && (
-            <div className="bureau-lecture">
-              <EnConstruction
-                titre="Tableau de bord"
-                texte="Ton plan de la semaine s’affichera ici. Les séances se lancent depuis ton téléphone."
+            <div className="bureau-tableau">
+              <TableauDeBord
+                // À faire (hors périmètre de D-19) : Plan.tsx ne sait pas encore s'ouvrir sur une semaine ;
+                // pour l'instant on ouvre le Plan, dans sa vue 12 semaines.
+                onOuvrirSemaine={() => onChoisirRubrique('Plan')}
+                onOuvrirPlan={() => onChoisirRubrique('Plan')}
+                onOuvrirBilans={() => onChoisirRubrique('Bilans')}
               />
             </div>
           )}

@@ -695,3 +695,12 @@ body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-s
 .avertissement-replie .bouton-discret { padding: 0 var(--espace-2); }
 .resume-avertissements { display: flex; align-items: center; gap: var(--espace-2); color: var(--avertissement); }
 .repere-lie { margin: 0; }
+
+/* Tableau de bord sur ordinateur (D-19) : grille 8/4, trois fiches de départ. */
+.bureau-tableau .ecran { overflow: visible; padding: var(--espace-6) 0; }
+.tableau-bord { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--espace-6); align-items: start; }
+.tableau-gauche { grid-column: span 8; }
+.tableau-droite { grid-column: span 4; }
+.tableau-action { width: auto; max-width: 360px; }
+.tableau-depart { display: flex; flex-direction: column; gap: var(--espace-3); max-width: 480px; }
+.liste-lignes { margin: 0; padding: 0; list-style: none; }
