@@ -172,7 +172,7 @@ export function verifierQuotasSemaine(
       'W-07',
       'information',
       `${dansLaSemaine.length} séances prévues pour ${seancesParSemaine} choisies : ton plan est plus chargé que prévu. Retire-en une ou change ton nombre de séances.`,
-      'Cahier des charges',
+      "Choix de l'app",
     )
   }
 
@@ -184,7 +184,7 @@ export function verifierQuotasSemaine(
       'W-08',
       'fort',
       `${nbDures} séances dures cette semaine : avec ${seancesParSemaine} séances par semaine, garde-en ${maxDures} au plus et rends les autres légères.`,
-      'Synthèse (semaines types), cahier des charges',
+      "Synthèse (semaines types), choix de l'app",
     )
   }
 
