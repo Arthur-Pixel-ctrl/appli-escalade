@@ -24,12 +24,10 @@ export interface IdsAutorises {
   objectifsPerso: Set<string>
   /** Date du jour, "AAAA-MM-JJ". */
   aujourdhui: string
-  /**
-   * Niveau de détail envoyé à l'assistant (contexte.niveauDetail). L'assistant ne choisit jamais le niveau
-   * (décision F6) : une séance résumée dont le `niveau` diffère de celui-ci est refusée. Absent = on ne peut
-   * pas comparer, donc toute séance résumée est refusée (choix prudent).
-   */
-  niveauDetail?: NiveauDetail
+  /** Niveau de détail envoyé à l'assistant (contexte.niveauDetail ; 'detaille' pour un brouillon de cycle). */
+  niveauDetail: NiveauDetail
+  /** Id → niveau affiché de chaque séance de planEnCours.seancesAVenir (niveau attendu du `par` d'un remplacer_seance). */
+  niveauxSeancesAVenir: Map<string, NiveauDetail>
 }
 
 export type ResultatValidation =
@@ -268,7 +266,8 @@ function verifGroupe(v: unknown, chemin: string, ids: IdsAutorises, r: Rapport):
   }
 }
 
-function verifSeance(v: unknown, chemin: string, ids: IdsAutorises, r: Rapport): void {
+// F-10 : l'assistant ne choisit jamais le niveau. `niveauAttendu` est celui du contexte, ou celui de la séance remplacée.
+function verifSeance(v: unknown, chemin: string, ids: IdsAutorises, r: Rapport, niveauAttendu: NiveauDetail = ids.niveauDetail): void {
   const o = verifObjet(v, chemin, r)
   if (!o) return
   // Trois formes : séance type, séance composée (solo), séance résumée (parties).
@@ -322,12 +321,9 @@ function verifSeance(v: unknown, chemin: string, ids: IdsAutorises, r: Rapport):
   let niveau: unknown
   if ('niveau' in o && verifChoix(o.niveau, ['simple', 'grandes_lignes'], `${chemin}.niveau`, r)) {
     niveau = o.niveau
-    // L'assistant ne choisit jamais le niveau : celui de la séance doit être celui du contexte envoyé.
-    if (ids.niveauDetail === undefined) {
-      r.forme.push(`${chemin}.niveau : niveau du contexte inconnu, séance résumée refusée.`)
-    } else if (o.niveau !== ids.niveauDetail) {
-      r.forme.push(`${chemin}.niveau : « ${o.niveau} » refusé, le niveau envoyé à l'assistant est « ${ids.niveauDetail} » (l'assistant ne choisit pas le niveau).`)
-    }
+    const nom = `séance du ${typeof o.jour === 'string' && JOURS.includes(o.jour) ? o.jour : chemin}`
+    if (niveauAttendu === 'detaille') r.forme.push(`${nom} : séance résumée, detaille attendu.`)
+    else if (o.niveau !== niveauAttendu) r.forme.push(`${nom} : niveau ${o.niveau} reçu, ${niveauAttendu} attendu.`)
   }
   const nbMin = niveau === 'simple' ? 1 : 2
   const nbMax = niveau === 'simple' ? 1 : NB_PARTIES_MAX
@@ -471,7 +467,11 @@ function verifOperation(v: unknown, chemin: string, ids: IdsAutorises, r: Rappor
     case 'remplacer_seance':
       verifCles(o, [...base, 'seanceId', 'par'], [], chemin, r)
       seance()
-      if ('par' in o) verifSeance(o.par, `${chemin}.par`, ids, r) // son jour est ignoré, mais doit rester valide
+      // Son jour est ignoré, mais doit rester valide. Niveau attendu : celui de la séance visée.
+      if ('par' in o) {
+        const visee = typeof o.seanceId === 'string' ? ids.niveauxSeancesAVenir.get(o.seanceId) : undefined
+        verifSeance(o.par, `${chemin}.par`, ids, r, visee ?? ids.niveauDetail)
+      }
       break
     case 'remplacer_etape':
       verifCles(o, [...base, 'seanceId', 'version', 'index', 'par'], [], chemin, r)
@@ -519,6 +519,10 @@ function verifAjustement(o: Objet, ids: IdsAutorises, r: Rapport): void {
 
 // ——— Sources (A-05, A-06) ———
 
+function normaliserTitre(t: string): string {
+  return t.replace(/[\u2018\u2019\u02bc]/g, "'").replace(/\s+/g, ' ').trim()
+}
+
 /** Contrôle la forme des sources, puis retire ce qui n'est pas reconnu (avec une information). */
 function nettoyerSources(v: unknown, ids: IdsAutorises, r: Rapport): SourceCitee[] {
   const liste = verifTableau(v, 'sources', 0, 6, r)
@@ -560,14 +564,16 @@ function nettoyerSources(v: unknown, ids: IdsAutorises, r: Rapport): SourceCitee
           r.forme.push(`${c}.titre : un texte est attendu.`)
           break
         }
-        // Comparaison exacte du titre (A-06).
-        if (!(TITRES_LIVRES as readonly string[]).includes(o.titre)) {
+        // A-06 : le titre doit être l'un des trois. Apostrophe typographique et espaces multiples tolérés ;
+        // la réponse validée garde le titre canonique.
+        const titre = TITRES_LIVRES.find((t) => normaliserTitre(t) === normaliserTitre(o.titre as string))
+        if (titre === undefined) {
           r.informations.push(INFO_A06)
           break
         }
         // A-05 : tout champ autre que type et titre est retiré.
         if (Object.keys(o).some((k) => k !== 'type' && k !== 'titre')) r.informations.push(INFO_A05)
-        gardees.push({ type: 'livre', titre: o.titre as typeof TITRES_LIVRES[number] })
+        gardees.push({ type: 'livre', titre })
         break
       }
       default:

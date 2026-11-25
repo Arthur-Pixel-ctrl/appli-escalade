@@ -19,6 +19,7 @@ const ids = (surcharge: Partial<IdsAutorises> = {}): IdsAutorises => ({
   objectifsPerso: new Set(['OP-01']),
   aujourdhui: '2026-11-17',
   niveauDetail: 'detaille',
+  niveauxSeancesAVenir: new Map([['s-1126', 'detaille'], ['s-1201', 'simple']]),
   ...surcharge,
 })
 
@@ -324,12 +325,38 @@ describe('séance résumée (F-9) et niveau (F6)', () => {
     invalideAvec(avec(resumee({ parties: [{ titre: 'a', dureeMin: 30 }, { titre: 'b', dureeMin: 30 }] })), 'A-01', 'au moins une partie avec une fiche', gl())
     expect(valider(avec(resumee({ durete: 'legere', parties: [{ titre: 'a', dureeMin: 30 }, { titre: 'b', dureeMin: 30 }] })), gl()).etat).toBe('ok')
   })
-  it('un niveau différent de celui envoyé est refusé', () => {
-    invalideAvec(avec(resumee()), 'A-01', 'ne choisit pas le niveau', ids({ niveauDetail: 'simple' }))
-    invalideAvec(avec(resumee()), 'A-01', 'ne choisit pas le niveau', ids({ niveauDetail: 'detaille' }))
+  it('F-10 : niveau différent de celui envoyé', () => {
+    // contexte grandes_lignes, séance résumée simple
+    const simple = resumee({ niveau: 'simple', parties: [{ titre: 'P', dureeMin: 60, ficheId: 'mon-exo' }] })
+    const r = valider(avec(simple), gl())
+    expect(r.etat).toBe('invalide')
+    if (r.etat === 'invalide') {
+      expect(r.code).toBe('A-01')
+      expect(r.erreurs.join('\n')).toContain('séance du mardi : niveau simple reçu, grandes_lignes attendu')
+    }
   })
-  it('niveau du contexte inconnu : séance résumée refusée', () => {
-    invalideAvec(avec(resumee()), 'A-01', 'niveau', ids({ niveauDetail: undefined }))
+  it('F-10 : brouillon de cycle (detaille) avec une séance résumée', () => {
+    invalideAvec(avec(resumee()), 'A-01', 'séance du mardi : séance résumée, detaille attendu', ids({ niveauDetail: 'detaille' }))
+  })
+  it('F-10 : remplacer_seance suit le niveau de la séance visée', () => {
+    const rempl = (par: object) => ({
+      version: 1, type: 'ajustement', resume: 'x', justification: [], sources: [],
+      brouillon: { operations: [{ op: 'remplacer_seance', seanceId: 's-1201', par, raison: 'Allégé' }] },
+    })
+    const contexte = ids({ niveauDetail: 'grandes_lignes' }) // cycle en grandes lignes, s-1201 en simple
+    const unePartie = resumee({ niveau: 'simple', parties: [{ titre: 'P', dureeMin: 60, ficheId: 'mon-exo' }] })
+    expect(valider(rempl(unePartie), contexte).etat).toBe('ok')
+    const troisParties = resumee({
+      parties: [{ titre: 'a', dureeMin: 20 }, { titre: 'b', dureeMin: 30, ficheId: 'mon-exo' }, { titre: 'c', dureeMin: 20 }],
+    })
+    invalideAvec(rempl(troisParties), 'A-01', 'niveau grandes_lignes reçu, simple attendu', contexte)
+  })
+  it('F-10 : séances types et composées acceptées à tous les niveaux', () => {
+    for (const n of ['simple', 'grandes_lignes', 'detaille'] as const) {
+      expect(valider(exemple1(), ids({ niveauDetail: n })).etat).toBe('ok')
+    }
+    const composee = { jour: 'mardi', nom: 'S', qualite: 'doigts', durete: 'legere', effortPrevu: 4, solo: { etapes: [{ ficheId: 'mon-exo' }] }, groupe: null }
+    expect(valider(avec(composee), ids({ niveauDetail: 'simple' })).etat).toBe('ok')
   })
   it('l\'assistant ne peut pas poser niveauDetail sur le cycle ni la réponse', () => {
     invalideAvec(modif((e) => { e.brouillon.niveauDetail = 'simple' }), 'A-01', 'niveauDetail')
@@ -368,9 +395,15 @@ describe('sources (A-05, A-06)', () => {
       expect(r.informations).toHaveLength(2)
     }
   })
-  it('titre de livre comparé exactement', () => {
-    const r = valider(modif((e) => { e.sources = [{ type: 'livre', titre: 'guide de l\'alimentation du grimpeur' }] }))
-    if (r.etat === 'ok') expect(r.reponse.sources).toEqual([])
+  it('titre de livre : casse exacte, mais apostrophe typographique et espaces multiples tolérés', () => {
+    const r1 = valider(modif((e) => { e.sources = [{ type: 'livre', titre: 'guide de l\'alimentation du grimpeur' }] }))
+    if (r1.etat === 'ok') expect(r1.reponse.sources).toEqual([])
+    const r2 = valider(modif((e) => { e.sources = [{ type: 'livre', titre: 'Guide de l\u2019alimentation  du grimpeur' }] }))
+    expect(r2.etat).toBe('ok')
+    if (r2.etat === 'ok') {
+      expect(r2.reponse.sources).toEqual([{ type: 'livre', titre: 'Guide de l\'alimentation du grimpeur' }]) // titre canonique
+      expect(r2.informations).toEqual([])
+    }
   })
 })
 
