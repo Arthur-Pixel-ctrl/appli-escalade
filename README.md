@@ -90,6 +90,8 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | AUD3-01 | Moteur : séance liée de W-01, prérequis non renseignés de S-03, S-01 d'un exercice principal | Fait |
 | AUD3-02 | Messages S-21, P-11 et P-01 sans identifiant technique (`NOMS_MARQUEURS`) | Fait |
 | AUD3-03 | Exercice personnel : « Bidoigts ? » séparé de « Arqué ou trous ? » | Fait |
+| AUD3-04 | Profil non renseigné : ligne « Ton profil ne dit pas encore » avec « Compléter mon profil », S-03 identiques regroupés | Fait |
+| AUD3-05 | Étiquette « Réglage estimé » (au lieu de « À vérifier ») et messages du moteur affichés tels quels | Fait |
 
 ## Ouvrir l'app
 
