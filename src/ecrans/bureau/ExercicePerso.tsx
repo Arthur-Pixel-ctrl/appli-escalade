@@ -30,7 +30,8 @@ const QUESTIONS: { cle: keyof ReponsesSecurite; question: string }[] = [
   { cle: 'effortMaximal', question: 'Effort maximal des doigts ?' },
   { cle: 'poutre', question: 'Sur poutre ?' },
   { cle: 'blocLimite', question: 'Bloc à ta limite ?' },
-  { cle: 'prises', question: 'Arqué, bidoigts ou trous ?' },
+  { cle: 'arqueOuTrous', question: 'Arqué ou trous ?' },
+  { cle: 'bidoigts', question: 'Bidoigts ?' },
   { cle: 'sansPieds', question: 'Sans pieds au pan ?' },
 ]
 

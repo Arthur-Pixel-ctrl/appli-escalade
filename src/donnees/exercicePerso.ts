@@ -14,14 +14,15 @@ export interface ReponsesSecurite {
   effortMaximal: Reponse // « Effort maximal des doigts ? »
   poutre: Reponse // « Sur poutre ? »
   blocLimite: Reponse // « Bloc à ta limite ? » (règle S-19)
-  prises: Reponse // « Arqué, bidoigts ou trous ? »
+  arqueOuTrous: Reponse // « Arqué ou trous ? »
+  bidoigts: Reponse // « Bidoigts ? » (séparée le 25/11 : S-18 à tort sur un arqué maximal)
   sansPieds: Reponse // « Sans pieds au pan ? »
 }
 
 /** Par prudence, tout démarre à « Je ne sais pas » : il faut dire « Non » pour lever un marqueur. */
 export const REPONSES_PRUDENTES: ReponsesSecurite = {
   effortMaximal: 'je_ne_sais_pas', poutre: 'je_ne_sais_pas', blocLimite: 'je_ne_sais_pas',
-  prises: 'je_ne_sais_pas', sansPieds: 'je_ne_sais_pas',
+  arqueOuTrous: 'je_ne_sais_pas', bidoigts: 'je_ne_sais_pas', sansPieds: 'je_ne_sais_pas',
 }
 
 // « Je ne sais pas » compte comme « oui » : un marqueur de trop avertit, un marqueur oublié met en danger.
@@ -36,7 +37,9 @@ export function marqueursDepuisReponses(r: ReponsesSecurite): Marqueur[] {
   if (poutre) marqueurs.push('poutre')
   if (poutre && effort) marqueurs.push('poutre_intensive')
   if (compteCommeOui(r.blocLimite)) marqueurs.push('bloc_limite')
-  if (compteCommeOui(r.prises)) marqueurs.push('arque', 'bidoigts', 'trou')
+  if (compteCommeOui(r.arqueOuTrous)) marqueurs.push('arque', 'trou')
+  // Seule la réponse de l'utilisateur dit si l'exercice est en bidoigts : sans réponse, on pose le marqueur.
+  if (compteCommeOui(r.bidoigts)) marqueurs.push('bidoigts')
   if (compteCommeOui(r.sansPieds)) marqueurs.push('pan_gullich')
   return marqueurs
 }

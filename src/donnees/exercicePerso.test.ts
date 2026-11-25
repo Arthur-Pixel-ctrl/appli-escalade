@@ -9,9 +9,11 @@ import {
 import { LIVRES } from './modele.ts'
 import { enregistrerExercicePerso, lireExercicesPerso } from './plan.ts'
 import { ficheDepuisExercicePerso } from '../regles/passerelles.ts'
+import { contexteDeReference, seanceSolo } from '../regles/exemples.ts'
+import { verifierSeance } from '../regles/index.ts'
 
 // Toutes les réponses à « non », sauf celles qu'on veut tester.
-const TOUT_NON: ReponsesSecurite = { effortMaximal: 'non', poutre: 'non', blocLimite: 'non', prises: 'non', sansPieds: 'non' }
+const TOUT_NON: ReponsesSecurite = { effortMaximal: 'non', poutre: 'non', blocLimite: 'non', arqueOuTrous: 'non', bidoigts: 'non', sansPieds: 'non' }
 
 describe('marqueursDepuisReponses', () => {
   it('« Effort maximal des doigts ? » oui → maximale', () => {
@@ -30,8 +32,20 @@ describe('marqueursDepuisReponses', () => {
   it('« Bloc à ta limite ? » oui → bloc_limite', () => {
     expect(marqueursDepuisReponses({ ...TOUT_NON, blocLimite: 'oui' })).toEqual(['bloc_limite'])
   })
-  it('« Arqué, bidoigts ou trous ? » oui → arque, bidoigts, trou', () => {
-    expect(marqueursDepuisReponses({ ...TOUT_NON, prises: 'oui' })).toEqual(['arque', 'bidoigts', 'trou'])
+  it('« Arqué ou trous ? » oui → arque, trou, sans bidoigts', () => {
+    expect(marqueursDepuisReponses({ ...TOUT_NON, arqueOuTrous: 'oui' })).toEqual(['arque', 'trou'])
+  })
+  it('« Arqué ou trous ? » je ne sais pas → arque, trou (prudence)', () => {
+    expect(marqueursDepuisReponses({ ...TOUT_NON, arqueOuTrous: 'je_ne_sais_pas' })).toEqual(['arque', 'trou'])
+  })
+  it('« Bidoigts ? » oui → bidoigts', () => {
+    expect(marqueursDepuisReponses({ ...TOUT_NON, bidoigts: 'oui' })).toEqual(['bidoigts'])
+  })
+  it('« Bidoigts ? » non → pas de bidoigts', () => {
+    expect(marqueursDepuisReponses({ ...TOUT_NON, bidoigts: 'non' })).not.toContain('bidoigts')
+  })
+  it('« Bidoigts ? » je ne sais pas → bidoigts (prudence)', () => {
+    expect(marqueursDepuisReponses({ ...TOUT_NON, bidoigts: 'je_ne_sais_pas' })).toEqual(['bidoigts'])
   })
   it('« Sans pieds au pan ? » oui → pan_gullich', () => {
     expect(marqueursDepuisReponses({ ...TOUT_NON, sansPieds: 'oui' })).toEqual(['pan_gullich'])
@@ -40,12 +54,30 @@ describe('marqueursDepuisReponses', () => {
     expect(marqueursDepuisReponses(TOUT_NON)).toEqual([])
   })
   it('tout « je ne sais pas » → tous les marqueurs, comme un « oui » partout', () => {
-    const tous = marqueursDepuisReponses({ effortMaximal: 'je_ne_sais_pas', poutre: 'je_ne_sais_pas', blocLimite: 'je_ne_sais_pas', prises: 'je_ne_sais_pas', sansPieds: 'je_ne_sais_pas' })
-    expect(tous).toEqual(marqueursDepuisReponses({ effortMaximal: 'oui', poutre: 'oui', blocLimite: 'oui', prises: 'oui', sansPieds: 'oui' }))
+    const tous = marqueursDepuisReponses({ effortMaximal: 'je_ne_sais_pas', poutre: 'je_ne_sais_pas', blocLimite: 'je_ne_sais_pas', arqueOuTrous: 'je_ne_sais_pas', bidoigts: 'je_ne_sais_pas', sansPieds: 'je_ne_sais_pas' })
+    expect(tous).toEqual(marqueursDepuisReponses({ effortMaximal: 'oui', poutre: 'oui', blocLimite: 'oui', arqueOuTrous: 'oui', bidoigts: 'oui', sansPieds: 'oui' }))
     expect([...tous].sort()).toEqual(['arque', 'bidoigts', 'bloc_limite', 'maximale', 'pan_gullich', 'poutre', 'poutre_intensive', 'trou'])
   })
   it('les réponses par défaut du formulaire sont prudentes', () => {
     expect(marqueursDepuisReponses(REPONSES_PRUDENTES)).toContain('maximale')
+    expect(marqueursDepuisReponses(REPONSES_PRUDENTES)).toContain('bidoigts')
+  })
+  it('l’ordre des marqueurs rendus est stable', () => {
+    expect(marqueursDepuisReponses(REPONSES_PRUDENTES))
+      .toEqual(['maximale', 'poutre', 'poutre_intensive', 'bloc_limite', 'arque', 'trou', 'bidoigts', 'pan_gullich'])
+  })
+  it('cas de l’audit : arqué à effort maximal sans bidoigts → pas de S-18 ; avec « je ne sais pas » → S-18 fort', () => {
+    const sansBidoigts = exerciceDepuisBrouillon(
+      { ...BROUILLON_VIDE, nom: 'Arqué max', qualite: 'doigts', forme: 'essais', reponses: { ...TOUT_NON, effortMaximal: 'oui', arqueOuTrous: 'oui' } },
+      'perso-a', '2026-11-25T10:00:00.000Z')
+    const prudent = { ...sansBidoigts, id: 'perso-b', marqueurs: marqueursDepuisReponses({ ...TOUT_NON, effortMaximal: 'oui', arqueOuTrous: 'oui', bidoigts: 'je_ne_sais_pas' }) }
+    expect(sansBidoigts.marqueurs).not.toContain('bidoigts')
+    const ctx = contexteDeReference()
+    ctx.fiches['perso-a'] = ficheDepuisExercicePerso(sansBidoigts)
+    ctx.fiches['perso-b'] = ficheDepuisExercicePerso(prudent)
+    const codesDe = (id: string) => verifierSeance(seanceSolo('s', '2026-11-24', ['echauffement-general', id]), ctx).map((a) => a.code)
+    expect(codesDe('perso-a')).not.toContain('S-18')
+    expect(codesDe('perso-b')).toContain('S-18')
   })
 })
 
