@@ -3,9 +3,14 @@ import { Avertissement } from './Avertissement.tsx'
 import { PastillePrise } from './PastillePrise.tsx'
 import { idZone, type ListeEtapesNom } from './glisser.ts'
 import { Icone } from './Icone.tsx'
+import { Confirmation } from './Confirmation.tsx'
+import { ChoixExercice, EditeurResume } from './EditeurResume.tsx'
+import {
+  ajouterEtapeDepuisFiche, changerNiveau, etapesDepuisSeanceType, poserPrincipal, recalculerGrandesLignes,
+} from './EditeurResume.outils.ts'
 import { nomQualite, QUALITES, texteContreIndication, etatDe, type ContexteFiltre, type EntreeBibliotheque } from '../donnees/bibliotheque/filtres.ts'
-import type { Cycle, SeancePlanifiee, VersionGroupe } from '../donnees/modele.ts'
-import { ETIQUETTES_NIVEAU, dureeVersionSolo, niveauAffiche } from '../donnees/niveaux.ts'
+import type { Cycle, ExercicePerso, NiveauDetail, SeancePlanifiee, VersionGroupe } from '../donnees/modele.ts'
+import { ETIQUETTES_NIVEAU, dureeVersionSolo, niveauAffiche, niveauChoisi } from '../donnees/niveaux.ts'
 import { OBJECTIFS_GROUPE } from '../donnees/objectifsGroupe.ts'
 import type { CouleurSalle } from '../donnees/salles.ts'
 import type { EtapeSeance, ObjectifGroupe } from '../moteur/types.ts'
@@ -43,8 +48,12 @@ export interface AvertissementsFiche {
 
 // Un avertissement du moteur : phrase, « Pourquoi ? » = la source, correction en un clic pour W-01 seulement.
 export function AvertissementDuMoteur({ entree, actions }: { entree: EntreeAvertissement; actions: AvertissementsFiche }) {
-  const { titre, suite } = scinderMessage(entree.avertissement.message)
   const decalable = actions.peutDecaler(entree)
+  // S-01 sur l'exercice principal d'une partie (portée séance) : il n'y a pas d'étape à supprimer (E-18).
+  const messageAffiche = entree.avertissement.code === 'S-01' && entree.avertissement.portee === 'seance'
+    ? entree.avertissement.message.replace('Remplace-le ou supprime l\'étape.', 'Remplace l\'exercice principal de cette partie.')
+    : entree.avertissement.message
+  const { titre, suite } = scinderMessage(messageAffiche)
   return (
     <Avertissement
       niveau={entree.forme}
@@ -69,6 +78,8 @@ interface Props {
   remplacement: number | null
   glisse?: GlisseFiche | null
   avertissements?: AvertissementsFiche
+  /** Exercices personnels : sans eux, « Ajouter une étape » ne propose que la bibliothèque. */
+  persos?: ExercicePerso[]
   onGlisserEtape?: (e: PointerEvent<HTMLElement>, liste: ListeEtapesNom, index: number, titre: string) => void
   onChanger: (s: SeancePlanifiee) => void
   onSupprimer: () => void
@@ -268,9 +279,15 @@ function NomEditable({ nom, onChanger }: { nom: string; onChanger: (nom: string)
 }
 
 // La fiche d'une séance (O-05) : en-tête, réglages choisis, puis la version solo ou la version groupe.
-// Le niveau affiché ne change que la lecture : ici on édite toujours les étapes (R-9) ; les deux autres niveaux viennent avec D-26.
-export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs, remplacement, glisse, avertissements, onGlisserEtape, onChanger, onSupprimer, onVoirFiche, onRemplacer, onAnnulerRemplacement }: Props) {
+// Le niveau choisi décide de l'éditeur de la version solo ; changer de niveau n'efface rien (R-9).
+export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs, remplacement, glisse, avertissements, persos, onGlisserEtape, onChanger, onSupprimer, onVoirFiche, onRemplacer, onAnnulerRemplacement }: Props) {
   const [version, setVersion] = useState<'solo' | 'groupe'>('solo')
+  // « Voir les étapes » ouvre l'éditeur détaillé sans changer le niveau choisi (rien n'est écrit).
+  const [etapesOuvertes, setEtapesOuvertes] = useState(false)
+  const [recalculer, setRecalculer] = useState(false)
+  const [choixS26, setChoixS26] = useState(false)
+  const [ajoutEtape, setAjoutEtape] = useState(false)
+  const sectionEtapes = useRef<HTMLElement>(null)
   const idQualite = useId()
   const surGroupe = version === 'groupe'
   const groupe = seance.groupe
@@ -291,12 +308,26 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
   const proposeeQualite = qualiteProposee(seance.solo.etapes, fiches)
   const proposeeDurete = duretePropose(seance.solo, fiches)
   const niveau = niveauAffiche(seance, cycle)
+  const choisi = niveauChoisi(seance, cycle)
+  // L'éditeur des étapes se montre au niveau détaillé, quand on le demande, et pendant un remplacement d'étape.
+  const etapesVisibles = choisi === 'detaille' || etapesOuvertes || remplacement !== null
+  const changerSoloEntier = (solo: SeancePlanifiee['solo']) => onChanger({ ...seance, solo })
+  const choisirNiveau = (n: NiveauDetail | null) => { setEtapesOuvertes(false); onChanger(changerNiveau(seance, n)) }
+  const voirLesEtapes = () => {
+    setEtapesOuvertes(true)
+    // Le focus suit l'ouverture : au clavier, on arrive sur les étapes.
+    setTimeout(() => sectionEtapes.current?.focus(), 0)
+  }
   const duree = surGroupe ? (groupe?.dureeMin ?? 0) : dureeVersionSolo(seance.solo)
   const fichesGroupe = [...entrees.values()].filter((e) => e.groupe)
 
   // Avertissements du moteur : ceux de la séance en haut, ceux d'une étape sous sa ligne (niveau le plus précis).
   const propres = avertissements?.propres ?? []
   const deSeance = propres.filter((e) => e.avertissement.etapeIndex === undefined)
+  // Un avertissement qui vise une étape cachée monte en tête de la fiche, avec le nom de l'étape : aucun ne disparaît.
+  const surEtapeCachee = surGroupe || etapesVisibles
+    ? []
+    : propres.filter((e) => e.avertissement.etapeIndex !== undefined && e.avertissement.version !== 'groupe')
   const deEtape = (liste: ListeEtapesNom) => (index: number) =>
     propres.filter((e) => e.avertissement.etapeIndex === index && (e.avertissement.version === 'groupe') === (liste === 'minibloc'))
   const etapesAvert = (liste: ListeEtapesNom) => (avertissements ? { de: deEtape(liste), actions: avertissements } : undefined)
@@ -321,9 +352,52 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
         </div>
       </header>
 
-      {avertissements && (deSeance.length > 0 || avertissements.liees.length > 0) && (
+      {!surGroupe && (
+        <fieldset className="question fiche-seance-niveau">
+          <legend className="libelle">Niveau</legend>
+          <div className="choix quatre">
+            <button type="button" aria-pressed={seance.niveauDetail === undefined} onClick={() => choisirNiveau(null)}>
+              Comme le cycle ({ETIQUETTES_NIVEAU[cycle.niveauDetail ?? 'detaille']})
+            </button>
+            {(['simple', 'grandes_lignes', 'detaille'] as const).map((n) => (
+              <button key={n} type="button" aria-pressed={seance.niveauDetail === n} onClick={() => choisirNiveau(n)}>{ETIQUETTES_NIVEAU[n]}</button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      {avertissements && (deSeance.length > 0 || surEtapeCachee.length > 0 || avertissements.liees.length > 0) && (
         <section className="pile" aria-label="Avertissements de la séance">
-          {deSeance.map((e) => <AvertissementDuMoteur key={e.cle} entree={e} actions={avertissements} />)}
+          {deSeance.map((e) => {
+            const code = e.avertissement.code
+            return (
+              <div key={e.cle} className="pile">
+                <AvertissementDuMoteur entree={e} actions={avertissements} />
+                {code === 'S-26' && !surGroupe && (
+                  <button type="button" className="bouton-texte" onClick={() => setChoixS26(true)}>Choisir l’exercice principal</button>
+                )}
+                {code === 'S-27' && !surGroupe && (
+                  <div className="avertissement-suite">
+                    {(seance.solo.parties?.length ?? 0) > 0 && (
+                      <button type="button" className="bouton-texte" onClick={() => setRecalculer(true)}>Recalculer les grandes lignes</button>
+                    )}
+                    <button type="button" className="bouton-texte" onClick={voirLesEtapes}>Voir les étapes</button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          {surEtapeCachee.map((e) => (
+            <div key={e.cle} className="pile">
+              <p className="texte-3">Étape « {seance.solo.etapes[e.avertissement.etapeIndex ?? 0]?.titre ?? 'inconnue'} »</p>
+              <AvertissementDuMoteur entree={e} actions={avertissements} />
+            </div>
+          ))}
+          {choixS26 && !surGroupe && (
+            <ChoixExercice titre="Choisir l’exercice principal" entrees={[...entrees.values()]} contexte={contexte}
+              onChoisir={(entree) => { changerSoloEntier(poserPrincipal(seance.solo, 0, { source: entree.origine, refId: entree.id })); setChoixS26(false) }}
+              onFermer={() => setChoixS26(false)} />
+          )}
           {avertissements.liees.map((e) => (
             <p key={e.cle} className="texte-3 repere-lie">Cette séance est citée par l’avertissement de la séance qui la suit.</p>
           ))}
@@ -360,19 +434,53 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
           vide={`Par défaut (${effortParDefaut(actuelle.durete)})`} onChoisir={(n) => changerVersion({ effortPrevu: n })} />
       </section>
 
-      {niveau !== 'detaille' && (
-        <p className="texte-3">Niveau affiché : {ETIQUETTES_NIVEAU[niveau]}. Rien n’est effacé : ici tu modifies les étapes détaillées.</p>
+      {!surGroupe && choisi === 'detaille' && niveau !== 'detaille' && (
+        <p className="texte-3">Sur le téléphone, cette séance s’affiche en {ETIQUETTES_NIVEAU[niveau].toLowerCase()} tant qu’elle n’a pas d’étapes.</p>
       )}
 
-      {!surGroupe && (
-        <section aria-label="Étapes de la version solo" className="pile">
+      {!surGroupe && !etapesVisibles && (
+        <EditeurResume seance={seance} niveau={choisi === 'simple' ? 'simple' : 'grandes_lignes'} fiches={fiches} entrees={entrees} contexte={contexte}
+          onChanger={changerSoloEntier} onVoirEtapes={voirLesEtapes} />
+      )}
+
+      {!surGroupe && etapesVisibles && (
+        <section ref={sectionEtapes} tabIndex={-1} aria-label="Étapes de la version solo" className="pile">
+          {choisi !== 'detaille' && remplacement === null && (
+            <button type="button" className="bouton-texte" onClick={() => setEtapesOuvertes(false)}>Revenir au résumé</button>
+          )}
           {seance.solo.etapes.length === 0
-            ? <p className="texte-2">Cette séance n’a pas encore d’étapes. Ajoute-en depuis la bibliothèque, à gauche.</p>
+            ? (
+              <div className="pile">
+                <p className="texte-2">Cette séance n’a pas encore d’étapes.</p>
+                <div className="etapes-vides-actions">
+                  {etapesDepuisSeanceType(seance) !== undefined && (
+                    <button type="button" className="bouton-second" onClick={() => changerSoloEntier({ ...seance.solo, etapes: etapesDepuisSeanceType(seance) ?? [] })}>
+                      Remplir depuis la séance type
+                    </button>
+                  )}
+                  <button type="button" className="bouton-second" onClick={() => setAjoutEtape(true)}>Ajouter une étape</button>
+                </div>
+              </div>
+            )
             : <ListeEtapes seanceId={seance.id} liste="solo" glisse={glisse} avertissements={etapesAvert('solo')} onGlisserEtape={onGlisserEtape} etapes={seance.solo.etapes} entrees={entrees} contexte={contexte} remplacement={remplacement}
                 onChanger={(etapes) => changerSolo({ etapes })} onVoirFiche={onVoirFiche} onRemplacer={onRemplacer} />}
+          {seance.solo.etapes.length > 0 && (
+            <button type="button" className="bouton-texte" onClick={() => setAjoutEtape(true)}>Ajouter une étape</button>
+          )}
+          {ajoutEtape && (
+            <ChoixExercice titre="Ajouter une étape" entrees={[...entrees.values()]} contexte={contexte}
+              filtre={(e) => ajouterEtapeDepuisFiche(seance.solo, e.id, persos ?? []) !== undefined}
+              onChoisir={(e) => { const suite = ajouterEtapeDepuisFiche(seance.solo, e.id, persos ?? []); if (suite) changerSoloEntier(suite); setAjoutEtape(false) }}
+              onFermer={() => setAjoutEtape(false)} />
+          )}
           {remplacement !== null && <button type="button" className="bouton-texte" onClick={onAnnulerRemplacement}>Annuler le remplacement</button>}
         </section>
       )}
+
+      <Confirmation ouverte={recalculer} titre="Recalculer les grandes lignes ?"
+        texte="Tes grandes lignes écrites seront remplacées par celles calculées depuis les étapes."
+        libelleAction="Recalculer" onRester={() => setRecalculer(false)}
+        onAction={() => { setRecalculer(false); changerSoloEntier(recalculerGrandesLignes(seance.solo)) }} />
 
       {surGroupe && !groupe && (
         <section className="pile">

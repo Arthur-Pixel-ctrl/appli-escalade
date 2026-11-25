@@ -704,3 +704,26 @@ body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-s
 .tableau-action { width: auto; max-width: 360px; }
 .tableau-depart { display: flex; flex-direction: column; gap: var(--espace-3); max-width: 480px; }
 .liste-lignes { margin: 0; padding: 0; list-style: none; }
+/* D-26 : niveaux de la fiche de séance (simple, grandes lignes, détaillé). */
+.fiche-seance-niveau { margin: 0; padding: 0; border: 0; min-width: 0; }
+.fiche-seance-niveau .choix button { min-height: 56px; padding: var(--espace-2) var(--espace-3); }
+.editeur-resume { padding: var(--espace-3); border: 2px solid var(--filet); border-radius: var(--rayon-controle); }
+.recommandation-proposee { margin: 0; padding: var(--espace-3); background: var(--surface-creuse); border-radius: var(--rayon-controle); }
+.parties-liste { display: flex; flex-direction: column; gap: var(--espace-3); margin: 0; padding: 0; list-style: none; }
+.partie-ligne { display: flex; flex-direction: column; gap: var(--espace-1); }
+.partie-actions { display: flex; flex-wrap: wrap; gap: var(--espace-2); }
+.partie-actions .bouton-texte { width: auto; }
+.partie-actions .bouton-texte:disabled { color: var(--texte-3); text-decoration: none; }
+.exercice-principal { display: flex; flex-direction: column; gap: var(--espace-2); }
+.exercice-principal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-3); }
+.exercice-principal-actions .bouton-second { flex: none; width: auto; padding: 0 var(--espace-4); }
+.exercice-principal-actions .bouton-texte { width: auto; }
+.choix-exercice { padding: var(--espace-3); border: 2px solid var(--texte); border-radius: var(--rayon-controle); background: var(--surface); }
+.choix-exercice-liste { display: flex; flex-direction: column; gap: var(--espace-3); max-height: 360px; overflow-y: auto; padding-right: var(--espace-1); }
+.choix-exercice-liste ul { margin: 0; padding: 0; list-style: none; }
+.choix-exercice-ligne { display: flex; align-items: center; justify-content: space-between; gap: var(--espace-3); }
+.choix-exercice-texte { min-width: 0; }
+.choix-exercice-ligne .bouton-second { flex: none; width: auto; min-height: 48px; padding: 0 var(--espace-4); box-shadow: none; }
+.avertissement-suite, .etapes-vides-actions { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
+.avertissement-suite .bouton-texte { width: auto; }
+.etapes-vides-actions .bouton-second { flex: none; width: auto; padding: 0 var(--espace-4); }

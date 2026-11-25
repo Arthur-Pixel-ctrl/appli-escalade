@@ -460,7 +460,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
                 ) : (
                   <div className="pile-large jour-seances">
                     {j.seances.map((s) => (
-                      <FicheSeance key={s.id} seance={s} cycle={cycle} fiches={fiches} entrees={parId} contexte={contexte.filtre} couleurs={couleurs}
+                      <FicheSeance key={s.id} persos={persos} seance={s} cycle={cycle} fiches={fiches} entrees={parId} contexte={contexte.filtre} couleurs={couleurs}
                         remplacement={remplacement?.seanceId === s.id ? remplacement.index : null}
                         glisse={glisseDe(s)}
                         avertissements={actionsFiche(s)}
