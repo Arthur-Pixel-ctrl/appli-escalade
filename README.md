@@ -84,6 +84,12 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-18 | Avertissements de sécurité en direct dans le plan : résumé en tête de semaine, repère et ligne surlignée sur la séance, repère ambre dans les vues Phase et 12 semaines, « Pourquoi ? » (source), « Décaler au lendemain » pour les 48 h, « Je garde ce choix » ; rien n'est bloqué | Fait |
 | D-19 | Tableau de bord sur ordinateur : sans cycle (trois départs), cycle en cours (semaine, prochaine séance au niveau affiché, avertissements ouverts), cycle terminé ; « Ouvrir la semaine en cours » mène à la vue Semaine ; la rubrique reste ouverte au rechargement | Fait |
 | D-26 | Fiche de séance aux trois niveaux sur ordinateur : « Comme le cycle », Simple (recommandation, durée, exercice principal), Grandes lignes (1 à 5 parties), Détaillé (étapes) ; changer de niveau n'efface rien ; S-26 et S-27 avec leurs boutons | Fait |
+| AUDIT-3 | Audit de fin de phase 3 (Opus, effort élevé) : prêt pour l'essai réel, avec réserves ; 0 bloquant, 1 important, 12 mineurs (`docs/audits/audit-phase-3.md`) | Fait |
+| CORR-MOTEUR, CORR-ECRANS, CORR-TEXTES | Corrections directes de l'audit : I-1, M-1, M-4, M-5, M-9, M-10, M-11, M-12 (annonce clavier) | Fait |
+| SPEC-AUDIT3 | Conception des autres corrections et vague 3.12 (Opus, effort extra-élevé) | Fait |
+| AUD3-01 | Moteur : séance liée de W-01, prérequis non renseignés de S-03, S-01 d'un exercice principal | Fait |
+| AUD3-02 | Messages S-21, P-11 et P-01 sans identifiant technique (`NOMS_MARQUEURS`) | Fait |
+| AUD3-03 | Exercice personnel : « Bidoigts ? » séparé de « Arqué ou trous ? » | Fait |
 
 ## Ouvrir l'app
 
