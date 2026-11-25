@@ -633,3 +633,16 @@ form.pile-large { gap: 24px; }
 .choix-seance-type.pointille { border: 2px dashed var(--filet-fort); background: var(--surface-creuse); }
 @media (hover: hover) { .choix-seance-type:hover { background: var(--surface-creuse); } }
 @media (max-width: 1199px) { .semaine-corps { grid-template-columns: 280px minmax(0, 1fr); } .objectif-grille { grid-template-columns: 1fr; } }
+
+/* Création d'un exercice personnel (D-13, O-08) : formulaire 7/12, aperçu 5/12. */
+.perso-corps { display: grid; grid-template-columns: 7fr 5fr; gap: var(--espace-6); align-items: start; }
+.perso-formulaire { min-width: 0; }
+.perso-apercu { position: sticky; top: var(--espace-4); display: flex; flex-direction: column; gap: var(--espace-3); min-width: 0; }
+.perso-retour { width: auto; flex: none; padding: 0 var(--espace-4); }
+.perso-sous-champs { display: flex; flex-direction: column; gap: var(--espace-4); margin: 0; padding: var(--espace-4); border: 2px solid var(--filet); border-radius: var(--rayon-carte); min-width: 0; }
+.perso-sous-champs legend { padding: 0 var(--espace-2); }
+.perso-groupe { display: flex; flex-direction: column; gap: var(--espace-2); min-width: 0; }
+.perso-groupe.erreur .choix button { border-color: var(--arret); }
+.perso-grille-nombres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--espace-4); }
+.biblio-cree { margin: 0; padding: var(--espace-3) var(--espace-4); border-left: 4px solid var(--accent); background: var(--surface-creuse); }
+@media (max-width: 1199px) { .perso-corps { grid-template-columns: 1fr; } .perso-apercu { position: static; } }

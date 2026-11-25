@@ -1,8 +1,9 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { FicheProtocole } from '../../composants/FicheProtocole.tsx'
 import { Icone } from '../../composants/Icone.tsx'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { FicheDetail, type DonneesFiche } from './FicheDetail.tsx'
+import { ExercicePerso as FormulaireExercicePerso } from './ExercicePerso.tsx'
 import { BIBLIOTHEQUE } from '../../donnees/bibliotheque/index.ts'
 import {
   DUREES, FILTRES_VIDES, PREUVES, QUALITES, TERRAINS, convient, entreesDepuis, etatDe, filtresActifs, filtresDepuisRecherche, filtrer,
@@ -50,14 +51,23 @@ export function Bibliotheque() {
   const [echec, setEchec] = useState(false)
   const [filtres, setFiltres] = useState<Filtres>(() => filtresDepuisRecherche(window.location.search))
   const [ouverteId, setOuverteId] = useState<string | undefined>(undefined)
+  const [creation, setCreation] = useState(false) // écran O-08 affiché à la place de la bibliothèque
+  const [creeNom, setCreeNom] = useState<string | undefined>(undefined)
+  const messageCree = useRef<HTMLParagraphElement>(null)
   const idRecherche = useId()
   const idTri = useId()
 
+  const lire = useCallback(
+    () => lireDonnees().then((d) => { setDonnees(d); setEchec(false) }).catch(() => setEchec(true)),
+    [],
+  )
   useEffect(() => {
-    const lire = () => lireDonnees().then((d) => { setDonnees(d); setEchec(false) }).catch(() => setEchec(true))
     void lire()
     return surDonneesChangees(() => { void lire() })
-  }, [])
+  }, [lire])
+
+  // Après une création, le focus va au message qui confirme : le clavier ne se perd pas.
+  useEffect(() => { if (!creation && creeNom !== undefined) messageCree.current?.focus() }, [creation, creeNom])
 
   // L'adresse suit les filtres, sans ajouter d'entrée à l'historique.
   useEffect(() => {
@@ -91,6 +101,19 @@ export function Bibliotheque() {
     )
   }
 
+  if (creation) {
+    return (
+      <FormulaireExercicePerso
+        contexte={donnees.contexte}
+        onQuitter={() => setCreation(false)}
+        onCree={(e) => {
+          // On relit tout de suite : l'écriture locale ne prévient pas cet écran.
+          void lire().then(() => { setCreeNom(e.nom); setCreation(false) })
+        }}
+      />
+    )
+  }
+
   const maj = (partiel: Partial<Filtres>) => setFiltres((f) => ({ ...f, ...partiel }))
   const actifs = filtresActifs(filtres)
   const quiConviennent = resultats.filter((e) => convient(e, donnees.contexte)).length
@@ -105,12 +128,17 @@ export function Bibliotheque() {
           <h1 className="titre">Les exercices</h1>
           <p className="texte-2">La banque dans laquelle ton plan puis l’assistant piochent. Les séances se lancent depuis ton téléphone.</p>
         </div>
-        {/* Seule action en résine de l'écran ; elle s'active avec D-13. */}
-        <button type="button" className="bouton principal biblio-creer" disabled title="Disponible dans un prochain lot : la création d’un exercice personnel">
+        {/* Seule action en résine de l'écran. */}
+        <button type="button" className="bouton principal biblio-creer" onClick={() => { setCreeNom(undefined); setCreation(true) }}>
           <strong>Créer un exercice</strong>
-          <span>Bientôt disponible</span>
         </button>
       </header>
+
+      {creeNom !== undefined && (
+        <p className="texte-2 biblio-cree" role="status" tabIndex={-1} ref={messageCree}>
+          « {creeNom} » est ajouté à tes exercices, avec l’étiquette Perso. Filtre « Mes exercices » pour le retrouver.
+        </p>
+      )}
 
       <div className="biblio-corps">
         <aside className="biblio-filtres" aria-label="Filtres">
