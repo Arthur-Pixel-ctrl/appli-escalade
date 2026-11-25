@@ -8,6 +8,8 @@ Les amendements correspondants sont marqués « (consolidation 18/11) » dans `d
 
 (consolidation 24/11) Point signalé par les développeurs de C-01 et E-09 : une séance qui a à la fois des étapes et des parties écrites. Règle au § 3.4 ; vérification S-27 et cas 19 dans `moteur-verification.md` ; tâche E-18 et amendement de D-26 dans `docs/backlog-v2.md`.
 
+(consolidation 24/11) Point signalé par le développeur de E-14 : le prompt de l'assistant ne disait pas qu'il ne choisit jamais le niveau. Règle F-10 dans `assistant-ia.md` ; § 1.7 et § 5 ici.
+
 ## 0. En bref
 
 - **Le niveau est un choix d'affichage, pas un autre modèle.** Même cycle, mêmes phases, mêmes séances (date, qualité, dureté, effort, durée). Le niveau dit seulement ce que le téléphone montre de la version solo : une ligne, 3 ou 4 parties, ou toutes les étapes.
@@ -167,6 +169,7 @@ export function niveauPropose(accents: (AccentPhase | null)[]): { niveau: Niveau
 - Demande « Brouillon de cycle » : le contexte envoie `niveauDetail: 'detaille'`. Les accents ne sont pas encore connus, et une séance type ou détaillée s'affiche ensuite à tout niveau sans rien perdre (R-9).
 - Une réponse de type `cycle` s'affiche avec, en tête, « Niveau du cycle » : trois choix encre, présélection `niveauPropose` sur les accents des phases du brouillon, et sa ligne `pourquoi`. Le cycle est créé à ce niveau quand l'utilisateur garde son premier élément (C-07, D-23).
 - Autres demandes (phase, semaine, ajustement) : le niveau du cycle en cours, affiché, modifiable seulement dans l'en-tête du cycle.
+- (consolidation 24/11) L'assistant répond toujours au niveau envoyé : celui du contexte, ou le niveau choisi de la séance qu'il remplace. Une séance résumée porte ce niveau, jamais un autre ; au niveau détaillé, il n'en propose pas (règle F-10 de `assistant-ia.md`).
 
 ---
 
@@ -395,9 +398,9 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
 
 - **Niveau d'un nouveau cycle** (consolidation 23/11, F6) : l'assistant ne le choisit pas. Pour « Brouillon de cycle », le contexte envoie `'detaille'` ; la réponse affiche en tête « Niveau du cycle », présélectionné par `niveauPropose` sur les accents du brouillon, avec sa ligne `pourquoi` ; le cycle est créé à ce niveau quand l'utilisateur garde son premier élément (§ 1.7).
 - **Contexte** (D.3) : `niveauDetail` du cycle en cours (`'detaille'` pour un brouillon de cycle, consolidation 23/11) ; chaque séance type envoyée porte sa `recommandation` ; `fichesDisponibles` et `fichesIndisponibles` viennent de `trierFiches` (G-01), raison `test` en plus ; `profil.lieux`. L'assistant ne pioche **que** dans cette banque envoyée (F-6, A-02 inchangés).
-- **Réponse** (D.4) : une `SeanceBrouillon` peut être (1) une séance type, valable à tous les niveaux (préférée) ; (2) une séance composée étape par étape (détaillé) ; (3) **nouveau** : une séance résumée `{ niveau: 'simple' | 'grandes_lignes', recommandation, parties: [{ titre, dureeMin, ficheId?, consigne? }] }`, avec 1 partie en simple et 2 à 5 en grandes lignes (règle F-9). Chaque `ficheId` doit venir de la banque envoyée.
+- **Réponse** (D.4) : une `SeanceBrouillon` peut être (1) une séance type, valable à tous les niveaux (préférée) ; (2) une séance composée étape par étape (détaillé) ; (3) **nouveau** : une séance résumée `{ niveau: 'simple' | 'grandes_lignes', recommandation, parties: [{ titre, dureeMin, ficheId?, consigne? }] }`, avec 1 partie en simple et 2 à 5 en grandes lignes (règle F-9). Chaque `ficheId` doit venir de la banque envoyée. (consolidation 24/11) `niveau` répète le niveau envoyé : un autre niveau, ou une séance résumée quand le niveau envoyé est détaillé, est refusé (F-10, A-01).
 - **Expansion et vérification** : une séance résumée devient une version solo sans étapes (§ 1.2) ; le moteur la vérifie comme au § 3 (origine `assistant`, S-02 en fort inchangé).
-- **Prompt** (D.6) : un paragraphe sur les niveaux (préférer les séances types à tout niveau ; en simple, une ligne qui garde les bornes de sécurité et la fiche principale ; jamais de fiche hors de la liste).
+- **Prompt** (D.6) : un paragraphe sur les niveaux (préférer les séances types à tout niveau ; en simple, une ligne qui garde les bornes de sécurité et la fiche principale ; jamais de fiche hors de la liste). (consolidation 24/11) Il dit aussi « Tu ne choisis jamais le niveau de détail » et demande de répondre au niveau envoyé.
 
 ## 6. Montre (`docs/format-seance.md`)
 
@@ -419,7 +422,7 @@ Détail et vagues dans `docs/backlog-v2.md`.
 | Amendées | D-20 (lieux), E-01, E-02, E-04, E-06, E-07, E-09, E-10, E-16, C-01, D-11, D-14, D-16, D-19 (phase 3) ; D-22 (phase 4) ; E-11, E-12, E-13, E-14, C-07, D-23 (phase 5) | | |
 | Amendées le 23/11 | F6 : N-01, D-14, D-25 (phase 3) ; E-13, C-07, D-23 (phase 5). F7 : E-02, E-04, E-05, E-06, E-08, E-09 (phase 3) | | |
 | **E-18** (consolidation 24/11) | Principal des grandes lignes absent des étapes : vérifié comme exercice de la séance, S-27 (§ 3.4) | Sonnet | 3.8 |
-| Amendée le 24/11 | D-26 (affichage de S-27) | | |
+| Amendée le 24/11 | D-26 (affichage de S-27) ; E-11, E-13, E-14, C-07 (assistant : niveau envoyé, jamais choisi, F-10) | | |
 
 ## 8. Décisions d'Arthur sur les questions Q1 et Q2
 
