@@ -8,21 +8,12 @@ import {
   heuresEntre,
   itemsRouges,
   joursEntre,
-  sansContenuConnu,
 } from './base.ts'
 import { NOMS_ZONES } from './reglesParDefaut.ts'
 import type { Avertissement, ContexteVerif, FormeVerif, Niveau, SeanceVerif } from './types.ts'
 
 // Source affichée : [SYN] n'a pas d'auteur propre, on écrit donc la synthèse (regles-planification.md).
 const SOURCE_SYNTHESE = "Synthèse de l'entraînement"
-
-/**
- * Séance dure sans exercice connu (décision F7, 23/11) : une séance dure ordinaire, pas une séance maximale.
- * J-02 et J-04 ne la visent pas.
- */
-function estDureSansContenu(s: SeanceVerif, ctx: ContexteVerif): boolean {
-  return s.solo.durete === 'dure' && sansContenuConnu(s.solo, ctx.fiches)
-}
 
 /** Vérifie la séance du jour et renvoie les avertissements J-01 à J-07, les plus forts d'abord. */
 export function verifierJour(
@@ -35,8 +26,8 @@ export function verifierJour(
   const fiches = ctx.fiches
   const dure = estDure(seanceDuJour, fiches)
   const maximale = estMaximale(seanceDuJour, fiches)
-  // J-02 et J-04 : une séance maximale, et pas une séance dure sans exercice connu (F7).
-  const viseParMaximale = maximale && !estDureSansContenu(seanceDuJour, ctx)
+  // J-02 et J-04 suivent la condition de la spec (B.8) : estMaximale. Une séance dure sans exercice
+  // (F7) n'a aucun marqueur, donc elle ne déclenche rien ; mais un marqueur de groupe compte.
 
   const ajouter = (code: string, niveau: Niveau, message: string, source: string) =>
     avertissements.push({ code, niveau, message, portee: 'jour', seanceId: seanceDuJour.id, source })
@@ -57,7 +48,7 @@ export function verifierJour(
   const trois: (FormeVerif | undefined)[] = [0, 1, 2].map((decalage) =>
     ctx.formes.find((f) => f.date === ajouterJours(aujourdhui, -decalage)),
   )
-  if (viseParMaximale && trois.every((f) => f?.heuresSommeil !== undefined)) {
+  if (maximale && trois.every((f) => f?.heuresSommeil !== undefined)) {
     const moyenne = trois.reduce((total, f) => total + (f?.heuresSommeil ?? 0), 0) / 3
     if (moyenne < regles.seuilSommeilH) {
       ajouter(
@@ -84,7 +75,7 @@ export function verifierJour(
     .filter((r) => r.realisee && estMaximale(r, fiches))
     .sort((a, b) => Date.parse(b.realisee!.finLe) - Date.parse(a.realisee!.finLe))
   const derniereMaximale = maximalesRealisees[0]
-  if (viseParMaximale && derniereMaximale?.realisee) {
+  if (maximale && derniereMaximale?.realisee) {
     const ecoulees = heuresEntre(derniereMaximale.realisee.finLe, ctx.maintenant)
     if (ecoulees >= 0 && ecoulees < regles.heuresEntreSeancesMax) {
       // Heures pleines : « 14 h écoulées » et « encore 34 h » (48 − 14), arrondi à l'heure supérieure.

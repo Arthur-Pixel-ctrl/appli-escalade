@@ -3,6 +3,7 @@
 // avec sa raison ; elle n'est simplement jamais proposée automatiquement.
 // Spécification : docs/specs/niveaux-de-detail.md § 2.1 et § 2.2 ; docs/backlog-v2.md, G-01.
 import type { Contexte } from '../donnees/bibliotheque/types.ts'
+import { objectifGroupeParId } from '../donnees/objectifsGroupe.ts'
 import { SEANCES_TYPES, type EtapeType, type SeanceType } from '../donnees/seancesTypes.ts'
 import { NOMS_ZONES } from './reglesParDefaut.ts'
 import type { FicheVerif, ProfilVerif, ZoneDouleur } from './types.ts'
@@ -101,11 +102,18 @@ export function phraseRaison(
 
 const idsDesEtapes = (etapes: EtapeType[]): string[] => etapes.map((e) => e.ficheId)
 
-/** Fiches du solo, plus celles du mini-bloc de la version groupe (la variante peut remplacer l'un et l'autre). */
+/**
+ * Fiches du solo et du mini-bloc de la version groupe (la variante peut remplacer l'un et l'autre), plus les
+ * fiches de référence des objectifs de groupe : un objectif « en voie » ne doit pas aller à qui n'a pas de voie.
+ */
 function fichesDeLaSeance(st: SeanceType, variante?: string): string[] {
   const v = variante === undefined ? undefined : st.variantes[variante]
   const miniBloc = v?.miniBloc ?? st.groupe?.miniBloc
-  return [...idsDesEtapes(v?.solo ?? st.solo), ...idsDesEtapes(miniBloc?.etapes ?? [])]
+  const fichesObjectifs = (st.groupe?.objectifIds ?? []).flatMap((id) => {
+    const ref = objectifGroupeParId(id)?.ficheReference
+    return ref === undefined ? [] : [ref]
+  })
+  return [...idsDesEtapes(v?.solo ?? st.solo), ...idsDesEtapes(miniBloc?.etapes ?? []), ...fichesObjectifs]
 }
 
 /**
