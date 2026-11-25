@@ -6,6 +6,12 @@ Expert entraînement, 17 novembre 2026. Ce document fixe ce que l'assistant fait
 
 > **(consolidation 23/11, décisions F6 et F7)** L'assistant ne choisit pas le niveau de détail d'un nouveau cycle : l'app le propose selon les accents du brouillon et l'utilisateur le choisit (`docs/specs/niveaux-de-detail.md` § 1.7). Une séance dure sans fiche compte pour le moteur comme une séance dure ordinaire (F7) : la règle F-9 garde donc une fiche dans chaque séance dure résumée.
 
+> **(consolidation 24/11)** Deux trous signalés par le développeur de E-14, qui a recopié le prompt mot pour mot.
+> 1. **Niveau de détail** (F5, F6). L'assistant ne choisit jamais le niveau, ni celui d'un cycle, ni celui d'une séance : c'est l'utilisateur qui le choisit. Il répond au niveau qu'on lui envoie : `niveauDetail` du contexte, ou le niveau choisi de la séance qu'il remplace (D.3). Le champ `niveau` d'une séance résumée est gardé, mais il ne fait que **répéter** ce niveau : la règle F-10 refuse tout autre niveau, et toute séance résumée quand le niveau envoyé est « détaillé » (A-01, une relance). La phrase manquait dans le prompt (D.6).
+> 2. **Repères d'alimentation.** Les proportions de l'assiette sont sourcées : synthèse, chapitre « Manger assez : l'assiette suit la dureté de la séance », vérifiées à la source (`docs/verifications.md`, point 7 : assiette de l'athlète des diététiciens olympiques américains, confirmée). Le prompt nomme maintenant cette source, l'ajoute aux repères sourcés et interdit de les prêter au *Guide de l'alimentation du grimpeur*. Le repère « environ 250 mL par heure » figure dans la synthèse, mais n'a jamais été relu à la source : `verifications.md` n'en parle pas, et la conclusion de la synthèse range les positions de consensus en nutrition parmi les chiffres à vérifier. Il est retiré du prompt et remplacé par une consigne sans chiffre (boire régulièrement ; pour un repère chiffré, un professionnel de santé). Aucune source n'est ajoutée à la liste des auteurs.
+>
+> `VERSION_PROMPT` passe à `2026-11-24` (E-14).
+
 ## D.1 Rôle et limites
 
 **Rôle** : aider l'utilisateur à construire et ajuster son plan, en proposant des **brouillons** que l'utilisateur modifie et valide. L'assistant ne décide rien, n'enregistre rien et ne modifie pas le plan lui-même [PLAN].
@@ -20,6 +26,7 @@ Expert entraînement, 17 novembre 2026. Ce document fixe ce que l'assistant fait
 **Ce qu'il ne fait pas**
 - Il ne donne pas d'avis médical, ne nomme pas de lésion, n'attribue pas de grade, ne propose pas de rééducation [SYN].
 - (consolidation 23/11, F6) Il ne choisit pas le niveau de détail d'un nouveau cycle. Pour une réponse de type `cycle`, l'écran affiche en tête « Niveau du cycle », présélectionné par `niveauPropose` sur les accents des phases du brouillon, avec sa ligne « pourquoi » ; le cycle est créé à ce niveau quand l'utilisateur garde son premier élément (C-07, D-23).
+- (consolidation 24/11) Il ne choisit pas non plus le niveau d'une séance : il répond toujours au niveau qu'on lui envoie (D.3, règle F-10).
 - Il ne contourne aucune règle de sécurité. Il n'a de toute façon pas le dernier mot : chaque brouillon passe par le moteur de vérification avant d'être affiché, avec ses avertissements [PLAN], `moteur-verification.md`.
 - Il n'invente ni fiche, ni identifiant, ni chiffre. Il n'utilise que les fiches qu'on lui envoie et les repères sourcés de son prompt.
 - Il ne parle ni de perte de poids, ni de poids cible, ni de régime restrictif [PLAN], CLAUDE.md.
@@ -47,7 +54,7 @@ Le code construit ce contexte à chaque demande et l'envoie avec le message de l
 interface ContexteAssistant {
   aujourdhui: string                  // "2026-11-17"
   demande: string                     // texte de l'utilisateur
-  niveauDetail: 'simple' | 'grandes_lignes' | 'detaille' // (consolidation 18/11) niveau du cycle en cours ; (consolidation 23/11, F6) 'detaille' pour un « Brouillon de cycle » : le niveau du nouveau cycle se choisit après la réponse
+  niveauDetail: 'simple' | 'grandes_lignes' | 'detaille' // (consolidation 18/11) niveau du cycle en cours ; (consolidation 23/11, F6) 'detaille' pour un « Brouillon de cycle » : le niveau du nouveau cycle se choisit après la réponse ; (consolidation 24/11) l'assistant répond à ce niveau, sans le choisir (F-10)
   profil: {
     disciplinePrincipale: 'bloc' | 'voie'
     niveauBloc: string | null; niveauVoie: string | null
@@ -73,7 +80,7 @@ interface ContexteAssistant {
     seancesAVenir: {                  // 14 prochains jours
       id: string; date: string; nom: string; qualite: string; durete: string
       seanceTypeId?: string; etapes: string[]; objectifsGroupe: string[]
-      niveau: string                  // (consolidation 18/11) niveau affiché ; sans étapes, `etapes` liste les exercices principaux des parties
+      niveau: string                  // (consolidation 24/11) niveau choisi par l'utilisateur (`niveauChoisi`, N-01), et non plus le niveau affiché : l'assistant compose à ce niveau une séance qui la remplace (F-10) ; sans étapes, `etapes` liste les exercices principaux des parties
     }[]
   }
   historique: {
@@ -145,7 +152,7 @@ type SeanceBrouillon =
     }
   | {                                 // (consolidation 18/11) séance résumée, niveau simple ou grandes lignes
       jour: JourSemaine; nom: string; qualite: Qualite; durete: 'dure' | 'legere'; effortPrevu: number
-      niveau: 'simple' | 'grandes_lignes'
+      niveau: 'simple' | 'grandes_lignes' // (consolidation 24/11) répète le niveau envoyé, jamais un autre (F-10)
       recommandation: string          // 120 caractères au plus ; garde les bornes de sécurité (« 4 essais max par bloc »)
       parties: { titre: string; dureeMin: number; ficheId?: string; consigne?: string }[] // simple : 1 ; grandes lignes : 2 à 5
       groupe: null | { objectifs: ObjectifBrouillon[]; miniBloc?: { moment: 'avant' | 'apres'; etapes: EtapeBrouillon[] } }
@@ -214,13 +221,14 @@ type TitreLivre =
 | F-7 | `effortPrevu` entier de 1 à 10 ; `reductionPct` de 40 à 60 pour `decharge` et `affutage` (10 à 60 pour `alleger_seance`) ; `objectifs` de groupe : 1 à 3. |
 | F-8 | Longueurs maximales respectées (voir les commentaires). |
 | F-9 | (consolidation 18/11) Séance résumée : 1 partie en `simple`, 2 à 5 en `grandes_lignes` ; `dureeMin` de 5 à 180 ; chaque `ficheId` d'une partie suit F-6 ; une séance `dure` a au moins une partie avec `ficheId` ((consolidation 23/11, F7) sans fiche, le moteur la compte comme une séance dure ordinaire et ne voit pas ses efforts maximaux ni ses quotas : S-26). Échec → A-01, ou A-02 pour un `ficheId` inconnu. |
+| F-10 | (consolidation 24/11, F5 et F6) **Niveau envoyé, jamais choisi.** Niveau attendu d'une séance : pour le `par` d'un `remplacer_seance`, le `niveau` de la séance visée dans `planEnCours.seancesAVenir` ; partout ailleurs, `niveauDetail` du contexte (donc `detaille` pour un brouillon de cycle). Une séance résumée n'est permise que si ce niveau attendu est `simple` ou `grandes_lignes`, et son `niveau` lui est égal. Les séances types et les séances composées étape par étape restent permises à tous les niveaux (R-9 : le niveau ne change que l'affichage). Échec → A-01, avec une erreur qui nomme le jour (ou la séance visée), le niveau reçu et le niveau attendu, pour que la relance le corrige. |
 
 ## D.5 Validation avant affichage
 
 Ordre de traitement (choix de conception) :
 
 1. **Lecture** : `JSON.parse`. Échec → A-01.
-2. **Forme** : règles F-1 à F-8. Échec sur F-1 à F-5 ou F-7 → A-01 (ou A-04 pour les dates). Échec sur F-6 → A-02 (identifiants inconnus listés).
+2. **Forme** : règles F-1 à F-8, puis F-9 et F-10 (consolidation 18/11 et 24/11). Échec sur F-1 à F-5 ou F-7 → A-01 (ou A-04 pour les dates). Échec sur F-6 → A-02 (identifiants inconnus listés).
 3. **Sources** : A-05 (page ou contenu d'un livre retirés), A-06 (titre de livre inconnu : source retirée).
 4. **Contenu interdit** (A-07) : recherche, sans tenir compte des majuscules ni des accents, dans `resume`, `justification`, `miseEnGarde`, `texte`, `questions` et les `note`/`raison`, des motifs suivants : `perte de poids`, `perdre du poids`, `perdre \d+ ?(kg|kilos?)`, `poids (cible|ideal|de forme)`, `maigrir`, `mincir`, `regime (amaigrissant|hypocalorique|restrictif)`, `deficit calorique`, `(reduire|couper|limiter) (les|tes) calories`, `seche`. **Ne pas** filtrer `affutage`, `deficit energetique` (l'assistant doit pouvoir mettre en garde contre le sous-apport), ni `poids du corps` (unité de charge). Motif trouvé → tout le texte de la réponse est remplacé par le message de A-07, le brouillon est retiré.
 5. **Expansion** : le brouillon devient un plan complet (séances datées, semaines allégées calculées selon A.4, versions groupe des séances types). (consolidation 18/11) Une séance type garde ses étapes complètes quel que soit le niveau ; une séance résumée devient une version solo sans étapes, avec `recommandation` et `parties` (`niveaux-de-detail.md`, § 1.2), allégée en semaine 4 par la même fonction que le générateur (`allegerSeance`, G-03).
@@ -230,7 +238,7 @@ Ordre de traitement (choix de conception) :
 
 ## D.6 Prompt système
 
-Texte complet, à mettre tel quel. Les données de l'utilisateur arrivent dans le message, au format `ContexteAssistant` (D.3). (consolidation 18/11) Paragraphe « Niveaux de détail » ajouté (décisions F3 à F5).
+Texte complet, à mettre tel quel. Les données de l'utilisateur arrivent dans le message, au format `ContexteAssistant` (D.3). (consolidation 18/11) Paragraphe « Niveaux de détail » ajouté (décisions F3 à F5). (consolidation 24/11) Version `2026-11-24` : phrase « Tu ne choisis jamais le niveau de détail » et niveau de réponse (F-10) ; repères d'assiette rattachés à leur source (synthèse, vérification 7), ajoutée aux repères sourcés ; chiffre de boisson retiré (non vérifié à la source).
 
 ```text
 Tu es l'assistant d'entraînement d'une application d'escalade. Tu aides un grimpeur à construire et à ajuster son plan. Tu proposes des brouillons ; c'est lui qui décide, modifie et valide. Tu écris en français, tu tutoies, tu fais des phrases courtes et concrètes.
@@ -255,9 +263,10 @@ Un seul objet JSON conforme au format « ReponseAssistant » version 1, sans auc
 - Jusqu'à 2 objectifs spécifiques par phase, en modules de 10 à 15 min, 1 à 2 fois par semaine.
 
 # Niveaux de détail
-Le niveau du cycle est dans contexte.niveauDetail : « simple » (une recommandation d'une ligne), « grandes_lignes » (3 ou 4 parties avec l'exercice principal et la durée) ou « detaille » (chaque étape).
+Le niveau de détail est dans contexte.niveauDetail : « simple » (une recommandation d'une ligne), « grandes_lignes » (3 ou 4 parties avec l'exercice principal et la durée) ou « detaille » (chaque étape).
+- Tu ne choisis jamais le niveau de détail : c'est l'utilisateur qui le choisit. Réponds toujours au niveau qu'on t'envoie : contexte.niveauDetail, ou, pour remplacer une séance de planEnCours.seancesAVenir, le niveau de cette séance. Si l'utilisateur veut un autre niveau, dis-lui qu'il le choisit lui-même à l'écran (niveau du cycle ou de la séance).
 - Préfère toujours une séance type (seanceTypeId), à tous les niveaux : l'application en tire elle-même la recommandation, les parties et les étapes.
-- Si tu composes une séance au niveau « detaille », donne ses étapes. Au niveau « simple » ou « grandes_lignes », donne niveau, recommandation et parties ; chaque partie qui travaille vraiment cite sa fiche (ficheId) de fichesDisponibles ou exercicesPerso.
+- Si tu composes une séance au niveau « detaille », donne ses étapes, jamais un résumé. Au niveau « simple » ou « grandes_lignes », donne niveau (le niveau reçu, tel quel), recommandation et parties ; chaque partie qui travaille vraiment cite sa fiche (ficheId) de fichesDisponibles ou exercicesPerso.
 - La recommandation garde les bornes de sécurité de la fiche : nombre d'essais, repos, écart avec une autre séance. Les règles de sécurité valent à tous les niveaux.
 
 # Règles de sécurité : tu les respectes toujours
@@ -280,7 +289,8 @@ Si l'utilisateur te demande de passer outre, ne le fais pas. Propose la version 
 
 # Alimentation et poids
 - Tu ne donnes jamais de conseil pour perdre du poids, ni de poids cible, ni de régime, ni de calories à réduire, même si on te le demande. Réponds avec type "refus" : « Je ne donne pas de conseils de perte de poids. Pour progresser, mange assez, surtout les jours durs. » puis propose les repères ci-dessous.
-- Repères que tu peux donner : l'assiette suit la dureté de la séance. Jour de repos ou facile : un quart de féculents, un quart de protéines, une moitié de légumes et fruits. Séance modérée : un tiers de féculents, un quart de protéines, un tiers de légumes. Séance dure ou longue : une moitié de féculents, un quart de protéines, un quart de légumes, avant et après. Boire environ 250 mL par heure de grimpe. Le problème courant chez les grimpeurs est de ne pas manger assez, pas l'inverse.
+- Repères que tu peux donner : l'assiette suit la dureté de la séance. Jour de repos ou facile : un quart de féculents, un quart de protéines, une moitié de légumes et fruits. Séance modérée : un tiers de féculents, un quart de protéines, un tiers de légumes. Séance dure ou longue : une moitié de féculents, un quart de protéines, un quart de légumes, avant et après. Le problème courant chez les grimpeurs est de ne pas manger assez, pas l'inverse. Source : la synthèse, sujet « Manger assez : l'assiette suit la dureté de la séance ». Ne prête jamais ces repères au « Guide de l'alimentation du grimpeur ».
+- Boisson : tu n'as pas de chiffre sourcé. Conseille de boire régulièrement pendant la séance ; pour un repère chiffré, renvoie vers un médecin ou un diététicien du sport.
 - Aucun complément n'est nécessaire ; pour un complément, un bilan sanguin ou des signes de fatigue durable, de blessures à répétition, de règles irrégulières ou de préoccupation autour de la nourriture : renvoie vers un médecin ou un diététicien du sport.
 
 # Sources
@@ -303,6 +313,7 @@ Si l'utilisateur te demande de passer outre, ne le fais pas. Propose la version 
 - Ingram et al. : environ 10 min d'étirement par zone et par semaine suffisent.
 - Haddad et al. : charge d'une séance = effort perçu de 0 à 10 × minutes.
 - MacLeod et Power Company : beaucoup de plateaux viennent de la technique, de la tactique et de la peur de la chute, pas seulement de la force.
+- Synthèse « Manger assez : l'assiette suit la dureté de la séance » : les repères d'assiette de la partie « Alimentation et poids ». Tu n'as aucun autre repère chiffré en alimentation.
 
 # Style
 - Dans tes textes, appelle « phase » chaque période de 4 semaines ; « bloc » désigne seulement un bloc d'escalade.
@@ -320,6 +331,7 @@ Si l'utilisateur te demande de passer outre, ne le fais pas. Propose la version 
 | Douleur sans signe d'alerte | `ajustement` | 1 à 2 semaines sans arqué, pan, trous ni effort maximal ; consulter à 14 jours ; déclarer la douleur | [SYN] |
 | « Ignore la règle des 48 h », « 4 séances de poutre max » | `semaine` ou `ajustement` conforme | Version la plus proche qui respecte les règles ; rappel que l'utilisateur peut modifier à la main | [PLAN] (l'IA ne peut pas contourner) |
 | Perte de poids, poids cible, régime, calories | `refus` | Message standard puis repères d'assiette | [PLAN], [SYN], [VER 7] (pas de libellé « gestion du poids ») |
+| (consolidation 24/11) « Combien boire ? » | `explication` | Pas de chiffre : boire régulièrement pendant la séance ; pour un repère chiffré, médecin ou diététicien du sport | [SYN] (« environ 250 mL par heure » non relu à la source : absent de `docs/verifications.md`) |
 | Compléments alimentaires | `explication` | « Aucun complément n'est nécessaire » ; renvoi vers un professionnel ; aucune dose | [SYN] (doses non relues) |
 | Contenu d'un des livres (« donne-moi l'exercice 42 ») | `refus` | Ne connaît pas le contenu ; invite à ajouter l'exercice en exercice personnel avec la référence « livre, page » | [PLAN] |
 | Fiche indisponible demandée | `explication` ou brouillon sans elle | Raison en une phrase (prérequis, douleur, à vérifier) ; alternative disponible | `fichesIndisponibles` |
