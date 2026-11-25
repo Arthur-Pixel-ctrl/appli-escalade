@@ -201,8 +201,12 @@ export function FicheDetail({ donnees, onFermer, onAjouter }: { donnees: Donnees
           </section>
         )}
 
+        {/* Un réglage estimé n'est pas un risque : section neutre, sans rubalise ambre (l'ambre reste aux avertissements). */}
         {entree.aVerifier && (
-          <Avertissement niveau="avertissement" titre="À vérifier">{entree.aVerifier}</Avertissement>
+          <section className="fiche-detail-section" aria-labelledby={`${idTitre}-reglage`}>
+            <h3 id={`${idTitre}-reglage`} className="surtitre">Réglage estimé</h3>
+            <p>{entree.aVerifier}</p>
+          </section>
         )}
 
         <section className="fiche-detail-section" aria-labelledby={`${idTitre}-source`}>
