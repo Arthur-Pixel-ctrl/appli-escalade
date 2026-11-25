@@ -670,3 +670,6 @@ body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-s
 @media (prefers-reduced-motion: reduce) {
   .glisse-fantome { box-shadow: none; transform: translate(12px, 12px); }
 }
+/* Numéro et poignée d'une étape côte à côte (la poignée n'apparaît qu'à partir de deux étapes). */
+.etape-ligne { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.etape-tete { display: flex; align-items: center; gap: var(--espace-1); min-width: 24px; }

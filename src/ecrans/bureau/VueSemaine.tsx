@@ -210,11 +210,13 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
   }))
   const premierLibre = jours.find((j) => j.seances.length === 0)
   const nomJour = (j: Jour) => `${JOURS_LONGS[j.index]} ${dateCourte(j.date)}`
+  // La date courte finit souvent par un point (« 2 déc. ») : on n'en ajoute pas un second.
+  const finDePhrase = (texte: string) => (texte.endsWith('.') ? texte : `${texte}.`)
 
   const ecrire = (s: SeancePlanifiee) => onChangerSeances({ ecrites: [s], retirees: [] })
   const vide = (j: Jour) => nouvelleSeanceVide(cycle, phase, semaine, j.index, horodatage(), crypto.randomUUID())
 
-  const ajouterVide = (j: Jour) => { ecrire(vide(j)); setMessage(`Séance ajoutée : ${nomJour(j)}.`) }
+  const ajouterVide = (j: Jour) => { ecrire(vide(j)); setMessage(finDePhrase(`Séance ajoutée : ${nomJour(j)}`)) }
 
   const ajouterSeanceType = (c: ChoixSeanceType) => {
     if (jourSeanceType === null) return
@@ -222,7 +224,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
     ecrire(seanceDepuisType(c.seanceType, c.variante, {
       id: crypto.randomUUID(), cycleId: cycle.id, phaseId: phase.id, semaine, date: j.date, maintenant: horodatage(),
     }))
-    setMessage(`Séance type ajoutée : « ${libelleSeanceType(c)} », ${nomJour(j)}.`)
+    setMessage(finDePhrase(`Séance type ajoutée : « ${libelleSeanceType(c)} », ${nomJour(j)}`))
     setJourSeanceType(null)
   }
 
@@ -244,7 +246,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
         qualite: entree.qualite === 'echauffement' ? avecEtape.qualite : entree.qualite,
         solo: { ...avecEtape.solo, durete: duretePropose(avecEtape.solo, fiches) },
       })
-      setMessage(`Séance créée avec « ${entree.nom} » : ${nomJour(j)}.`)
+      setMessage(finDePhrase(`Séance créée avec « ${entree.nom} » : ${nomJour(j)}`))
     }
     setAAjouter(null)
     setFicheOuverte(undefined)

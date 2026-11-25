@@ -92,10 +92,14 @@ function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement,
         return (
           <li key={e.id} data-zone={zone}
             className={`etape-ligne${remplacement === i ? ' a-remplacer' : ''}${texteDepot !== null ? ' zone-valable' : ''}${glisse?.zoneActive === zone ? ' zone-survolee' : ''}${saisie ? ' glisse-source' : ''}`}>
-            {onGlisserEtape && etapes.length > 1
-              ? <span className="poignee" aria-hidden="true" title="Glisser pour changer l’ordre" onContextMenu={(ev) => ev.preventDefault()}
+            {/* La poignée s'ajoute au numéro sans le remplacer : l'ordre des étapes reste lisible. */}
+            <span className="etape-tete">
+              {onGlisserEtape && etapes.length > 1 && (
+                <span className="poignee" aria-hidden="true" title="Glisser pour changer l’ordre" onContextMenu={(ev) => ev.preventDefault()}
                   onPointerDown={(ev) => onGlisserEtape(ev, liste, i, e.titre)}>⠿</span>
-              : <span className="repere" aria-hidden="true">{i + 1}</span>}
+              )}
+              <span className="repere" aria-hidden="true">{i + 1}</span>
+            </span>
             <div className="etape-corps">
               <p className="etape-titre"><span className="cache">Étape {i + 1} : </span>{e.titre}</p>
               <ul className="fiche-grille-etiquettes">
