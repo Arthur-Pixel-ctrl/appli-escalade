@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { PROMPT_SYSTEME, VERSION_PROMPT } from './promptSysteme.ts'
 
 // Longueur du bloc D.6 au moment de la copie : toute retouche du texte la fait bouger.
-const LONGUEUR_BLOC_D6 = 11731
+const LONGUEUR_BLOC_D6 = 12605
+
+/** Une partie du prompt, de son titre « # … » jusqu'au titre suivant. */
+function partie(titre: string): string {
+  const debut = PROMPT_SYSTEME.indexOf(`# ${titre}\n`)
+  const fin = PROMPT_SYSTEME.indexOf('\n# ', debut + 1)
+  return PROMPT_SYSTEME.slice(debut, fin === -1 ? undefined : fin)
+}
 
 describe('PROMPT_SYSTEME', () => {
   it('a la longueur du bloc D.6 (à 1 % près)', () => {
@@ -10,7 +17,7 @@ describe('PROMPT_SYSTEME', () => {
   })
 
   it('garde la version du prompt', () => {
-    expect(VERSION_PROMPT).toBe('2026-11-17')
+    expect(VERSION_PROMPT).toBe('2026-11-24')
   })
 
   it('demande une réponse en un seul objet JSON', () => {
@@ -49,5 +56,23 @@ describe('PROMPT_SYSTEME', () => {
 
   it('préfère les séances types à tous les niveaux de détail', () => {
     expect(PROMPT_SYSTEME).toContain('Préfère toujours une séance type (seanceTypeId), à tous les niveaux')
+  })
+
+  // Décisions F5 et F6 : le niveau se choisit par l'utilisateur, jamais par l'assistant.
+  it('ne choisit jamais le niveau de détail : répond au niveau envoyé', () => {
+    expect(PROMPT_SYSTEME).toContain('Tu ne choisis jamais le niveau de détail')
+    expect(PROMPT_SYSTEME).toContain("Réponds toujours au niveau qu'on t'envoie")
+  })
+
+  // Les fractions de l'assiette sont écrites en toutes lettres et sourcées (synthèse, vérification 7) :
+  // un chiffre dans cette partie serait un repère sans source, comme l'ancien « 250 mL par heure ».
+  it("ne garde aucun chiffre d'alimentation sans source", () => {
+    const alimentation = partie('Alimentation et poids')
+    expect(alimentation).toContain('Tu ne donnes jamais de conseil pour perdre du poids')
+    expect(alimentation).not.toMatch(/\d/)
+    expect(PROMPT_SYSTEME).not.toMatch(/\bm?l par heure/i)
+    expect(PROMPT_SYSTEME).not.toContain('250')
+    expect(alimentation).toContain("Source : la synthèse, sujet « Manger assez : l'assiette suit la dureté de la séance »")
+    expect(alimentation).toContain("Ne prête jamais ces repères au « Guide de l'alimentation du grimpeur »")
   })
 })
