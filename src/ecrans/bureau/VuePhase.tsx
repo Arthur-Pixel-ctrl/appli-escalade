@@ -8,6 +8,7 @@ import { useGlisser, type RappelsGlisser } from '../../composants/useGlisser.ts'
 import type { Cycle, DateISO, PhaseCycle, SeancePlanifiee } from '../../donnees/modele.ts'
 import { dureeVersionSolo } from '../../donnees/niveaux.ts'
 import { ajouterJours, debutSemaine } from '../../donnees/plan.ts'
+import { compter, entreesDesSeances, nombreDuRepere, phraseCompte, type AvertissementsDuPlan } from './avertissementsPlan.ts'
 import {
   ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, chargeRelative, dateCourte, resumeSemaine, semaineDuJour, semainesAPlat,
 } from './Plan.outils.ts'
@@ -28,6 +29,8 @@ interface Props {
   selecteurVue: ReactNode
   onChoisirPhase: (ordre: 1 | 2 | 3) => void
   onChangerSeances: (changement: ChangementSeances) => void
+  /** Avertissements du moteur, calculés une fois par `Plan` : ici, seulement un repère ambre par case (D-18). */
+  avertissements: AvertissementsDuPlan
 }
 
 interface Case { semaine: NumeroSemaine; jour: number }
@@ -37,7 +40,7 @@ function jourDeLaSeance(cycle: Cycle, phase: PhaseCycle, seance: SeancePlanifiee
 }
 
 // Écran O-04 : les 4 semaines d'une phase, jour par jour. Aucun lancement de séance ici (R-6).
-export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurVue, onChoisirPhase, onChangerSeances }: Props) {
+export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurVue, onChoisirPhase, onChangerSeances, avertissements }: Props) {
   const phase = phases.find((p) => p.ordre === ordre) ?? phases[0]
   const [presse, setPresse] = useState<SeancePlanifiee | null>(null) // presse-papiers : une séance copiée
   const [menu, setMenu] = useState<string | null>(null)
@@ -165,6 +168,7 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
               const type = phase.semaines.find((s) => s.numero === semaine)?.type ?? 'charge'
               const resume = resumeSemaine(seances, phase.id, semaine)
               const lundi = debutSemaine(cycle, phase, semaine)
+              const deLaSemaine = avertissements.parSemaine.get(numero) ?? []
               return (
                 <tr key={semaine}
                   ref={(el) => { if (el) lignes.current.set(numero, el); else lignes.current.delete(numero) }}
@@ -175,17 +179,20 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
                     <span className="mention">S{numero}</span>
                     <span className="texte-3">{dateCourte(lundi)}</span>
                     {type !== 'charge' && <span className="etiquette contour">{ETIQUETTES_TYPE_SEMAINE[type]}</span>}
+                    {nombreDuRepere(deLaSemaine) > 0 && <RepereAvertissements entrees={deLaSemaine} />}
                   </th>
                   {JOURS_COURTS.map((_, jour) => {
                     const c: Case = { semaine, jour }
                     const dedans = dansLaCase(c)
                     const cle = `${semaine}-${jour}`
                     const zone = idZone('case', semaine, jour)
+                    const duCase = entreesDesSeances(avertissements, dedans.map((x) => x.id))
                     const texte = glisse.etat ? texteDepot(glisse.etat.charge, zone) : null
                     return (
                       <td key={jour} data-zone={zone}
-                        className={`case-jour${dateDeLaCase(cycle, phase, semaine, jour) === aujourdhui ? ' aujourdhui' : ''}${texte !== null ? ' zone-valable' : ''}${glisse.etat?.zone === zone ? ' zone-survolee' : ''}`}>
+                        className={`case-jour${dateDeLaCase(cycle, phase, semaine, jour) === aujourdhui ? ' aujourdhui' : ''}${nombreDuRepere(duCase) > 0 ? ' case-avertie' : ''}${texte !== null ? ' zone-valable' : ''}${glisse.etat?.zone === zone ? ' zone-survolee' : ''}`}>
                         {texte !== null && <p className="zone-texte">{texte}</p>}
+                        {nombreDuRepere(duCase) > 0 && <RepereAvertissements entrees={duCase} />}
                         {dedans.map((s) => (
                           <EtiquetteSeance key={s.id} seance={s} cycle={cycle} saisie={glisse.etat?.charge.id === s.id}
                             onGlisser={(e) => glisse.demarrer(e, s, s.solo.nom, rappelsGlisser)} onDeplacer={() => setADeplacer(s)} />
@@ -259,6 +266,15 @@ export function VuePhase({ cycle, phases, seances, aujourdhui, ordre, selecteurV
       )}
       {glisse.etat && <FantomeGlisse libelle={glisse.etat.libelle} x={glisse.etat.x} y={glisse.etat.y} />}
     </div>
+  )
+}
+
+// Repère ambre « triangle + nombre » : le détail est dans la vue Semaine. Les avertissements gardés restent comptés.
+function RepereAvertissements({ entrees }: { entrees: ReturnType<typeof entreesDesSeances> }) {
+  return (
+    <span className="repere-avertissements" role="img" aria-label={phraseCompte(compter(entrees))}>
+      <Icone nom="avertissement" taille={16} /><span aria-hidden="true">{nombreDuRepere(entrees)}</span>
+    </span>
   )
 }
 
