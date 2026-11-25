@@ -673,3 +673,25 @@ body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-s
 /* Numéro et poignée d'une étape côte à côte (la poignée n'apparaît qu'à partir de deux étapes). */
 .etape-ligne { grid-template-columns: auto minmax(0, 1fr) auto auto; }
 .etape-tete { display: flex; align-items: center; gap: var(--espace-1); min-width: 24px; }
+
+/* Avertissements du plan en direct (D-18) : ambre pour avertir, brique pour arrêter ; jamais de bouton désactivé. */
+.repere-avertissements { display: inline-flex; align-items: center; gap: var(--espace-1); padding: 0 var(--espace-2); min-height: 24px; border-radius: var(--rayon-etiquette); background: var(--avertissement-fond); color: var(--avertissement); font-size: 14px; font-weight: 700; border: 1px solid var(--rubalise-avertissement); }
+.repere-avertissements svg { flex: none; }
+.fiche-seance.avertie { border-left: 6px solid var(--rubalise-avertissement); }
+.etape-ligne.fautive { background: var(--avertissement-fond); box-shadow: inset 4px 0 0 var(--rubalise-avertissement); padding-inline: var(--espace-2); }
+.etape-avertissements { margin-top: var(--espace-2); }
+.case-jour.case-avertie { box-shadow: inset 0 -4px 0 var(--rubalise-avertissement); background: var(--avertissement-fond); }
+.case-jour.case-avertie > .repere-avertissements { position: absolute; top: var(--espace-1); right: var(--espace-1); z-index: 1; }
+.phase-tableau th[scope="row"] .repere-avertissements { margin-top: var(--espace-1); }
+.semaine-ligne.avertie { border-top-color: var(--rubalise-avertissement); }
+.semaine-avertissements .surtitre { display: flex; align-items: center; gap: var(--espace-2); }
+.avertissement-resume { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-2) var(--espace-3); margin: 0; padding: var(--espace-2) var(--espace-3); border-left: 4px solid var(--rubalise-avertissement); background: var(--avertissement-fond); font-size: 15px; color: var(--texte-2); }
+.avertissement-resume svg { color: var(--avertissement); flex: none; }
+.avertissement-resume .bouton-discret { padding: 0 var(--espace-2); }
+/* Replié par « Je garde ce choix » : une seule ligne, discrète, mais toujours comptée dans les résumés. */
+.avertissement-replie { display: flex; flex-wrap: wrap; align-items: center; gap: var(--espace-2) var(--espace-3); padding: var(--espace-1) var(--espace-3); border-left: 4px solid var(--rubalise-avertissement); font-size: 14px; color: var(--texte-2); }
+.avertissement-replie svg { color: var(--avertissement); flex: none; }
+.avertissement-replie-texte { flex: 1; min-width: 0; }
+.avertissement-replie .bouton-discret { padding: 0 var(--espace-2); }
+.resume-avertissements { display: flex; align-items: center; gap: var(--espace-2); color: var(--avertissement); }
+.repere-lie { margin: 0; }

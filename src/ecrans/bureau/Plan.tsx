@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
-import type { AccentPhase, Cycle, DouleurDeclaree, NiveauDetail, ObjectifSpecifique, PhaseCycle, Profil, Reglages, SeancePlanifiee } from '../../donnees/modele.ts'
+import type { AccentPhase, Cycle, DouleurDeclaree, ExercicePerso, FormeDuJour, NiveauDetail, ObjectifSpecifique, PhaseCycle, Profil, Reglages, SeancePlanifiee, SeanceRealisee } from '../../donnees/modele.ts'
 import { PROFIL_VIDE } from '../../donnees/profil.ts'
 import { enregistrerCycle, enregistrerPhase, enregistrerSeancePlanifiee, lireCycles, lireExercicesPerso, lirePlanDuCycle } from '../../donnees/plan.ts'
 import { ecrire, lireTous, lireUn, supprimer, surDonneesChangees } from '../../donnees/stockage.ts'
 import { genererCycle } from '../../regles/index.ts'
+import { AUCUN_AVERTISSEMENT, avecGarde, calculerAvertissements, decalerAuLendemain, ranger } from './avertissementsPlan.ts'
 import { NouveauCycle } from './NouveauCycle.tsx'
 import { phraseBandeauPlanPropose } from './NouveauCycle.outils.ts'
 import { cycleAMontrer, nouveauCycleVide, type DemandeCycle } from './Plan.outils.ts'
@@ -45,6 +46,24 @@ async function lireDonnees(): Promise<Donnees | null> {
   return { cycle, phases, seances, objectifs }
 }
 
+// Ce que le moteur a besoin de savoir en plus du plan : douleurs, forme du jour, séances faites, réglages, exercices perso.
+interface DonneesMoteur {
+  exercicesPerso: ExercicePerso[]
+  douleurs: DouleurDeclaree[]
+  formes: FormeDuJour[]
+  realisees: SeanceRealisee[]
+  reglages: Reglages | undefined
+  maintenant: string // l'instant de la lecture : le moteur n'a pas d'horloge
+}
+
+async function lireDonneesMoteur(): Promise<DonneesMoteur> {
+  const [exercicesPerso, douleurs, formes, realisees, reglages] = await Promise.all([
+    lireExercicesPerso(), lireTous<DouleurDeclaree>('douleurs'), lireTous<FormeDuJour>('formes'),
+    lireTous<SeanceRealisee>('seancesRealisees'), lireUn<Reglages>('reglages', 'reglages'),
+  ])
+  return { exercicesPerso, douleurs, formes, realisees, reglages, maintenant: new Date().toISOString() }
+}
+
 // Rubrique Plan (ordinateur) : le cycle de 12 semaines. Les écritures passent par `src/donnees/plan.ts`.
 // `onOuvrirProfil` : ouvre la rubrique Profil (donné par la mise en page) ; sans lui, la fenêtre n'affiche pas le lien.
 export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
@@ -59,6 +78,7 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
   const vueRef = useRef<Vue>('cycle')
   const numeroRef = useRef(1)
   const [profil, setProfil] = useState<Profil | null>(null)
+  const [moteur, setMoteur] = useState<DonneesMoteur | null>(null)
   // Ce que le générateur vient de proposer : montré en tête de la vue 12 semaines (jamais bloquant).
   const [planPropose, setPlanPropose] = useState<{ cycleId: string; phrase: string; manques: string[] } | null>(null)
   // Les écritures en attente, une par document : un changement n'est jamais perdu, il est retenté.
@@ -71,9 +91,12 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
   useEffect(() => {
     recharger()
     lireProfil().then(setProfil).catch(() => {})
+    const lireMoteur = () => lireDonneesMoteur().then(setMoteur).catch(() => {})
+    void lireMoteur()
+    const arreterMoteur = surDonneesChangees(() => { void lireMoteur() })
     // Un changement venu d'un autre appareil : dans la vue Semaine, on ne remplace pas ce que tu édites,
     // on le signale si la semaine affichée a changé (la dernière modification gagne).
-    return surDonneesChangees(() => {
+    const arreterPlan = surDonneesChangees(() => {
       if (enAttente.current.size > 0) return
       lireDonnees().then((d) => {
         setEchecLecture(false)
@@ -86,6 +109,7 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
         })
       }).catch(() => setEchecLecture(true))
     })
+    return () => { arreterMoteur(); arreterPlan() }
   }, [recharger])
   useEffect(() => { vueRef.current = vue; numeroRef.current = numeroSemaine }, [vue, numeroSemaine])
   useEffect(() => () => window.clearTimeout(minuteur.current), [])
@@ -189,6 +213,33 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
     recharger()
   }
 
+  // D-18 : les avertissements sont calculés ici, une seule fois, et passés aux trois vues.
+  // Le calcul se refait à chaque changement du plan ; il n'empêche jamais d'enregistrer.
+  const avertissements = useMemo(() => {
+    if (!donnees || !moteur) return AUCUN_AVERTISSEMENT
+    const brut = calculerAvertissements({
+      cycle: donnees.cycle, phases: donnees.phases, seances: donnees.seances, objectifs: donnees.objectifs,
+      profil: profil ?? PROFIL_VIDE, ...(moteur.reglages ? { reglages: { reglesSecurite: moteur.reglages.reglesSecurite } } : {}),
+      exercicesPerso: moteur.exercicesPerso, douleurs: moteur.douleurs, formes: moteur.formes, realisees: moteur.realisees,
+      aujourdhui: jourLocal(), maintenant: moteur.maintenant,
+    })
+    return ranger(brut, donnees.cycle.avertissementsGardes, donnees)
+  }, [donnees, moteur, profil])
+
+  // « Je garde ce choix » (ou « Revoir ») : seule la clé change dans le cycle.
+  const garderAvertissement = (cle: string, garder: boolean) => {
+    if (!donnees) return
+    changerCycle({ ...donnees.cycle, avertissementsGardes: avecGarde(donnees.cycle.avertissementsGardes, cle, garder) })
+  }
+  // Correction en un clic de W-01 : la séance passe au lendemain (date + 1 jour).
+  const decalerSeance = (seanceId: string): boolean => {
+    const seance = donnees?.seances.find((s) => s.id === seanceId)
+    const decalee = donnees && seance ? decalerAuLendemain(seance, donnees.cycle, donnees.phases) : null
+    if (!decalee) return false
+    changerSeances({ ecrites: [decalee], retirees: [] })
+    return true
+  }
+
   const fenetre = nouveau && (
     <NouveauCycle profil={profil} onProposer={proposer} onCommencerVide={creer} onAnnuler={() => setNouveau(false)} onOuvrirProfil={onOuvrirProfil} />
   )
@@ -243,6 +294,9 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
           onVoirNouvelle={recharger}
           onChoisirSemaine={ouvrirSemaine}
           onChangerSeances={changerSeances}
+          avertissements={avertissements}
+          onDecaler={decalerSeance}
+          onGarder={garderAvertissement}
         />
       ) : vue === 'phase' ? (
         <VuePhase
@@ -254,6 +308,7 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
           selecteurVue={selecteurVue}
           onChoisirPhase={setOrdrePhase}
           onChangerSeances={changerSeances}
+          avertissements={avertissements}
         />
       ) : (
         <VueCycle
@@ -269,6 +324,8 @@ export function Plan({ onOuvrirProfil }: { onOuvrirProfil?: () => void } = {}) {
           onNouveauCycle={() => setNouveau(true)}
           onOuvrirSemaine={ouvrirSemaine}
           selecteurVue={selecteurVue}
+          avertissements={avertissements}
+          onGarder={garderAvertissement}
         />
       )}
       {fenetre}

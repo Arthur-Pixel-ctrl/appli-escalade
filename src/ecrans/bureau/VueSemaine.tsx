@@ -1,12 +1,13 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BandeSemaines } from '../../composants/BandeSemaines.tsx'
 import { Confirmation } from '../../composants/Confirmation.tsx'
-import { FicheSeance, type GlisseFiche } from '../../composants/FicheSeance.tsx'
+import { AvertissementDuMoteur, FicheSeance, type AvertissementsFiche, type GlisseFiche } from '../../composants/FicheSeance.tsx'
 import { idZone, lireZone, reordonnerEtapes, type ListeEtapesNom } from '../../composants/glisser.ts'
 import { FantomeGlisse } from '../../composants/FantomeGlisse.tsx'
 import { useGlisser, type RappelsGlisser } from '../../composants/useGlisser.ts'
 import { RailBibliotheque } from '../../composants/RailBibliotheque.tsx'
 import { Avertissement } from '../../composants/Avertissement.tsx'
+import { Icone } from '../../composants/Icone.tsx'
 import { BIBLIOTHEQUE } from '../../donnees/bibliotheque/index.ts'
 import { entreesDepuis, etatDe, nomQualite, type ContexteFiltre, type EntreeBibliotheque } from '../../donnees/bibliotheque/filtres.ts'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
@@ -16,6 +17,8 @@ import { PROFIL_VIDE } from '../../donnees/profil.ts'
 import { dureeSeanceType } from '../../donnees/seancesTypes.ts'
 import { lireTous, surDonneesChangees } from '../../donnees/stockage.ts'
 import { profilVersVerif, seanceDepuisType, toutesLesFiches, type DouleurVerif, type ZoneDouleur } from '../../regles/index.ts'
+import { compter, nombreDuRepere, phraseCompte, scinderMessage, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
+import { decalerAuLendemain } from './avertissementsPlan.ts'
 import { FicheDetail, type DonneesFiche } from './FicheDetail.tsx'
 import { ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, dateCourte, resumeSemaine, semaineDuJour, semainesAPlat } from './Plan.outils.ts'
 import { JOURS_LONGS, dateDeLaCase, formatDuree, nouvelleSeanceVide, seancesDeLaCase } from './VuePhase.outils.ts'
@@ -36,6 +39,12 @@ interface Props {
   onVoirNouvelle: () => void
   onChoisirSemaine: (numero: number) => void
   onChangerSeances: (changement: ChangementSeances) => void
+  /** Avertissements du moteur, calculés une fois par `Plan` (D-18). */
+  avertissements: AvertissementsDuPlan
+  /** « Décaler au lendemain » (W-01) : `Plan` écrit ; `false` si le lendemain sort du cycle. */
+  onDecaler: (seanceId: string) => boolean
+  /** « Je garde ce choix » (`garder`) ou « Revoir » : `Plan` met à jour `Cycle.avertissementsGardes`. */
+  onGarder: (cle: string, garder: boolean) => void
 }
 
 interface Contexte {
@@ -171,7 +180,7 @@ function AjouterSeanceType({ jour, choix, onAnnuler, onChoisir }: {
 }
 
 // Écran O-05 : composer les séances de la semaine. Aucun lancement de séance ici (R-6).
-export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecteurVue, changeSurTelephone, onVoirNouvelle, onChoisirSemaine, onChangerSeances }: Props) {
+export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecteurVue, changeSurTelephone, onVoirNouvelle, onChoisirSemaine, onChangerSeances, avertissements, onDecaler, onGarder }: Props) {
   const { ordre, semaine } = positionDeLaSemaine(numero)
   const phase = phases.find((p) => p.ordre === ordre) ?? phases[0]
   const [contexte, setContexte] = useState<Contexte | undefined>(undefined)
@@ -181,7 +190,16 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
   const [remplacement, setRemplacement] = useState<{ seanceId: string; index: number } | null>(null)
   const [aRetirer, setARetirer] = useState<SeancePlanifiee | null>(null)
   const [message, setMessage] = useState('')
+  const aFocaliser = useRef<string | null>(null)
   const glisse = useGlisser<Charge>()
+
+  // Après « Décaler au lendemain », l'avertissement disparaît avec son bouton : le focus va à la séance, ou au titre de la semaine si elle a changé de semaine.
+  useEffect(() => {
+    if (!aFocaliser.current) return
+    const cible = document.querySelector<HTMLElement>(`[data-seance="${aFocaliser.current}"]`) ?? document.getElementById('titre-semaine')
+    cible?.focus()
+    aFocaliser.current = null
+  }, [seances])
 
   useEffect(() => {
     const lire = () => lireContexte().then(setContexte).catch(() => {})
@@ -313,6 +331,25 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
     texteEtape: (liste, index) => (enMain.type === 'etape' ? textePour(enMain, idZone('etape', s.id, liste, index)) : null),
   })
 
+  // Sans séance : les avertissements de portée semaine (en tête), qui n'ont ni correction ni séance propre.
+  const actionsFiche = (s?: SeancePlanifiee): AvertissementsFiche => ({
+    propres: s ? avertissements.parSeance.get(s.id) ?? [] : [],
+    liees: s ? avertissements.lieesParSeance.get(s.id) ?? [] : [],
+    peutDecaler: (e) => s !== undefined && e.avertissement.code === 'W-01' && e.seanceId === s.id && decalerAuLendemain(s, cycle, phases) !== null,
+    onDecaler: (e) => {
+      if (e.seanceId && onDecaler(e.seanceId)) { setMessage('Séance décalée au lendemain.'); aFocaliser.current = e.seanceId }
+    },
+    onGarder: (e) => onGarder(e.cle, true),
+    onRouvrir: (e) => onGarder(e.cle, false),
+  })
+  const deLaSemaine = avertissements.parSemaine.get(numero) ?? []
+  const nomDeSeance = (e: EntreeAvertissement) => seances.find((x) => x.id === e.seanceId)?.solo.nom
+  const voirLaSeance = (id: string | undefined) => {
+    const el = id ? document.querySelector<HTMLElement>(`[data-seance="${id}"]`) : null
+    el?.scrollIntoView({ block: 'center' })
+    el?.focus()
+  }
+
   const fiche = ficheOuverte !== undefined ? parId.get(ficheOuverte) : undefined
   const donneesFiche: DonneesFiche | undefined = fiche && {
     entree: fiche, etat: etatDe(fiche, contexte.filtre), contexte: contexte.filtre,
@@ -360,7 +397,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
         <section className="semaine-colonne pile-large" aria-labelledby="titre-semaine">
           <div className="semaine-resume">
             <div className="pile">
-              <h2 className="titre moyen" id="titre-semaine">Semaine {numero} · {dateCourte(lundi)} au {dateCourte(ajouterJours(lundi, 6))}</h2>
+              <h2 className="titre moyen" id="titre-semaine" tabIndex={-1}>Semaine {numero} · {dateCourte(lundi)} au {dateCourte(ajouterJours(lundi, 6))}</h2>
               <p className="donnee">
                 {resume.nb === 0 ? 'Aucune séance' : `${resume.nb} séance${resume.nb > 1 ? 's' : ''} · ${resume.dures} dure${resume.dures > 1 ? 's' : ''}`}
                 {typeSemaine !== 'charge' && <> <span className="etiquette contour">{ETIQUETTES_TYPE_SEMAINE[typeSemaine]}</span></>}
@@ -377,6 +414,31 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
           </div>
           {resume.nb === 0 && <p className="texte-2">Semaine vide. Ajoute une séance type ou une séance vide, puis pose-y des protocoles de la bibliothèque.</p>}
           <p className="mention" role="status" aria-live="polite">{message}</p>
+
+          {deLaSemaine.length > 0 && (
+            <section className="semaine-avertissements pile" aria-labelledby="titre-avertissements-semaine">
+              <h3 className="surtitre" id="titre-avertissements-semaine">
+                {nombreDuRepere(deLaSemaine) > 0 && <span className="repere-avertissements"><Icone nom="avertissement" taille={20} /></span>}
+                {phraseCompte(compter(deLaSemaine))}
+              </h3>
+              <ul className="liste-simple pile">
+                {deLaSemaine.map((e) => (
+                  <li key={e.cle}>
+                    {e.seanceId === undefined ? (
+                      // Portée semaine : c'est ici le niveau le plus précis, on l'ouvre.
+                      <AvertissementDuMoteur entree={e} actions={actionsFiche()} />
+                    ) : (
+                      <p className={`avertissement-resume${e.garde ? ' garde' : ''}`}>
+                        <Icone nom={e.forme === 'arret' ? 'arret' : e.forme === 'information' ? 'information' : 'avertissement'} taille={20} />
+                        <span><strong>{nomDeSeance(e)}</strong> : {scinderMessage(e.avertissement.message).titre}{e.garde ? ' (gardé)' : ''}</span>
+                        <button type="button" className="bouton-discret" onClick={() => voirLaSeance(e.seanceId)}>Voir la séance</button>
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <ol className="semaine-jours">
             {jours.map((j) => (
@@ -401,6 +463,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
                       <FicheSeance key={s.id} seance={s} cycle={cycle} fiches={fiches} entrees={parId} contexte={contexte.filtre} couleurs={couleurs}
                         remplacement={remplacement?.seanceId === s.id ? remplacement.index : null}
                         glisse={glisseDe(s)}
+                        avertissements={actionsFiche(s)}
                         onGlisserEtape={(e, liste, index, titre) => glisse.demarrer(e, { type: 'etape', seanceId: s.id, liste, index, titre }, titre, rappelsGlisser)}
                         onChanger={ecrire} onSupprimer={() => setARetirer(s)} onVoirFiche={setFicheOuverte}
                         onRemplacer={(index) => setRemplacement({ seanceId: s.id, index })} onAnnulerRemplacement={() => setRemplacement(null)} />

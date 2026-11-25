@@ -598,6 +598,7 @@ E-17 seule : elle reprend des fichiers de E-04 à E-07 et de C-01 (toutes livré
 > 2. Affichage : `formeAffichage(a)` (C-01) donne `'information'`, `'avertissement'` ou `'arret'` pour le composant `Avertissement` (niveau « information » ajouté par D-03). Placement par `portee` et cible (`seanceId`, `etapeIndex`, `lundi`, `mesocycleOrdre`).
 > 3. « Pourquoi ? » affiche le champ `source` du moteur (pas de texte d'explication séparé). **Correction en un clic seulement pour W-01** : « Décaler au lendemain » (date + 1 jour) ; les autres avertissements n'en ont pas. Critère d'acceptation adapté en conséquence.
 > 4. « Je garde ce choix » ajoute `cleAvertissement(a)` (C-01) à `Cycle.avertissementsGardes` ; l'avertissement replié reste compté dans les résumés.
+> 5. (livraison 25/11, validé par le gérant) Le moteur ne donne pour W-01 que la séance qui arrive trop tôt. L'écran retrouve l'autre séance par le nom cité dans le message (la dernière de ce nom avant la séance visée) : juste en pratique, mais lié au texte du message. **À reprendre** (conception, Opus) : exposer `seanceLieeId` dans l'avertissement W-01 (B.3) et s'en servir dans `avertissementsPlan.ts` ; à vérifier à l'audit de fin de phase 3. Ajouts acceptés : bouton « Revoir » pour défaire « Je garde ce choix » ; « Décaler au lendemain » absent si le lendemain sort du cycle.
 
 #### D-19 · Tableau de bord — vague 3.11
 - **Modèle** : Sonnet · **Dépend de** : D-14, D-18, F2-12 · **Texte** : [taches-design.md, D-19](specs/design/taches-design.md#d-19--tableau-de-bord)

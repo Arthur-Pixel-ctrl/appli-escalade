@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type PointerEvent } from 'react'
+import { Avertissement } from './Avertissement.tsx'
 import { PastillePrise } from './PastillePrise.tsx'
 import { idZone, type ListeEtapesNom } from './glisser.ts'
 import { Icone } from './Icone.tsx'
@@ -10,6 +11,7 @@ import type { CouleurSalle } from '../donnees/salles.ts'
 import type { EtapeSeance, ObjectifGroupe } from '../moteur/types.ts'
 import type { FicheVerif } from '../regles/index.ts'
 import { formatDuree } from '../ecrans/bureau/VuePhase.outils.ts'
+import { nombreDuRepere, phraseCompte, compter, scinderMessage, type EntreeAvertissement } from '../ecrans/bureau/avertissementsPlan.ts'
 import {
   NB_OBJECTIFS_GROUPE_MAX, TEXTE_ECHAUFFEMENT_COMMUN, copierSoloVersGroupe, duretePropose, effortParDefaut, groupePasRempli, groupeVide,
   monterOuDescendre, objectifDepuisType, objectifVide, qualiteProposee, retirerDe,
@@ -27,6 +29,35 @@ export interface GlisseFiche {
   texteEtape: (liste: ListeEtapesNom, index: number) => string | null
 }
 
+/** Ce que la fiche montre des avertissements du moteur (D-18) ; les écritures restent à `Plan.tsx`. */
+export interface AvertissementsFiche {
+  /** Ceux que le moteur vise sur cette séance (portée séance ou étape). */
+  propres: EntreeAvertissement[]
+  /** Ceux d'une autre séance qui la citent (W-01 : la séance d'après). */
+  liees: EntreeAvertissement[]
+  peutDecaler: (e: EntreeAvertissement) => boolean
+  onDecaler: (e: EntreeAvertissement) => void
+  onGarder: (e: EntreeAvertissement) => void
+  onRouvrir: (e: EntreeAvertissement) => void
+}
+
+// Un avertissement du moteur : phrase, « Pourquoi ? » = la source, correction en un clic pour W-01 seulement.
+export function AvertissementDuMoteur({ entree, actions }: { entree: EntreeAvertissement; actions: AvertissementsFiche }) {
+  const { titre, suite } = scinderMessage(entree.avertissement.message)
+  const decalable = actions.peutDecaler(entree)
+  return (
+    <Avertissement
+      niveau={entree.forme}
+      titre={titre}
+      pourquoi={entree.forme === 'information' ? undefined : `Source : ${entree.avertissement.source}`}
+      {...(decalable ? { correction: { libelle: 'Décaler au lendemain', action: () => actions.onDecaler(entree) } } : {})}
+      {...(entree.forme === 'avertissement' ? { onGarder: () => actions.onGarder(entree), replie: entree.garde, onRouvrir: () => actions.onRouvrir(entree) } : {})}
+    >
+      {suite !== '' ? suite : undefined}
+    </Avertissement>
+  )
+}
+
 interface Props {
   seance: SeancePlanifiee
   cycle: Cycle
@@ -37,6 +68,7 @@ interface Props {
   /** Position de l'étape que le rail va remplacer, si un remplacement est en cours sur cette séance. */
   remplacement: number | null
   glisse?: GlisseFiche | null
+  avertissements?: AvertissementsFiche
   onGlisserEtape?: (e: PointerEvent<HTMLElement>, liste: ListeEtapesNom, index: number, titre: string) => void
   onChanger: (s: SeancePlanifiee) => void
   onSupprimer: () => void
@@ -75,8 +107,8 @@ function MenuActions({ nom, actions }: { nom: string; actions: { libelle: string
   )
 }
 
-function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement, glisse, onGlisserEtape, onChanger, onVoirFiche, onRemplacer }: {
-  seanceId: string; liste: ListeEtapesNom
+function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement, glisse, avertissements, onGlisserEtape, onChanger, onVoirFiche, onRemplacer }: {
+  seanceId: string; liste: ListeEtapesNom; avertissements?: { de: (index: number) => EntreeAvertissement[]; actions: AvertissementsFiche }
   etapes: EtapeSeance[]; entrees: Map<string, EntreeBibliotheque>; contexte: ContexteFiltre; remplacement: number | null
   glisse?: GlisseFiche | null; onGlisserEtape?: Props['onGlisserEtape']
   onChanger: (e: EtapeSeance[]) => void; onVoirFiche: (id: string) => void; onRemplacer: (i: number) => void
@@ -89,9 +121,10 @@ function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement,
         const texteDepot = glisse?.texteEtape(liste, i) ?? null
         const saisie = glisse?.source?.liste === liste && glisse.source.index === i
         const zone = idZone('etape', seanceId, liste, i)
+        const duMoteur = avertissements?.de(i) ?? []
         return (
           <li key={e.id} data-zone={zone}
-            className={`etape-ligne${remplacement === i ? ' a-remplacer' : ''}${texteDepot !== null ? ' zone-valable' : ''}${glisse?.zoneActive === zone ? ' zone-survolee' : ''}${saisie ? ' glisse-source' : ''}`}>
+            className={`etape-ligne${duMoteur.length > 0 ? ' fautive' : ''}${remplacement === i ? ' a-remplacer' : ''}${texteDepot !== null ? ' zone-valable' : ''}${glisse?.zoneActive === zone ? ' zone-survolee' : ''}${saisie ? ' glisse-source' : ''}`}>
             {/* La poignée s'ajoute au numéro sans le remplacer : l'ordre des étapes reste lisible. */}
             <span className="etape-tete">
               {onGlisserEtape && etapes.length > 1 && (
@@ -110,6 +143,11 @@ function ListeEtapes({ seanceId, liste, etapes, entrees, contexte, remplacement,
               {etat && etat.contreIndications.length > 0 && <p className="texte-3 message-erreur">{texteContreIndication(etat.contreIndications)}</p>}
               {remplacement === i && <p className="texte-3">Choisis dans la bibliothèque la fiche qui la remplace.</p>}
               {texteDepot !== null && <p className="zone-texte">{texteDepot}</p>}
+              {avertissements && duMoteur.length > 0 && (
+                <div className="pile etape-avertissements">
+                  {duMoteur.map((x) => <AvertissementDuMoteur key={x.cle} entree={x} actions={avertissements.actions} />)}
+                </div>
+              )}
             </div>
             <span className="donnee">{formatDuree(e.dureeMin) ?? '—'}</span>
             <MenuActions nom={e.titre} actions={[
@@ -231,7 +269,7 @@ function NomEditable({ nom, onChanger }: { nom: string; onChanger: (nom: string)
 
 // La fiche d'une séance (O-05) : en-tête, réglages choisis, puis la version solo ou la version groupe.
 // Le niveau affiché ne change que la lecture : ici on édite toujours les étapes (R-9) ; les deux autres niveaux viennent avec D-26.
-export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs, remplacement, glisse, onGlisserEtape, onChanger, onSupprimer, onVoirFiche, onRemplacer, onAnnulerRemplacement }: Props) {
+export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs, remplacement, glisse, avertissements, onGlisserEtape, onChanger, onSupprimer, onVoirFiche, onRemplacer, onAnnulerRemplacement }: Props) {
   const [version, setVersion] = useState<'solo' | 'groupe'>('solo')
   const idQualite = useId()
   const surGroupe = version === 'groupe'
@@ -256,19 +294,41 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
   const duree = surGroupe ? (groupe?.dureeMin ?? 0) : dureeVersionSolo(seance.solo)
   const fichesGroupe = [...entrees.values()].filter((e) => e.groupe)
 
+  // Avertissements du moteur : ceux de la séance en haut, ceux d'une étape sous sa ligne (niveau le plus précis).
+  const propres = avertissements?.propres ?? []
+  const deSeance = propres.filter((e) => e.avertissement.etapeIndex === undefined)
+  const deEtape = (liste: ListeEtapesNom) => (index: number) =>
+    propres.filter((e) => e.avertissement.etapeIndex === index && (e.avertissement.version === 'groupe') === (liste === 'minibloc'))
+  const etapesAvert = (liste: ListeEtapesNom) => (avertissements ? { de: deEtape(liste), actions: avertissements } : undefined)
+  const nbRepere = nombreDuRepere([...propres, ...(avertissements?.liees ?? [])])
+
   return (
-    <article className={`fiche fiche-seance${glisse?.texteSeance != null ? ' zone-valable' : ''}${glisse?.zoneActive === idZone('seance', seance.id) ? ' zone-survolee' : ''}`}
-      data-zone={idZone('seance', seance.id)} aria-label={`Séance : ${seance.solo.nom}`}>
+    <article className={`fiche fiche-seance${nbRepere > 0 ? ' avertie' : ''}${glisse?.texteSeance != null ? ' zone-valable' : ''}${glisse?.zoneActive === idZone('seance', seance.id) ? ' zone-survolee' : ''}`}
+      data-zone={idZone('seance', seance.id)} data-seance={seance.id} tabIndex={-1} aria-label={`Séance : ${seance.solo.nom}`}>
       {glisse?.texteSeance != null && <p className="zone-texte">{glisse.texteSeance}</p>}
       <header className="fiche-seance-tete">
         <span className={actuelle.durete === 'dure' ? 'etiquette' : 'etiquette contour'}>{actuelle.durete === 'dure' ? 'Dure' : 'Légère'}</span>
         <NomEditable key={`${version}-${nomEnregistre}`} nom={nomEnregistre} onChanger={(nom) => changerVersion({ nom })} />
+        {avertissements && nbRepere > 0 && (
+          <span className="repere-avertissements" role="img" aria-label={phraseCompte(compter([...propres, ...avertissements.liees]))}>
+            <Icone nom="avertissement" taille={20} /><span aria-hidden="true">{nbRepere}</span>
+          </span>
+        )}
         <span className="donnee" aria-label={surGroupe && duree === 0 ? 'Durée non précisée' : `Durée ${formatDuree(duree) ?? 'nulle'}`}>{formatDuree(duree) ?? '—'}</span>
         <div className="choix deux fiche-seance-version" role="group" aria-label="Version affichée">
           <button type="button" aria-pressed={!surGroupe} onClick={() => setVersion('solo')}>SOLO</button>
           <button type="button" aria-pressed={surGroupe} onClick={() => setVersion('groupe')}>GROUPE</button>
         </div>
       </header>
+
+      {avertissements && (deSeance.length > 0 || avertissements.liees.length > 0) && (
+        <section className="pile" aria-label="Avertissements de la séance">
+          {deSeance.map((e) => <AvertissementDuMoteur key={e.cle} entree={e} actions={avertissements} />)}
+          {avertissements.liees.map((e) => (
+            <p key={e.cle} className="texte-3 repere-lie">Cette séance est citée par l’avertissement de la séance qui la suit.</p>
+          ))}
+        </section>
+      )}
 
       <section className="fiche-seance-reglages" aria-label="Réglages de la séance">
         <fieldset className="question">
@@ -308,7 +368,7 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
         <section aria-label="Étapes de la version solo" className="pile">
           {seance.solo.etapes.length === 0
             ? <p className="texte-2">Cette séance n’a pas encore d’étapes. Ajoute-en depuis la bibliothèque, à gauche.</p>
-            : <ListeEtapes seanceId={seance.id} liste="solo" glisse={glisse} onGlisserEtape={onGlisserEtape} etapes={seance.solo.etapes} entrees={entrees} contexte={contexte} remplacement={remplacement}
+            : <ListeEtapes seanceId={seance.id} liste="solo" glisse={glisse} avertissements={etapesAvert('solo')} onGlisserEtape={onGlisserEtape} etapes={seance.solo.etapes} entrees={entrees} contexte={contexte} remplacement={remplacement}
                 onChanger={(etapes) => changerSolo({ etapes })} onVoirFiche={onVoirFiche} onRemplacer={onRemplacer} />}
           {remplacement !== null && <button type="button" className="bouton-texte" onClick={onAnnulerRemplacement}>Annuler le remplacement</button>}
         </section>
@@ -338,7 +398,7 @@ export function FicheSeance({ seance, cycle, fiches, entrees, contexte, couleurs
             </fieldset>
             {groupe.miniBloc && (groupe.miniBloc.etapes.length === 0
               ? <p className="texte-3">Mini-bloc vide : « Ajouter à… » dans la bibliothèque propose « mini-bloc de la version groupe ».</p>
-              : <ListeEtapes seanceId={seance.id} liste="minibloc" glisse={glisse} onGlisserEtape={onGlisserEtape} etapes={groupe.miniBloc.etapes} entrees={entrees} contexte={contexte} remplacement={null}
+              : <ListeEtapes seanceId={seance.id} liste="minibloc" glisse={glisse} avertissements={etapesAvert('minibloc')} onGlisserEtape={onGlisserEtape} etapes={groupe.miniBloc.etapes} entrees={entrees} contexte={contexte} remplacement={null}
                   onChanger={(etapes) => changerGroupe({ ...groupe, miniBloc: { moment: groupe.miniBloc!.moment, etapes } })}
                   onVoirFiche={onVoirFiche} onRemplacer={() => {}} />)}
           </div>

@@ -81,6 +81,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-25 | Nouveau cycle : rappel des jours et lieux du profil, accents préremplis selon le profil, niveau proposé selon les accents, « Proposer un plan » (cycle complet en brouillon, vérifié par le moteur) ou « Commencer vide » | Fait |
 | D-13 | Créer un exercice personnel sur ordinateur : formulaire avec aperçu en direct, « Essayer le chrono », référence de livre (titre et page, sans rien recopier), questions de sécurité où « Je ne sais pas » compte comme oui | Fait |
 | D-17 | Glisser-déposer dans le plan, à la souris et au doigt : une fiche du rail vers un jour ou une séance, les étapes dans une séance, une séance d'un jour à l'autre dans la vue Phase ; Échap annule ; tout reste faisable au clavier | Fait |
+| D-18 | Avertissements de sécurité en direct dans le plan : résumé en tête de semaine, repère et ligne surlignée sur la séance, repère ambre dans les vues Phase et 12 semaines, « Pourquoi ? » (source), « Décaler au lendemain » pour les 48 h, « Je garde ce choix » ; rien n'est bloqué | Fait |
 
 ## Ouvrir l'app
 

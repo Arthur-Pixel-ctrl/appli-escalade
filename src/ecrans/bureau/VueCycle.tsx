@@ -6,6 +6,9 @@ import { NIVEAUX_DETAIL, type AccentPhase, type Cycle, type DateISO, type Niveau
 import { ETIQUETTES_NIVEAU } from '../../donnees/niveaux.ts'
 import { ajouterJours, debutPhase, debutSemaine, finCycle } from '../../donnees/plan.ts'
 import { estProposeSeulementALaMain, objectifsPourAccent } from '../../donnees/objectifsSpecifiques.ts'
+import { AvertissementDuMoteur, type AvertissementsFiche } from '../../composants/FicheSeance.tsx'
+import { Icone } from '../../composants/Icone.tsx'
+import { compter, nombreDuRepere, phraseCompte, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
 import {
   ACCENTS, ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, NB_OBJECTIFS_MAX, REDUCTIONS_ALLEGEE, REDUCTION_PAR_DEFAUT,
   chargeRelative, dateCourte, dateLongue, estUnLundi, resumeSemaine, semaineDuJour, semainesAPlat, seancesAvecNiveauPropre,
@@ -30,12 +33,21 @@ interface Props {
   onOuvrirSemaine: (numero: number) => void
   /** Le sélecteur « 12 semaines / Phase / Semaine », tenu par Plan.tsx. */
   selecteurVue: ReactNode
+  /** Avertissements du moteur, calculés une fois par `Plan` : ici, des repères ambre par semaine et un résumé en tête (D-18). */
+  avertissements: AvertissementsDuPlan
+  /** « Je garde ce choix » (`garder`) ou « Revoir » : `Plan` met à jour `Cycle.avertissementsGardes`. */
+  onGarder: (cle: string, garder: boolean) => void
 }
 
 const TYPES_CHOISIS: SemainePlan['type'][] = ['charge', 'allegee', 'affutage']
 
 // Écran O-03 : la structure du cycle, en trois colonnes de phases.
-export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, onOuvrirSemaine, selecteurVue }: Props) {
+export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, onOuvrirSemaine, selecteurVue, avertissements, onGarder }: Props) {
+  // Ici seuls les avertissements de plan et de phase s'ouvrent : pas de séance, donc pas de correction en un clic.
+  const actionsPlan: AvertissementsFiche = {
+    propres: [], liees: [], peutDecaler: () => false, onDecaler: () => {},
+    onGarder: (e) => onGarder(e.cle, true), onRouvrir: (e) => onGarder(e.cle, false),
+  }
   const [niveauDemande, setNiveauDemande] = useState<NiveauDetail | null>(null)
   const [validation, setValidation] = useState(false)
   const [phaseObjectifs, setPhaseObjectifs] = useState<PhaseCycle | null>(null)
@@ -97,6 +109,8 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
 
       <div className="plan-selecteur pile">{selecteurVue}</div>
 
+      <ResumeAvertissements entrees={avertissements.entrees} duPlan={avertissements.duPlan} actions={actionsPlan} />
+
       <BandeSemaines
         semaines={plat.map((s) => ({
           numero: s.numero,
@@ -118,6 +132,8 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
             minutesMax={minutesMax}
             numeroEnCours={position?.numero ?? null}
             enregistrerLigne={enregistrerLigne}
+            avertissements={avertissements}
+            actionsAvertissements={actionsPlan}
             onPhase={onPhase}
             onChoisirObjectifs={() => setPhaseObjectifs(phase)}
             onOuvrirSemaine={onOuvrirSemaine}
@@ -229,7 +245,7 @@ function ObjectifDuCycle({ cycle, onChanger }: { cycle: Cycle; onChanger: (o: Cy
 
 // ——— Colonne d'une phase ———
 
-function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCours, enregistrerLigne, onPhase, onChoisirObjectifs, onOuvrirSemaine }: {
+function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCours, enregistrerLigne, avertissements, actionsAvertissements, onPhase, onChoisirObjectifs, onOuvrirSemaine }: {
   cycle: Cycle
   phase: PhaseCycle
   seances: SeancePlanifiee[]
@@ -237,6 +253,8 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
   minutesMax: number
   numeroEnCours: number | null
   enregistrerLigne: (numero: number, el: HTMLElement | null) => void
+  avertissements: AvertissementsDuPlan
+  actionsAvertissements: AvertissementsFiche
   onPhase: (p: PhaseCycle) => void
   onChoisirObjectifs: () => void
   onOuvrirSemaine: (numero: number) => void
@@ -245,6 +263,8 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
   const idAideObjectifs = useId()
   const pleine = objectifs.length >= NB_OBJECTIFS_MAX
   const debut = debutPhase(cycle, phase)
+  // Rattachés à la phase seule (ni semaine ni séance) : on les ouvre ici, au niveau le plus précis.
+  const duNiveauPhase = (avertissements.parPhase.get(phase.ordre) ?? []).filter((e) => e.semaine === null && e.seanceId === undefined)
 
   const changerSemaine = (numero: number, modif: Partial<SemainePlan>) => {
     onPhase({
@@ -290,22 +310,35 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
         </p>
       </div>
 
+      {duNiveauPhase.length > 0 && (
+        <div className="pile" aria-label={`Avertissements de la phase ${phase.ordre}`}>
+          {duNiveauPhase.map((e) => <AvertissementDuMoteur key={e.cle} entree={e} actions={actionsAvertissements} />)}
+        </div>
+      )}
+
       <ol className="plan-semaines">
         {phase.semaines.map((s) => {
           const numero = (phase.ordre - 1) * 4 + s.numero
           const resume = resumeSemaine(seances, phase.id, s.numero)
           const allegee = s.type !== 'charge'
+          const deLaSemaine = avertissements.parSemaine.get(numero) ?? []
+          const repere = nombreDuRepere(deLaSemaine)
           return (
             <li
               key={s.numero}
               ref={(el) => enregistrerLigne(numero, el)}
               tabIndex={-1}
-              className={`semaine-ligne${allegee ? ' allegee' : ''}${numero === numeroEnCours ? ' en-cours' : ''}`}
+              className={`semaine-ligne${allegee ? ' allegee' : ''}${repere > 0 ? ' avertie' : ''}${numero === numeroEnCours ? ' en-cours' : ''}`}
               aria-current={numero === numeroEnCours ? 'date' : undefined}
             >
               <div className="semaine-tete">
                 <span className="mention">S{numero} · {dateCourte(debutSemaine(cycle, phase, s.numero))}</span>
                 {allegee && <span className="etiquette contour">{ETIQUETTES_TYPE_SEMAINE[s.type]}</span>}
+                {repere > 0 && (
+                  <span className="repere-avertissements" role="img" aria-label={phraseCompte(compter(deLaSemaine))}>
+                    <Icone nom="avertissement" taille={16} /><span aria-hidden="true">{repere}</span>
+                  </span>
+                )}
               </div>
               <p className="semaine-resume">
                 <span className="donnee">{resume.nb === 0 ? 'Aucune séance' : `${resume.nb} séance${resume.nb > 1 ? 's' : ''}`}</span>
@@ -338,6 +371,17 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
           )
         })}
       </ol>
+    </section>
+  )
+}
+
+// Résumé du plan en tête de la vue 12 semaines : les comptes, avertissements gardés compris. Le détail est dans la vue Semaine.
+function ResumeAvertissements({ entrees, duPlan, actions }: { entrees: EntreeAvertissement[]; duPlan: EntreeAvertissement[]; actions: AvertissementsFiche }) {
+  if (entrees.length === 0) return null
+  return (
+    <section className="pile" aria-label="Avertissements du plan">
+      <p className="donnee resume-avertissements"><Icone nom="avertissement" taille={20} /> {phraseCompte(compter(entrees))}</p>
+      {duPlan.map((e) => <AvertissementDuMoteur key={e.cle} entree={e} actions={actions} />)}
     </section>
   )
 }
