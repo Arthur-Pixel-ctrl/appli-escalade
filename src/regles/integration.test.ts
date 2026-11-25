@@ -5,7 +5,7 @@ import type { PartieSeance, SeancePlanifiee } from '../donnees/modele.ts'
 import { EXEMPLE_SEANCE_PLANIFIEE } from '../donnees/exemplesV2.ts'
 import { fichesDeLaBibliotheque } from './adaptateur.ts'
 import { contexteDeReference, PROFIL_DE_REFERENCE, seanceSolo } from './exemples.ts'
-import { etapeDepuisProtocole, formeAffichage, seanceVersVerif } from './passerelles.ts'
+import { etapeDepuisProtocole, formeAffichage, realiseeVersVerif, seanceVersVerif } from './passerelles.ts'
 import {
   cleAvertissement,
   verifierJour,
@@ -78,6 +78,7 @@ describe('B.11 : cas 1 à 12', () => {
     expect(w01.length).toBeGreaterThan(0)
     expect(w01.every((a) => a.niveau === 'fort' && a.seanceId === 'tra')).toBe(true)
     expect(codes(alertes).filter((c) => c !== 'W-01')).toEqual([])
+    expect(w01[0].seanceLieeId).toBe('doi') // consolidation 25/11 : la séance d'avant, par identifiant
   })
 
   it('cas 3 : frontière de semaine, W-01 fort sur la séance du 30', () => {
@@ -89,7 +90,7 @@ describe('B.11 : cas 1 à 12', () => {
     const ctx = contexteDeReference()
     const w01 = [...verifierSemaine(L1, p, ctx), ...verifierSemaine('2026-11-30', p, ctx)].filter((a) => a.code === 'W-01')
     expect(w01).toHaveLength(1)
-    expect(w01[0]).toMatchObject({ niveau: 'fort', seanceId: 'lun' })
+    expect(w01[0]).toMatchObject({ niveau: 'fort', seanceId: 'lun', seanceLieeId: 'dim' })
     // Une seule fois aussi sur tout le plan.
     expect(seulement(verifierPlan(p, ctx), 'W-01')).toHaveLength(1)
   })
@@ -439,6 +440,51 @@ describe('dédoublonnage et tri', () => {
   })
 })
 
+describe('B.11 : cas 20, séance liée de W-01 (consolidation 25/11, audit phase 3)', () => {
+  /** La semaine du cas 2 : la séance « doi » du 24, « tra » déplacée au 25. */
+  const seancesDuCas2 = () => {
+    const [doi, tra, end] = semaineConforme()
+    return [doi, { ...tra, date: '2026-11-25' }, end]
+  }
+  const w01Du = (seances: SeanceVerif[]) => seulement(verifierPlan(plan([semaine(L1)], seances), contexteDeReference()), 'W-01')
+
+  it('cas 20 : W-01 fort sur la séance du 25, avec seanceLieeId = séance du 24, clé inchangée', () => {
+    const w01 = w01Du(seancesDuCas2())
+    expect(w01).toHaveLength(1)
+    expect(w01[0]).toMatchObject({ niveau: 'fort', seanceId: 'tra', seanceLieeId: 'doi' })
+    expect(cleAvertissement(w01[0])).toBe('W-01|tra||||')
+  })
+  it('cas 20 (a) : la séance du 24 est faite : même seanceLieeId', () => {
+    const [doi, ...reste] = seancesDuCas2()
+    const faite = { ...doi, realisee: { version: 'solo' as const, finLe: '2026-11-24T19:00:00.000Z', dureeMin: 60, effortPercu: 8, marqueurs: ['maximale' as const] } }
+    const w01 = w01Du([faite, ...reste])
+    expect(w01).toHaveLength(1)
+    expect(w01[0].seanceLieeId).toBe('doi')
+    expect(cleAvertissement(w01[0])).toBe('W-01|tra||||')
+  })
+  it('cas 20 (b) : une séance légère homonyme le 25 ne change pas seanceLieeId', () => {
+    const [doi, tra, end] = seancesDuCas2()
+    const legere = seanceSolo('leg', '2026-11-25', [ECHAUFFEMENT], { nom: doi.nom, durete: 'legere' })
+    const w01 = w01Du([doi, tra, end, legere])
+    expect(w01).toHaveLength(1)
+    expect(w01[0]).toMatchObject({ seanceId: 'tra', seanceLieeId: 'doi' })
+  })
+  it('cas 20 (c) : séance du 24 faite hors plan : W-01 sans seanceLieeId, même clé', () => {
+    const [, tra, end] = seancesDuCas2()
+    const horsPlan = realiseeVersVerif({
+      id: 'libre', versionFormat: 1, creeLe: '2026-11-24T19:00:00.000Z', modifieLe: '2026-11-24T19:00:00.000Z', date: '2026-11-24',
+      mode: 'libre', nom: 'Grimpe libre', durete: 'dure', dureeMin: 60, effortPercu: 8, peau: 3, douleur: false,
+      etapes: [], objectifs: [], blocs: [], marqueurs: ['maximale'],
+    })
+    expect(horsPlan.horsPlan).toBe(true)
+    const w01 = w01Du([horsPlan, tra, end])
+    expect(w01).toHaveLength(1)
+    expect(w01[0]).toMatchObject({ niveau: 'fort', seanceId: 'tra' })
+    expect(w01[0]).not.toHaveProperty('seanceLieeId')
+    expect(cleAvertissement(w01[0])).toBe('W-01|tra||||')
+  })
+})
+
 describe('B.11 : cas 19, principal hors étapes (consolidation 24/11)', () => {
   const P = 'doigts-suspensions-max-lestees'
   const fiches = fichesDeLaBibliotheque()
@@ -489,6 +535,8 @@ describe('B.11 : cas 19, principal hors étapes (consolidation 24/11)', () => {
     expect(s27).not.toHaveProperty('etapeIndex')
     expect(s27.message).toBe(MESSAGE_S27)
     expect(seulement(alertes, 'W-01')[0].niveau).toBe('fort')
+    // consolidation 25/11 : S-03 n'a aucun prérequis à null ici (la poutre est « occasionnelle »), donc pas de nonRenseignes
+    expect(s03).not.toHaveProperty('nonRenseignes')
   })
 
   it('cas 19 (a) : niveau grandes lignes, les mêmes trois avertissements', () => {
@@ -511,6 +559,24 @@ describe('B.11 : cas 19, principal hors étapes (consolidation 24/11)', () => {
     const s = seanceDu25({}, null)
     expect(s.solo).not.toHaveProperty('principauxHorsEtapes')
     expect(semaineDu(s)).toEqual([])
+  })
+
+  it('cas 19 (d) : principal inconnu, S-01 fort seul, message propre ; sans étapes, S-01 de portée étape et S-26', () => {
+    const MESSAGE_S01 = "Cet exercice n'existe pas dans ta bibliothèque (fiche-inventee). Choisis un autre exercice principal pour la partie qui le cite."
+    const avecPrincipal = (refId: string): PartieSeance[] => [
+      { titre: 'Échauffement', dureeMin: 30 },
+      { titre: 'Effort principal', dureeMin: 40, principal: { source: 'bibliotheque', refId } },
+    ]
+    const alertes = semaineDu(seanceDu25({}, avecPrincipal('fiche-inventee')))
+    expect(codes(alertes)).toEqual(['S-01'])
+    expect(alertes[0]).toMatchObject({ niveau: 'fort', portee: 'seance', version: 'solo', sujet: 'fiche-inventee', seanceId: 'tp', message: MESSAGE_S01 })
+    expect(alertes[0]).not.toHaveProperty('etapeIndex')
+
+    const sansEtapes = seanceDu25({ solo: { nom: 'Tractions et poutre', durete: 'dure', etapes: [], parties: avecPrincipal('fiche-inventee') } })
+    const a2 = semaineDu(sansEtapes)
+    expect(codes(a2).sort()).toEqual(['S-01', 'S-26'])
+    expect(seulement(a2, 'S-01')[0]).toMatchObject({ portee: 'etape', etapeIndex: 0, message: MESSAGE_S01 })
+    expect(seulement(a2, 'S-26')[0].niveau).toBe('information')
   })
 
   it('les 18 premiers cas restent identiques : le cas 1 est vide', () => {

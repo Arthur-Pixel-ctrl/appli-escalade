@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { contexteDeReference, PROFIL_DE_REFERENCE, seanceSolo } from './exemples.ts'
-import { manquesPrerequis, verifierSeanceProfil } from './verifSeanceProfil.ts'
-import type { Avertissement, ContexteVerif, DouleurVerif, ProfilVerif, SeanceVerif } from './types.ts'
+import { manquesPrerequis, prerequisNonRenseignes, verifierSeanceProfil } from './verifSeanceProfil.ts'
+import type { Avertissement, ContexteVerif, DouleurVerif, Prerequis, ProfilVerif, SeanceVerif } from './types.ts'
 
 const JOUR = '2026-11-23'
 
@@ -282,5 +282,62 @@ describe('principaux hors étapes (consolidation 24/11)', () => {
   })
   it('sans principal hors étapes, rien ne change', () => {
     expect(verifierSeanceProfil(seanceAvec([]), contexteDeReference(), 'utilisateur')).toEqual([])
+  })
+})
+
+describe('prerequisNonRenseignes et S-03 (consolidation 25/11, audit phase 3)', () => {
+  it('un cas par champ, dans l\'ordre', () => {
+    expect(prerequisNonRenseignes({ tractionsStrictesMin: 10 }, profil({ tractionsStrictesMax: null }))).toEqual(['tractionsStrictesMax'])
+    expect(prerequisNonRenseignes({ test15sSur25mm: true }, profil({ test15sSur25mm: null }))).toEqual(['test15sSur25mm'])
+    expect(prerequisNonRenseignes({ niveauBlocMin: '7A' }, profil({ niveauBloc: null }))).toEqual(['niveauBloc'])
+    expect(prerequisNonRenseignes({ adulte: true }, profil({ adulte: null }))).toEqual(['adulte'])
+    expect(
+      prerequisNonRenseignes(
+        { tractionsStrictesMin: 10, test15sSur25mm: true, niveauBlocMin: '7A', adulte: true },
+        profil({ tractionsStrictesMax: null, test15sSur25mm: null, niveauBloc: null, adulte: null }),
+      ),
+    ).toEqual(['tractionsStrictesMax', 'test15sSur25mm', 'niveauBloc', 'adulte'])
+  })
+  it('une valeur false ou trop basse est renseignée : absente', () => {
+    const exigeant: Prerequis = { tractionsStrictesMin: 10, test15sSur25mm: true, niveauBlocMin: '7A', adulte: true }
+    expect(prerequisNonRenseignes(exigeant, profil({ tractionsStrictesMax: 3, test15sSur25mm: false, niveauBloc: '5A', adulte: false }))).toEqual([])
+  })
+  it('un prérequis non demandé n\'est jamais listé, même si le profil est vide', () => {
+    expect(prerequisNonRenseignes({}, profil({ tractionsStrictesMax: null, test15sSur25mm: null, niveauBloc: null, adulte: null }))).toEqual([])
+  })
+  it('cas 5 de B.11 : S-03 porte nonRenseignes, sa variante à 5 tractions non', () => {
+    const sans = verifier(['traction-lestee-force-lattice'], { profil: profil({ tractionsStrictesMax: null }) }).find((x) => x.code === 'S-03')
+    expect(sans?.nonRenseignes).toEqual(['tractionsStrictesMax'])
+    const avec = verifier(['traction-lestee-force-lattice'], { profil: profil({ tractionsStrictesMax: 5 }) }).find((x) => x.code === 'S-03')
+    expect(avec?.message).toContain('10 tractions strictes (tu en fais 5)')
+    expect(avec).not.toHaveProperty('nonRenseignes')
+  })
+  it('adulte à null avec une fiche qui demande adulte : [\'adulte\']', () => {
+    const a = verifier(['doigts-suspensions-max-lestees'], { profil: profil({ adulte: null }) }).find((x) => x.code === 'S-03')
+    expect(a?.nonRenseignes).toEqual(['adulte'])
+  })
+})
+
+describe('S-01 sur un exercice principal de partie (consolidation 25/11, audit phase 3)', () => {
+  const MESSAGE = "Cet exercice n'existe pas dans ta bibliothèque (fiche-inventee). Choisis un autre exercice principal pour la partie qui le cite."
+  it('étape réelle : message actuel', () => {
+    expect(verifier(['fiche-inventee'])[0].message).toBe(
+      "Cet exercice n'existe pas dans ta bibliothèque (fiche-inventee). Remplace-le ou supprime l'étape.",
+    )
+  })
+  it('principal hors étapes inconnu : nouveau message, même cible qu\'avant', () => {
+    const s = seanceSolo('s1', JOUR, ['echauffement-general'])
+    s.solo.principauxHorsEtapes = ['fiche-inventee']
+    const a = verifierSeanceProfil(s, contexteDeReference(), 'utilisateur')
+    expect(a).toHaveLength(1)
+    expect(a[0]).toMatchObject({ code: 'S-01', niveau: 'fort', portee: 'seance', version: 'solo', sujet: 'fiche-inventee', seanceId: 's1', message: MESSAGE })
+    expect(a[0]).not.toHaveProperty('etapeIndex')
+  })
+  it('séance sans étapes détaillées dont le principal est inconnu : S-01 de portée étape, nouveau message', () => {
+    const s = seanceSolo('s1', JOUR, ['fiche-inventee'])
+    s.solo.etapesDetaillees = false
+    const a = verifierSeanceProfil(s, contexteDeReference(), 'utilisateur')
+    expect(a).toHaveLength(1)
+    expect(a[0]).toMatchObject({ code: 'S-01', portee: 'etape', version: 'solo', etapeIndex: 0, message: MESSAGE })
   })
 })

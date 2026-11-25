@@ -415,3 +415,41 @@ describe('principaux hors étapes (consolidation 24/11)', () => {
     expect(a.map((x) => [x.code, x.seanceId])).toEqual([['W-01', 'b']])
   })
 })
+
+describe('W-01 · séance liée (consolidation 25/11, audit phase 3)', () => {
+  const MESSAGE = '« Bloc » (mercredi 25) arrive moins de 48 h après « Doigts » (mardi 24) : deux séances maximales. ' +
+    "Décale-la d'un jour ou fais sa version légère."
+  const prevue = () => seanceSolo('a', MAR, [MAXIMALE], { nom: 'Doigts' })
+  const seconde = () => seanceSolo('b', MER, [BLOC_LIMITE], { nom: 'Bloc' })
+  const realisee = (finLe: string) => ({
+    version: 'solo' as const, finLe, dureeMin: 60, effortPercu: 8, marqueurs: ['maximale' as const],
+  })
+
+  it('entre deux séances prévues : seanceLieeId est l\'identifiant de la première', () => {
+    const [alerte] = verifierEspacement([prevue(), seconde()], ctx)
+    expect(alerte.seanceLieeId).toBe('a')
+    expect(alerte.message).toBe(MESSAGE)
+  })
+  it('première réalisée hors plan : W-01 sans seanceLieeId', () => {
+    const a = { ...prevue(), horsPlan: true as const, realisee: realisee('2026-11-24T20:00:00.000Z') }
+    const [alerte] = verifierEspacement([a, seconde()], ctx)
+    expect(alerte.code).toBe('W-01')
+    expect(alerte).not.toHaveProperty('seanceLieeId')
+  })
+  it('première prévue puis faite (sans horsPlan) : seanceLieeId présent', () => {
+    const a = { ...prevue(), realisee: realisee('2026-11-24T20:00:00.000Z') }
+    const [alerte] = verifierEspacement([a, seconde()], ctx)
+    expect(alerte.seanceLieeId).toBe('a')
+  })
+  it('une séance légère homonyme le jour de la seconde ne change pas seanceLieeId', () => {
+    const legere = seanceSolo('c', MER, ['echauffement-general'], { nom: 'Doigts', durete: 'legere' })
+    const alertes = verifierEspacement([prevue(), seconde(), legere], ctx)
+    expect(alertes).toHaveLength(1)
+    expect(alertes[0].seanceLieeId).toBe('a')
+  })
+  it('la clé « Je garde ce choix » ne dépend pas de seanceLieeId', () => {
+    const [alerte] = verifierEspacement([prevue(), seconde()], ctx)
+    const { seanceLieeId: _ignore, ...sans } = alerte
+    expect(cleAvertissement(alerte)).toBe(cleAvertissement(sans))
+  })
+})

@@ -19,7 +19,7 @@ export interface EntreeAvertissement {
   garde: boolean
   /** Séance qui porte l'avertissement (celle que le moteur vise). */
   seanceId?: string
-  /** Pour W-01 : l'autre séance de la paire, celle d'avant. */
+  /** Pour W-01 : l'autre séance de la paire, celle d'avant, donnée par le moteur (B.3). */
   seanceLieeId?: string
   /** Numéro de semaine du cycle (1 à 12), quand l'avertissement se rattache à une semaine. */
   semaine: number | null
@@ -85,21 +85,6 @@ function semaineDuLundi(cycle: Cycle, phases: PhaseCycle[], lundi: DateISO): num
   return null
 }
 
-/**
- * W-01 vise la séance qui arrive trop tôt ; le message nomme celle d'avant (« après « X » (jour) »).
- * Le moteur ne donne pas son identifiant : on prend la dernière séance de ce nom avant la séance visée.
- */
-export function seanceDAvantPourW01(a: Avertissement, seances: SeancePlanifiee[]): string | undefined {
-  if (a.code !== 'W-01' || a.seanceId === undefined) return undefined
-  const visee = seances.find((s) => s.id === a.seanceId)
-  const nom = /après « (.+?) » \(/.exec(a.message)?.[1]
-  if (!visee || nom === undefined) return undefined
-  const avant = seances
-    .filter((s) => !s.supprimeLe && s.id !== visee.id && s.solo.nom === nom && s.date <= visee.date)
-    .sort((x, y) => (x.date < y.date ? 1 : x.date > y.date ? -1 : 0))
-  return avant[0]?.id
-}
-
 function ajouterA<K>(table: Map<K, EntreeAvertissement[]>, cle: K, e: EntreeAvertissement) {
   const liste = table.get(cle)
   if (liste) liste.push(e)
@@ -129,7 +114,8 @@ export function ranger(
         : phaseDeLaSeance && seance ? (phaseDeLaSeance.ordre - 1) * 4 + seance.semaine
           : null
     const phaseOrdre = a.mesocycleOrdre ?? (semaine !== null ? Math.floor((semaine - 1) / 4) + 1 : null)
-    const liee = seanceDAvantPourW01(a, seances)
+    // Le moteur donne l'identifiant ; rien si la séance d'avant a été faite hors plan.
+    const liee = a.seanceLieeId !== undefined && seances.some((s) => s.id === a.seanceLieeId) ? a.seanceLieeId : undefined
     const e: EntreeAvertissement = {
       avertissement: a, cle, forme, garde: peutEtreGarde(forme) && gardesSet.has(cle), semaine, phaseOrdre,
       ...(seance ? { seanceId: seance.id } : {}),

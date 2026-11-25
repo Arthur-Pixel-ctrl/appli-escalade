@@ -350,6 +350,7 @@ export function realiseeVersVerif(r: SeanceRealisee): SeanceVerif {
     qualite: r.qualite ?? 'technique',
     solo: { durete: r.durete, etapes, dureeMin: r.dureeMin },
     realisee: realiseeVerif(r),
+    horsPlan: true, // cette vue ne sert qu'aux séances réalisées sans séance planifiée dans ce plan
   }
   if (r.mode === 'groupe') {
     seance.groupe = {
@@ -543,6 +544,7 @@ export function etatPrerequis(
 
 // ——— 10. Avertissements : clé et forme d'affichage ———
 
+// `seanceLieeId` et `nonRenseignes` n'entrent pas dans la clé : les choix déjà gardés tiennent (B.3).
 /** Clé stable d'un avertissement, enregistrée dans `Cycle.avertissementsGardes` par « Je garde ce choix ». */
 export function cleAvertissement(a: Avertissement): string {
   const cle = [a.code, a.seanceId, a.version, a.etapeIndex, a.lundi, a.mesocycleOrdre].map((v) => v ?? '').join('|')

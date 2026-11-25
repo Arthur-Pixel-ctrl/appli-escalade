@@ -116,6 +116,6 @@ export { manquesPrerequis } from './verifSeanceProfil.ts'
 export { fichesDeLaBibliotheque } from './adaptateur.ts'
 export type {
   Avertissement, ContexteVerif, DouleurVerif, EtapeVerif, FicheVerif, FormeVerif, Jour, Marqueur, Niveau,
-  ObjectifGroupeVerif, ObjectifPersoVerif, PlanVerif, ProfilVerif, Qualite, Regles, ResultatTestVerif,
+  ObjectifGroupeVerif, ObjectifPersoVerif, PlanVerif, PrerequisNonRenseigne, ProfilVerif, Qualite, Regles, ResultatTestVerif,
   SeanceVerif, SemaineVerif, VersionVerif, ZoneDouleur,
 } from './types.ts'

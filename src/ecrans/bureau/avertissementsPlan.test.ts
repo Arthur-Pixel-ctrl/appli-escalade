@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { SeanceRealisee } from '../../donnees/modele.ts'
 import { PROFIL_VIDE } from '../../donnees/profil.ts'
 import { seanceTypeParId } from '../../donnees/seancesTypes.ts'
 import { seanceDepuisType, type Avertissement } from '../../regles/index.ts'
@@ -51,6 +52,49 @@ describe('deux séances maximales à 24 h (W-01)', () => {
     expect(compter(plan.parSemaine.get(1)!).gardes).toBe(1)
     expect(compter(plan.parSemaine.get(1)!).total).toBe(compter(avant.parSemaine.get(1)!).total)
     expect(nombreDuRepere(plan.parSemaine.get(1)!)).toBe(nombreDuRepere(avant.parSemaine.get(1)!))
+  })
+})
+
+describe('séance liée de W-01 : les trois cas de l\'audit (M-2, consolidation 25/11)', () => {
+  /** Comme `verifier`, avec des séances réalisées. */
+  function verifierAvec(seances: ReturnType<typeof maximale>[], realisees: SeanceRealisee[] = []) {
+    const brut = calculerAvertissements({
+      cycle, phases, seances, objectifs: [], profil: PROFIL_VIDE, exercicesPerso: [], douleurs: [], formes: [], realisees,
+      aujourdhui: '2026-11-30', maintenant: '2026-11-30T08:00:00.000Z',
+    })
+    return ranger(brut, [], { cycle, phases, seances })
+  }
+  const nommee = (s: ReturnType<typeof maximale>, nom: string) => ({ ...s, solo: { ...s.solo, nom } })
+  const legere = (s: ReturnType<typeof maximale>, nom: string) => ({ ...s, solo: { ...s.solo, nom, etapes: [], durete: 'legere' as const } })
+  const w01De = (plan: ReturnType<typeof verifierAvec>) => plan.entrees.find((e) => e.avertissement.code === 'W-01')
+
+  it('cas 1 : une séance légère homonyme le jour de la seconde : lien vers la bonne séance', () => {
+    const a = nommee(maximale('a', '2026-11-30'), 'Poutre')
+    const b = nommee(maximale('b', '2026-12-01'), 'Bloc')
+    const c = legere(maximale('c', '2026-12-01'), 'Poutre')
+    const plan = verifierAvec([a, b, c])
+    expect(w01De(plan)).toMatchObject({ seanceId: 'b', seanceLieeId: 'a' })
+    expect(plan.lieesParSeance.get('a')).toContain(w01De(plan))
+    expect(plan.lieesParSeance.has('c')).toBe(false)
+  })
+  it('cas 2 : un nom avec « » et ( ) : lien vers la bonne séance', () => {
+    const a = nommee(maximale('a', '2026-11-30'), 'Bloc « dur » (salle)')
+    const b = nommee(maximale('b', '2026-12-01'), 'Bloc')
+    expect(w01De(verifierAvec([a, b]))).toMatchObject({ seanceId: 'b', seanceLieeId: 'a' })
+  })
+  it('cas 3 : séance d\'avant faite hors plan : aucun lien, même avec une vieille séance du même nom', () => {
+    const vieille = legere(maximale('vieille', '2026-11-02'), 'Grimpe libre')
+    const b = nommee(maximale('b', '2026-12-01'), 'Bloc')
+    const horsPlan = {
+      id: 'libre', versionFormat: 1, creeLe: '2026-11-30T19:00:00.000Z', modifieLe: '2026-11-30T19:00:00.000Z', date: '2026-11-30',
+      mode: 'libre', nom: 'Grimpe libre', durete: 'dure', dureeMin: 60, effortPercu: 8, peau: 3, douleur: false,
+      etapes: [], objectifs: [], blocs: [], marqueurs: ['maximale'],
+    } as SeanceRealisee
+    const plan = verifierAvec([vieille, b], [horsPlan])
+    const w01 = w01De(plan)
+    expect(w01).toMatchObject({ seanceId: 'b' })
+    expect(w01).not.toHaveProperty('seanceLieeId')
+    expect(plan.lieesParSeance.size).toBe(0)
   })
 })
 
