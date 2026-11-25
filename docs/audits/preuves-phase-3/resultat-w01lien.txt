@@ -1,0 +1,3 @@
+cas 1 (homonyme le jour de b) : lien = c (attendu : a)
+cas 2 (nom avec guillemets et parenthèse) : lien = undefined (attendu : a)
+cas 3 (séance d’avant faite hors plan) : lien = vieille (attendu : aucune)

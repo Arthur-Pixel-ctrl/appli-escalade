@@ -1,0 +1,2 @@
+longueur spec 12605 code 12605 VERSION_PROMPT 2026-11-24
+IDENTIQUES (caractère par caractère)

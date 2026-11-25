@@ -1,0 +1,12 @@
+E-16 : 26 séances types, 87 vérifications (variantes × 3 niveaux), avec avertissement : 0
+J-04/J-02, séance du jour (solo dure sans exercice + groupe « 3 blocs à ta limite », marqueur maximale), séance maximale faite il y a 12 h, 5 h de sommeil : codes = (aucun) ; estMaximale côté W-01 : 1 W-01
+   même séance mais solo légère : codes = J-04,J-02
+(b) Profil vide (PROFIL_VIDE) : 14 S-03 sur les 26 séances types (8 séances touchées) ; profil complet : 0
+    manques cités : [["une expérience de poutre occasionnelle",6],["tenir 15 s sur une réglette de 25 mm",4],["18 ans ou plus",7],["10 tractions strictes (non renseigné)",4],["un niveau 6B en bloc",1],["une expérience de poutre régulière",2],["15 tractions strictes (non renseigné)",1]]
+    séances types proposables par le générateur avec ce profil : 14 sur 26
+    plan généré avec ce profil : 36 séances, avertissements [["P-09",3],["W-10",3],["W-09",1],["W-13",3]] ; manques : []
+    même plan, une séance sur trois remplacée à la main par ST-TRA-02 : 24 S-03 forts (sur 40 avertissements, 24 forts)
+C-01 profilVersVerif(PROFIL_VIDE, niveauBloc '') : tractions null, test15s null, adulte null, tête null, niveauBloc null, lieux salle_bloc
+    manques pour (5 tractions, test 15 s, adulte, 6A) : 5 tractions strictes (non renseigné) ; tenir 15 s sur une réglette de 25 mm ; un niveau 6A en bloc ; 18 ans ou plus
+    planVersVerif types de semaine : charge,decharge (phases : charge,allegee)
+    plan généré : clés « marqueurs » stockées : 0 ; types de semaine stockés : charge,allegee ; champs calculés (statut, mode, origine, dureeMin solo) : false

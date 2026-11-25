@@ -1,0 +1,210 @@
+// Audit phase 3, point 1 : chaque vérification S, W, P, J est déclenchée par un scénario fabriqué ici,
+// puis son code, son niveau et son message sont comparés au texte de moteur-verification.md (par script).
+// Lancer : node /home/claude/audits/phase-3/messages.mjs
+import { lireSpec, comparer } from './spec.mjs'
+
+const R = '/home/claude/wt/AUDIT-3/src/regles/'
+const { verifierSeance, verifierSemaine, verifierPlan, verifierJour } = await import(R + 'index.ts')
+const { contexteDeReference, PROFIL_DE_REFERENCE } = await import(R + 'exemples.ts')
+const { fichesDeLaBibliotheque } = await import(R + 'adaptateur.ts')
+
+const BIB = fichesDeLaBibliotheque()
+
+// --- Fiches fabriquées ---
+const fiche = (id, autres = {}) => ({
+  id, nom: 'Fiche ' + id, origine: 'bibliotheque', qualite: 'doigts', dureeMin: 10, marqueurs: [],
+  prerequis: {}, contreIndications: [], solliciteDoigts: true, ...autres,
+})
+const F = {
+  echauf: fiche('echauf', { qualite: 'echauffement', dureeMin: 20 }),
+  'echauffement-doigts-poutre': fiche('echauffement-doigts-poutre', { qualite: 'echauffement' }),
+  exclue: fiche('exclue', { exclureDeLaGeneration: 'réglage à confirmer' }),
+  prereq: fiche('prereq', { prerequis: { anneesPratiqueMin: 10, experiencePoutreMin: 'reguliere', tractionsStrictesMin: 20, test15sSur25mm: true, niveauBlocMin: '8A', adulte: true } }),
+  ci: fiche('ci', { contreIndications: ['doigts', 'epaule'] }),
+  arque: fiche('arque', { marqueurs: ['arque'] }),
+  tete: fiche('tete', { contexte: { grimpeEnTete: true, partenaire: true, terrain: 'voie' } }),
+  partenaire: fiche('partenaire', { contexte: { partenaire: true } }),
+  max: fiche('max', { marqueurs: ['maximale'], dureeMin: 40, reposEntreEffortsS: 240 }),
+  pi: fiche('pi', { marqueurs: ['maximale', 'poutre_intensive', 'poutre'], dureeMin: 15 }),
+  pi2: fiche('pi2', { marqueurs: ['maximale', 'poutre_intensive', 'poutre'], dureeMin: 15 }),
+  piSeule: fiche('piSeule', { marqueurs: ['poutre_intensive', 'poutre'], dureeMin: 15 }),
+  resist: fiche('resist', { qualite: 'resistance', dureeMin: 20 }),
+  pan: fiche('pan', { marqueurs: ['pan_gullich'] }),
+  bl: fiche('bl', { marqueurs: ['bloc_limite'], qualite: 'puissance', dureeMin: 40 }),
+  poutre: fiche('poutre', { marqueurs: ['poutre'] }),
+  bidoigts: fiche('bidoigts', { marqueurs: ['bidoigts', 'maximale'] }),
+  perso: fiche('perso', { origine: 'perso', marqueurs: null }),
+  module: fiche('module', { dureeMin: 30 }),
+  moduleNerveux: fiche('moduleNerveux', { marqueurs: ['bloc_limite'], dureeMin: 12 }),
+  plafond: fiche('plafond', { maxParSemaine: 1, qualite: 'technique' }),
+  plafondQuota: fiche('plafondQuota', { maxParSemaine: 1, marqueurs: ['poutre'] }),
+  antag: fiche('antag', { qualite: 'antagonistes', solliciteDoigts: false }),
+  mob: fiche('mob', { qualite: 'mobilite', solliciteDoigts: false }),
+  'doigts-abrahangs': fiche('doigts-abrahangs'),
+  rv: fiche('rv', { marqueurs: ['resistance_voie'], qualite: 'resistance' }),
+  test: fiche('test', { estTest: true, qualite: 'technique' }),
+  nouvelle: fiche('nouvelle', { qualite: 'technique' }),
+  tech: fiche('tech', { qualite: 'technique', solliciteDoigts: false }),
+  endu: fiche('endu', { qualite: 'endurance', dureeMin: 30 }),
+  trac: fiche('trac', { qualite: 'traction_gainage' }),
+  puis: fiche('puis', { qualite: 'puissance' }),
+}
+const FICHES = { ...BIB, ...F }
+const ctx = (s = {}) => contexteDeReference({ fiches: FICHES, ...s })
+const profil = (s = {}) => ({ ...PROFIL_DE_REFERENCE, ...s })
+
+let n = 0
+const seance = (date, ids, o = {}) => ({
+  id: o.id ?? 's' + ++n, nom: o.nom ?? 'Séance ' + n, date, qualite: o.qualite ?? 'doigts',
+  solo: { durete: o.durete ?? 'dure', etapes: ids.map((x) => (typeof x === 'string' ? { ficheId: x } : x)), ...(o.solo ?? {}) },
+  ...(o.groupe ? { groupe: o.groupe } : {}), ...(o.realisee ? { realisee: o.realisee } : {}),
+})
+const semaine = (lundi, type = 'charge', o = {}) => ({ lundi, type, mesocycleOrdre: 1, numero: 1, ...o })
+const plan = (semaines, seances, o = {}) => ({
+  origine: 'utilisateur', debut: semaines[0].lundi, nbSemaines: 12, seancesParSemaine: 3, mode: 'accent_tournant',
+  mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: [] }, { ordre: 2, accent: 'puissance', objectifsPersoIds: [] }, { ordre: 3, accent: 'resistance', objectifsPersoIds: [] }],
+  semaines, seances, ...o,
+})
+
+const recoltes = []
+const garder = (scenario, alertes) => { for (const a of alertes) recoltes.push({ scenario, ...a }) }
+
+// ---------------- Séances ----------------
+const L = '2026-11-23'
+garder('S-01', verifierSeance(seance(L, ['inexistante']), ctx()))
+garder('S-02 util', verifierSeance(seance(L, ['echauf', 'exclue']), ctx()))
+garder('S-02 assist', verifierSeance(seance(L, ['echauf', 'exclue']), ctx(), 'assistant'))
+garder('S-03', verifierSeance(seance(L, ['prereq']), ctx({ profil: profil({ tractionsStrictesMax: null, test15sSur25mm: false, adulte: null, niveauBloc: null }) })))
+garder('S-03 b', verifierSeance(seance(L, ['prereq']), ctx({ profil: profil({ tractionsStrictesMax: 5 }) })))
+garder('S-04', verifierSeance(seance(L, ['ci']), ctx({ profil: profil({ douleursEnCours: ['doigts', 'epaule'] }) })))
+garder('S-05', verifierSeance(seance(L, ['echauf']), ctx({ douleurs: [{ date: '2026-11-20', zone: 'doigts', niveau: 'alerte', signes: ['craquement', 'gonflement'] }] })))
+garder('S-06', verifierSeance(seance(L, ['arque']), ctx({ douleurs: [{ date: '2026-11-20', zone: 'coude', niveau: 'reduction', signes: [] }] })))
+garder('S-07..09', verifierSeance(seance(L, ['tete', 'partenaire']), ctx()))
+garder('S-10', verifierSeance(seance(L, ['max']), ctx()))
+garder('S-11', verifierSeance(seance(L, ['echauf', 'piSeule']), ctx()))
+garder('S-12', verifierSeance(seance(L, ['echauf', 'resist', 'max']), ctx()))
+garder('S-13', verifierSeance(seance(L, ['echauf', 'max', 'pan']), ctx()))
+garder('S-14', verifierSeance(seance(L, ['echauf', 'echauffement-doigts-poutre', 'pi', 'pi2']), ctx()))
+garder('S-15', verifierSeance(seance(L, ['echauf', { ficheId: 'max', reglages: { reposS: 60 } }]), ctx()))
+garder('S-16', verifierSeance(seance(L, ['echauf', 'max', 'bl']), ctx()))
+garder('S-17', verifierSeance(seance(L, ['echauf', 'max'], { durete: 'legere' }), ctx()))
+garder('S-18', verifierSeance(seance(L, ['echauf', 'bidoigts']), ctx()))
+garder('S-19', verifierSeance(seance(L, ['perso']), ctx()))
+const groupe = (objectifs, etapes = [], durete = 'dure') => ({ durete, etapes, objectifs, dureeMin: 90 })
+garder('S-20', verifierSeance(seance(L, ['echauf'], { groupe: groupe([]) }), ctx()))
+garder('S-21..23', verifierSeance(seance(L, ['echauf'], { durete: 'legere', groupe: groupe([{ libelle: 'Trois blocs durs', accents: ['puissance'], marqueurs: ['bloc_limite'] }]) }), ctx()))
+garder('S-24', verifierSeance(seance(L, ['echauf', { ficheId: 'module', moduleObjectifId: 'o1' }]), ctx()))
+garder('S-25', verifierSeance(seance(L, ['echauf', { ficheId: 'moduleNerveux', moduleObjectifId: 'o1' }], { durete: 'legere' }), ctx()))
+garder('S-26', verifierSeance(seance(L, [], { nom: 'Grimpe dure', solo: { dureeMin: 90 } }), ctx()))
+garder('S-27', verifierSeance(seance(L, ['echauf', 'trac'], { nom: 'Tractions et poutre', solo: { principauxHorsEtapes: ['max'] } }), ctx()))
+
+// ---------------- Semaines ----------------
+const w = (seances, o = {}) => verifierSemaine(L, plan([semaine(L)], seances, o), o.ctx ?? ctx())
+garder('W-01 max', w([seance('2026-11-24', ['echauf', 'max'], { nom: 'A' }), seance('2026-11-25', ['echauf', 'max'], { nom: 'B' })]))
+garder('W-01 poutre', w([seance('2026-11-24', ['echauf', 'echauffement-doigts-poutre', 'piSeule'], { nom: 'A' }), seance('2026-11-25', ['echauf', 'echauffement-doigts-poutre', 'piSeule'], { nom: 'B' })]))
+garder('W-02..04', w([0, 1, 2, 3].map((k) => seance(`2026-11-2${3 + k * 2 > 9 ? '' : ''}${String(23 + k * 2).slice(-1)}`.replace('2026-11-2', '2026-11-2'), ['echauf', 'echauffement-doigts-poutre', 'piSeule', 'bl'])).map((s, k) => ({ ...s, date: ['2026-11-23', '2026-11-25', '2026-11-27', '2026-11-29'][k] }))))
+garder('W-05', w([seance('2026-11-24', ['plafond', 'plafondQuota']), seance('2026-11-26', ['plafond', 'plafondQuota'])]))
+garder('W-06..08', w(['23', '24', '25', '26', '27'].map((j) => seance('2026-11-' + j, ['echauf']))))
+// W-09 : deux semaines de charge
+{
+  const L2 = '2026-11-30'
+  const p = plan([semaine(L), semaine(L2)], [seance('2026-11-24', ['endu']), seance('2026-12-01', ['endu'], { solo: { effortPrevu: 9 } })])
+  garder('W-09', verifierSemaine(L2, p, ctx()))
+}
+// W-10, W-11, W-12 : bloc de 3 charges + 1 allégée
+{
+  const lundis = ['2026-11-23', '2026-11-30', '2026-12-07', '2026-12-14']
+  const sem = lundis.map((l, k) => semaine(l, k === 3 ? 'decharge' : 'charge', { numero: k + 1 }))
+  const charges = lundis.slice(0, 3).map((l) => seance(l, ['endu'], { durete: 'legere' }))
+  const p1 = plan(sem, [...charges, seance('2026-12-14', ['endu', 'nouvelle', 'max'], { durete: 'legere' })])
+  garder('W-10 fort, W-11, W-12', verifierSemaine('2026-12-14', p1, ctx()))
+  const p2 = plan(sem, [...charges, { ...seance('2026-12-14', ['endu'], { durete: 'legere', solo: { dureeMin: 19 } }) }])
+  garder('W-10 info', verifierSemaine('2026-12-14', p2, ctx()))
+  const semA = lundis.map((l, k) => semaine(l, k === 3 ? 'affutage' : 'charge', { numero: k + 1 }))
+  garder('W-11 affutage', verifierSemaine('2026-12-14', plan(semA, [...charges, seance('2026-12-14', ['nouvelle'])]), ctx()))
+}
+garder('W-13 une', w([seance('2026-11-24', ['echauf', 'max', 'trac', 'puis', 'resist'], { qualite: 'doigts' })]))
+garder('W-13..16', w([seance('2026-11-24', ['echauf', 'poutre', 'poutre'], { qualite: 'technique' }), seance('2026-11-26', ['poutre', 'antag'], { qualite: 'technique' })], { ctx: ctx({ profil: profil({ anneesPratique: 2 }) }) }))
+garder('W-14 msg 2, W-15 cap 0', w([seance('2026-11-24', ['poutre'], { qualite: 'doigts' }), seance('2026-11-25', ['trac'], { qualite: 'traction_gainage' }), seance('2026-11-27', ['trac'], { qualite: 'traction_gainage' })], { ctx: ctx({ profil: profil({ anneesPratique: 0.5 }) }) }))
+garder('W-15 pluriel, W-17', w([seance('2026-11-23', ['poutre']), seance('2026-11-25', ['poutre']), seance('2026-11-27', ['poutre']), seance('2026-11-28', ['antag', 'mob'], { qualite: 'antagonistes' })]))
+{
+  const p = plan([semaine(L)], [seance('2026-11-24', ['echauf', 'doigts-abrahangs', 'max'])], {
+    mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: ['o1', 'o2'] }],
+  })
+  const objectifsPerso = { o1: { id: 'o1', nom: 'Réglettes', marqueurs: ['poutre'], prerequis: {}, contreIndications: [] }, o2: { id: 'o2', nom: 'Arquées', marqueurs: ['poutre'], prerequis: {}, contreIndications: [] } }
+  garder('W-18, W-19', verifierSemaine(L, p, ctx({ objectifsPerso })))
+}
+garder('W-20 bloc', w([seance('2026-11-24', ['rv']), seance('2026-11-26', ['rv'])]))
+garder('W-20 voie', w([seance('2026-11-24', ['rv']), seance('2026-11-26', ['rv']), seance('2026-11-28', ['rv'])], { ctx: ctx({ profil: profil({ disciplinePrincipale: 'voie' }) }) }))
+
+// ---------------- Plan ----------------
+{
+  const lundis = Array.from({ length: 5 }, (_, k) => new Date(Date.UTC(2026, 10, 23 + 7 * k)).toISOString().slice(0, 10))
+  const sem = lundis.map((l, k) => semaine(l, 'charge', { numero: k + 1, mesocycleOrdre: k < 4 ? 1 : 2 }))
+  sem[4] = { ...sem[4], type: 'decharge', reductionPct: 70 }
+  const objectifsPerso = {
+    o1: { id: 'o1', nom: 'Réglettes', marqueurs: ['poutre'], prerequis: { anneesPratiqueMin: 9 }, contreIndications: [], remplacementNom: 'Réglettes faciles' },
+    o2: { id: 'o2', nom: 'Arquées', marqueurs: ['poutre'], prerequis: {}, contreIndications: ['doigts'] },
+    o3: { id: 'o3', nom: 'Pinces', marqueurs: [], prerequis: {}, contreIndications: [] },
+  }
+  const p = plan(sem, [seance('2026-11-24', ['tech'], { durete: 'legere', solo: { etapesDetaillees: false } })], {
+    nbSemaines: 5, seancesParSemaine: 4,
+    mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: ['o1', 'o2', 'o3'] }, { ordre: 2, accent: 'doigts', objectifsPersoIds: [] }],
+    cycleSuivantDebut: '2026-12-28',
+  })
+  garder('P-01..04, P-06, P-09..15', verifierPlan(p, ctx({ objectifsPerso, profil: profil({ douleursEnCours: ['doigts'] }), fiches: FICHES })))
+  const pR = plan(sem.map((s) => ({ ...s, type: 'charge' })), [seance('2026-11-24', []), seance('2026-11-25', [])], {
+    mesocycles: [{ ordre: 1, accent: 'resistance', objectifsPersoIds: [] }, { ordre: 2, accent: 'resistance', objectifsPersoIds: [] }],
+    sem: undefined,
+  })
+  // P-04 : 9 semaines de résistance
+  const neuf = Array.from({ length: 9 }, (_, k) => semaine(new Date(Date.UTC(2026, 10, 23 + 7 * k)).toISOString().slice(0, 10), 'charge', { mesocycleOrdre: k < 4 ? 1 : k < 8 ? 2 : 3 }))
+  garder('P-04', verifierPlan({ ...pR, semaines: neuf, mesocycles: [1, 2, 3].map((o) => ({ ordre: o, accent: 'resistance', objectifsPersoIds: [] })) }, ctx()))
+  // P-05, P-07, P-08 : objectif daté
+  const pO = plan([semaine('2026-11-23')], [seance('2026-11-27', ['echauf', 'echauffement-doigts-poutre', 'piSeule'])], {
+    mode: 'objectif_date', objectif: { date: '2026-11-29', semainesAffutage: 2, reductionVolumePct: 50 },
+    mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: [] }],
+  })
+  garder('P-05, P-07, P-08', verifierPlan(pO, ctx()))
+  const pO1 = { ...pO, objectif: { ...pO.objectif, date: '2027-02-01' } }
+  garder('P-05 premier du mois', verifierPlan(pO1, ctx()))
+}
+
+// ---------------- Jour ----------------
+{
+  const aujourdhui = '2026-11-23'
+  const s = seance(aujourdhui, ['echauf', 'max'])
+  const formes = [0, 1, 2].map((k) => ({ date: new Date(Date.UTC(2026, 10, 23 - k)).toISOString().slice(0, 10), sommeil: 1, fatigue: 1, courbatures: 3, douleur: 1, peau: 3, heuresSommeil: 5 }))
+  const realisee = { ...seance('2026-11-22', ['max']), realisee: { version: 'solo', finLe: '2026-11-22T18:00:00.000Z', dureeMin: 60, effortPercu: 8, marqueurs: ['maximale'], peau: 1 } }
+  const c = ctx({ formes, douleurs: [{ date: '2026-11-01', zone: 'coude', niveau: 'reduction', signes: [] }], resultatsTests: [{ testNom: 'Tractions', date: '2026-10-01', valeur: 12, sensProgres: 'hausse' }, { testNom: 'Tractions', date: '2026-11-15', valeur: 10, sensProgres: 'hausse' }] })
+  garder('J-01..07', verifierJour(s, c, [realisee]))
+}
+
+// ---------------- Comparaison ----------------
+const spec = lireSpec()
+const parCode = new Map()
+for (const a of recoltes) {
+  if (!parCode.has(a.code)) parCode.set(a.code, [])
+  parCode.get(a.code).push(a)
+}
+const lignes = []
+let ecarts = 0
+for (const code of Object.keys(spec)) {
+  const regle = spec[code]
+  const vues = parCode.get(code) ?? []
+  if (vues.length === 0) { lignes.push(`${code}\tNON DÉCLENCHÉ`); ecarts++; continue }
+  const messages = [...new Set(vues.map((a) => a.message))]
+  const niveaux = [...new Set(vues.map((a) => a.niveau))]
+  const sources = [...new Set(vues.map((a) => a.source))]
+  for (const m of messages) {
+    const r = comparer(regle, m)
+    if (r !== 'identique') ecarts++
+    lignes.push(`${code}\t${r.toUpperCase()}\tniveau ${niveaux.join('/')} (spéc. ${regle.niveau})\t${m}`)
+  }
+  const niveauOk = regle.niveau === 'voir condition' || niveaux.every((x) => x === regle.niveau)
+  if (!niveauOk) { ecarts++; lignes.push(`${code}\tNIVEAU DIFFÉRENT : ${niveaux} au lieu de ${regle.niveau}`) }
+  lignes.push(`${code}\tsource code : ${sources.join(' / ')}\t| spéc. : ${regle.source}`)
+}
+const inconnus = [...parCode.keys()].filter((c) => !spec[c])
+console.log(lignes.join('\n'))
+console.log(`\nCodes de la spécification : ${Object.keys(spec).length} ; déclenchés : ${[...parCode.keys()].filter((c) => spec[c]).length} ; codes inconnus émis : ${inconnus.join(', ') || 'aucun'} ; écarts : ${ecarts}`)

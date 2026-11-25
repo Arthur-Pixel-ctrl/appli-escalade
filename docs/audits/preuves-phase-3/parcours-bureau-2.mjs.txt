@@ -1,0 +1,113 @@
+// Parcours ordinateur n° 2 (1280 × 800) : cycle vide, W-01 et sa correction, S-26, S-27 aux trois niveaux, clavier, validation.
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs'
+
+const URL = 'http://localhost:4190/'
+const OUT = '/home/claude/audits/phase-3/'
+const log = (...a) => console.log(...a)
+const navigateur = await chromium.launch()
+const page = await navigateur.newPage({ viewport: { width: 1280, height: 800 } })
+const erreurs = []
+page.on('pageerror', (e) => erreurs.push('pageerror ' + e.message))
+page.on('console', (m) => { if (m.type() === 'error') erreurs.push('console ' + m.text()) })
+const pause = (ms = 400) => page.waitForTimeout(ms)
+const texteSemaine = async () => (await page.locator('.semaine-colonne').innerText()).replace(/\n+/g, ' ⏎ ')
+const etape = async (nom, f) => { try { await f() } catch (e) { log(`!! ${nom} : ${e.message.split('\n')[0]}`) } }
+
+await page.goto(URL); await pause(800)
+const sansCompte = page.getByRole('button', { name: 'Continuer sans compte' })
+if (await sansCompte.count()) await sansCompte.click()
+await page.getByLabel('Prénom').fill('Arthur')
+await page.getByRole('button', { name: 'Continuer' }).first().click(); await pause()
+const compris = page.getByRole('button', { name: /J.ai compris/ }); if (await compris.count()) await compris.click(); await pause()
+
+await page.getByRole('button', { name: 'Plan', exact: true }).first().click(); await pause()
+await page.getByRole('button', { name: 'Crée ton premier cycle' }).click(); await pause()
+await page.getByLabel('Nom du cycle').fill('Cycle à la main')
+await page.getByRole('button', { name: 'Commencer vide' }).click(); await pause(1000)
+await page.getByRole('button', { name: 'Semaine', exact: true }).click(); await pause(600)
+
+// ——— W-01 : deux séances maximales mardi et mercredi ———
+await etape('W-01', async () => {
+  for (const jour of ['mardi', 'mercredi']) {
+    await page.getByRole('button', { name: `Ajouter une séance type, ${jour}` }).click(); await pause()
+    const dlg = page.locator('dialog[open]')
+    const boutons = dlg.locator('button.choix-seance-type')
+    const libelles = await boutons.allInnerTexts()
+    const k = libelles.findIndex((t) => /Traction/.test(t) && /lest/i.test(t))
+    log(`  menu « séance type » (${jour}) : ${libelles.length} choix ; choisi : ${(libelles[k >= 0 ? k : 0] ?? '').split('\n')[0]}`)
+    await boutons.nth(k >= 0 ? k : 0).click(); await pause(800)
+  }
+  const t = await texteSemaine()
+  log('  Semaine après deux séances :', (t.match(/[^⏎]*48 h[^⏎]*/g) ?? []).slice(0, 3).join(' | '))
+  const decaler = page.getByRole('button', { name: 'Décaler au lendemain' })
+  log('  Boutons « Décaler au lendemain » :', await decaler.count())
+  await page.screenshot({ path: OUT + 'b5-w01.png', fullPage: true })
+  const debut = Date.now()
+  await decaler.first().click(); await pause(800)
+  log(`  Après « Décaler au lendemain » (${Date.now() - debut} ms) : W-01 encore présent ? ${/48 h/.test(await texteSemaine())}`)
+})
+
+// ——— Clavier : réordonner une étape par son menu, ajouter depuis le rail ———
+await etape('clavier', async () => {
+  const titresAvant = await page.locator('.fiche-seance').first().locator('.etape-titre').allInnerTexts()
+  const menu = page.locator('.fiche-seance').first().getByRole('button', { name: /Menu de l’étape/ }).first()
+  await menu.focus(); await page.keyboard.press('Enter'); await pause(200)
+  await page.keyboard.press('Tab') // Voir la fiche
+  await page.keyboard.press('Tab') // Remplacer
+  await page.keyboard.press('Tab') // Monter (inactif sur la 1re) → saute ?
+  const actif = await page.evaluate(() => document.activeElement?.textContent)
+  log('  focus dans le menu après 3 tabulations :', actif)
+  await page.locator('.menu-etape button', { hasText: 'Descendre' }).first().focus(); await page.keyboard.press('Enter'); await pause(500)
+  const titresApres = await page.locator('.fiche-seance').first().locator('.etape-titre').allInnerTexts()
+  log('  ordre avant :', titresAvant.slice(0, 2).join(' / '), '→ après :', titresApres.slice(0, 2).join(' / '))
+  log('  message annoncé :', await page.locator('p[role=status][aria-live=polite]').first().innerText())
+  // Rail : « Ajouter à » au clavier
+  const ajout = page.locator('.rail-bibliotheque, aside').getByRole('button', { name: /^Ajouter à :/ }).first()
+  await ajout.focus(); await page.keyboard.press('Enter'); await pause(300)
+  log('  fenêtre « Ajouter à » ouverte au clavier :', await page.locator('dialog[open]').count() > 0, '; focus dans la fenêtre :', await page.evaluate(() => !!document.activeElement?.closest('dialog')))
+  await page.keyboard.press('Escape'); await pause(300)
+  log('  après Échap, fenêtre fermée :', await page.locator('dialog[open]').count() === 0, '; focus revenu sur :', await page.evaluate(() => document.activeElement?.getAttribute('aria-label')))
+})
+
+// ——— S-26 : séance vide, dure, niveau simple ———
+await etape('S-26', async () => {
+  await page.getByRole('button', { name: 'Ajouter une séance vide, vendredi' }).click(); await pause(600)
+  const fiche = page.locator('.fiche-seance').last()
+  await fiche.getByRole('button', { name: 'Simple', exact: true }).click(); await pause(300)
+  await fiche.getByRole('button', { name: 'Dure', exact: true }).click(); await pause(600)
+  const t = await fiche.innerText()
+  log('  S-26 visible :', /sans exercice de la bibliothèque/.test(t), '; mot « maximal » dans la fiche :', /maximal/.test(t), '; bouton « Choisir l’exercice principal » :', await fiche.getByRole('button', { name: 'Choisir l’exercice principal' }).count())
+  await page.screenshot({ path: OUT + 'b6-s26.png', fullPage: true })
+})
+
+// ——— R-9 dans la fiche : passer la séance du mardi en simple puis en détaillé, les étapes restent ———
+await etape('R-9 fiche', async () => {
+  const fiche = page.locator('.fiche-seance').first()
+  const avant = await fiche.locator('.etape-titre').count()
+  await fiche.getByRole('button', { name: 'Simple', exact: true }).click(); await pause(400)
+  const simple = await fiche.innerText()
+  await fiche.getByRole('button', { name: 'Détaillé', exact: true }).click(); await pause(400)
+  const apres = await fiche.locator('.etape-titre').count()
+  log(`  étapes avant ${avant}, après simple puis détaillé ${apres} ; en simple, ligne « étapes enregistrées » : ${/étapes? enregistrées?/.test(simple)}`)
+})
+
+// ——— S-27 : grandes lignes avec un principal absent des étapes ———
+await etape('S-27', async () => {
+  const fiche = page.locator('.fiche-seance').first()
+  await fiche.getByRole('button', { name: 'Grandes lignes', exact: true }).click(); await pause(500)
+  const html = await fiche.innerText()
+  log('  éditeur grandes lignes :', html.slice(html.indexOf('Effort prévu'), html.indexOf('Effort prévu') + 600).replace(/\n+/g, ' ⏎ '))
+  await page.screenshot({ path: OUT + 'b7-grandes-lignes.png', fullPage: true })
+})
+
+// ——— Valider le cycle ———
+await etape('Valider', async () => {
+  await page.getByRole('button', { name: '12 semaines', exact: true }).click(); await pause(500)
+  await page.getByRole('button', { name: 'Valider le cycle' }).click(); await pause(300)
+  log('  fenêtre :', (await page.locator('dialog[open]').innerText()).replace(/\n+/g, ' ⏎ '))
+  await page.locator('dialog[open]').getByRole('button', { name: /Valider/ }).last().click(); await pause(600)
+  log('  étiquette Brouillon encore là :', await page.locator('.etiquette', { hasText: 'Brouillon' }).count())
+})
+
+log('Erreurs de page :', JSON.stringify(erreurs))
+await navigateur.close()
