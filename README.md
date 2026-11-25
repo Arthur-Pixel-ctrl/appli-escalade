@@ -76,6 +76,8 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | E-18 | Un exercice écrit seulement dans les grandes lignes est contrôlé (prérequis, douleurs, récupération) ; information S-27 si grandes lignes et étapes ne correspondent pas | Fait |
 | E-14 | Consignes (prompt système) de l'assistant IA, recopiées mot pour mot de la spécification (`src/assistant/promptSysteme.ts`) | Fait |
 | D-16 | Plan sur ordinateur : vue semaine (rail de la bibliothèque, 7 jours, séances types proposées d'abord) et fiche de séance (dureté, qualité, effort prévu, étapes, version groupe avec objectifs types) ; tout se fait au clavier | Fait |
+| SPEC-PROMPT | Consignes de l'assistant corrigées : il ne choisit jamais le niveau de détail (règle F-10) ; repères d'assiette rattachés à leur source, chiffre de boisson non vérifié retiré | Fait |
+| E-11 | Format des réponses de l'assistant et contrôle avant affichage (A-01 à A-07, F-1 à F-10) | Fait |
 
 ## Ouvrir l'app
 
