@@ -211,6 +211,36 @@ describe('seancesTypesDisponibles', () => {
       expect(fiches.every((id) => ok.has(id))).toBe(true)
     }
   })
+  it('les 26 séances types : la liste disponible avec le profil habituel ne change pas avec les objectifs de groupe', () => {
+    expect(SEANCES_TYPES).toHaveLength(26)
+    // Valeurs mesurées avant et après la correction M-9 : salle de bloc 20, salle avec voies 24.
+    expect(ids(profil())).toHaveLength(20)
+    expect(ids(profil({ lieux: ['salle_voie'] }))).toHaveLength(24)
+  })
+  it('M-9 : ST-END-04 et ST-TEC-02 (OG-18 → endurance-4x4-voies) sont indisponibles sans salle de voie', () => {
+    const bloc = ids(profil({ lieux: ['salle_bloc'] }))
+    expect(bloc).not.toContain('ST-END-04')
+    expect(bloc).not.toContain('ST-TEC-02')
+    const voie = ids(profil({ lieux: ['salle_voie'] }))
+    expect(voie).toContain('ST-END-04')
+    expect(voie).toContain('ST-TEC-02')
+    // La raison est celle de la fiche de l'objectif : « contexte ».
+    expect(raisonDe('endurance-4x4-voies', profil({ lieux: ['salle_bloc'] }))).toBe('contexte')
+  })
+  it('M-9 : seul l\'objectif de groupe renvoie à une fiche hors lieux, le solo est sans souci', () => {
+    // Séance inventée : solo faisable en salle de bloc, mais objectif OG-18 (fiche en voie).
+    const base = SEANCES_TYPES.find((s) => s.id === 'ST-DOI-01')!
+    const seance = { ...base, id: 'ST-TEST', groupe: { objectifIds: ['OG-18'] } }
+    const dispo = (p: ProfilVerif) => seancesTypesDisponibles(trierFiches(toutes, p, []).disponibles, [seance]).length
+    expect(dispo(profil({ lieux: ['salle_bloc'] }))).toBe(0)
+    expect(dispo(profil({ lieux: ['salle_voie'] }))).toBe(1)
+    // Sans l'objectif de voie, la même séance reste disponible.
+    const sansObjectif = seancesTypesDisponibles(
+      trierFiches(toutes, profil({ lieux: ['salle_bloc'] }), []).disponibles,
+      [{ ...seance, groupe: { objectifIds: ['OG-01'] } }],
+    )
+    expect(sansObjectif).toHaveLength(1)
+  })
   it('sans fiche disponible : aucune séance type', () => {
     expect(seancesTypesDisponibles([])).toEqual([])
   })

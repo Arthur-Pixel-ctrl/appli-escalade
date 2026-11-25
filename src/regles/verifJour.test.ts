@@ -194,6 +194,39 @@ describe('séance dure sans exercice connu (décision F7, 23/11)', () => {
   })
 })
 
+describe('séance dure sans exercice : le marqueur de la version groupe compte (audit I-1)', () => {
+  const nuits = [23, 22, 21].map((j) => forme(`2026-11-${j}`, { heuresSommeil: 5 }))
+  const maximaleIlYA12h = () => realisee('max', '2026-11-22', '2026-11-23T00:00:00.000Z', ['maximale'])
+  // Maintenant = 12 h après la fin de la séance maximale.
+  const ctx = () => contexteDeReference({ formes: nuits, maintenant: '2026-11-23T12:00:00.000Z' })
+  // « 3 blocs à ta limite » (OG-01) : l'objectif porte le marqueur maximale.
+  const groupeMaximal = (): SeanceVerif['groupe'] => ({
+    durete: 'dure',
+    etapes: [],
+    objectifs: [{ libelle: '3 blocs à ta limite', accents: ['puissance'], marqueurs: ['maximale'], blocs: 3 }],
+  })
+
+  it('solo dure sans exercice, groupe maximal : J-04 et J-02 se déclenchent', () => {
+    const seance = seanceSolo('vide', AUJOURDHUI, [], { durete: 'dure', qualite: 'traction_gainage', dureeMin: 90, groupe: groupeMaximal() })
+    const liste = codes(ctx(), seance, [maximaleIlYA12h()])
+    expect(liste).toContain('J-04')
+    expect(liste).toContain('J-02')
+  })
+  it('solo dure sans exercice, sans version groupe : ni J-02 ni J-04 (F7)', () => {
+    const seance = seanceSolo('vide', AUJOURDHUI, [], { durete: 'dure', qualite: 'traction_gainage', dureeMin: 90 })
+    const liste = codes(ctx(), seance, [maximaleIlYA12h()])
+    expect(liste).not.toContain('J-02')
+    expect(liste).not.toContain('J-04')
+  })
+  it('solo dure sans exercice, groupe dur sans marqueur : ni J-02 ni J-04 (F7)', () => {
+    const groupe: SeanceVerif['groupe'] = { durete: 'dure', etapes: [], objectifs: [] }
+    const seance = seanceSolo('vide', AUJOURDHUI, [], { durete: 'dure', qualite: 'traction_gainage', dureeMin: 90, groupe })
+    const liste = codes(ctx(), seance, [maximaleIlYA12h()])
+    expect(liste).not.toContain('J-02')
+    expect(liste).not.toContain('J-04')
+  })
+})
+
 describe('ordre des avertissements', () => {
   it('les avertissements forts viennent avant les informations', () => {
     const ctx = contexteDeReference({
