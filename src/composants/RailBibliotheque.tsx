@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useId, useMemo, useState, type PointerEvent } from 'react'
 import {
   DUREES, FILTRES_VIDES, QUALITES, convient, etatDe, filtrer, nomQualite, phraseCompteur, type ContexteFiltre, type EntreeBibliotheque, type Filtres,
 } from '../donnees/bibliotheque/filtres.ts'
@@ -6,11 +6,13 @@ import {
 // Version compacte de la bibliothèque (D-11) pour la colonne de gauche du plan : recherche, deux filtres rapides,
 // interrupteur « Seulement ceux qui me conviennent », fiches avec « Voir la fiche » et « Ajouter à… ».
 // Une fiche dont les prérequis manquent reste ajoutable (avertir sans bloquer).
-export function RailBibliotheque({ entrees, contexte, remplacementDe, onVoir, onAjouter, onAnnulerRemplacement }: {
+export function RailBibliotheque({ entrees, contexte, remplacementDe, onGlisser, onVoir, onAjouter, onAnnulerRemplacement }: {
   entrees: EntreeBibliotheque[]
   contexte: ContexteFiltre
   /** Nom de l'étape en cours de remplacement : les boutons deviennent « Remplacer par celle-ci ». */
   remplacementDe: string | null
+  /** Début d'un glisser depuis la poignée d'une fiche (D-17) ; absent = pas de poignée (ex. pendant un remplacement). */
+  onGlisser?: (e: PointerEvent<HTMLElement>, entree: EntreeBibliotheque) => void
   onVoir: (id: string) => void
   onAjouter: (entree: EntreeBibliotheque) => void
   onAnnulerRemplacement: () => void
@@ -69,6 +71,10 @@ export function RailBibliotheque({ entrees, contexte, remplacementDe, onVoir, on
           const manques = etatDe(e, contexte).manques
           return (
             <li key={e.id} className={`fiche rail-fiche${manques.length > 0 ? ' pointille' : ''}`}>
+              {onGlisser && (
+                <span className="poignee rail-poignee" aria-hidden="true" title="Glisser vers un jour ou une séance" onContextMenu={(ev) => ev.preventDefault()}
+                  onPointerDown={(ev) => onGlisser(ev, e)}>⠿</span>
+              )}
               <p className="surtitre">{nomQualite(e.qualite)} · {e.dureeMin} min</p>
               <p className="rail-nom">{e.nom}</p>
               <ul className="fiche-grille-etiquettes">

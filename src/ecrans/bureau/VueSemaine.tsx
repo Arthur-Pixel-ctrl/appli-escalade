@@ -1,7 +1,10 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { BandeSemaines } from '../../composants/BandeSemaines.tsx'
 import { Confirmation } from '../../composants/Confirmation.tsx'
-import { FicheSeance } from '../../composants/FicheSeance.tsx'
+import { FicheSeance, type GlisseFiche } from '../../composants/FicheSeance.tsx'
+import { idZone, lireZone, reordonnerEtapes, type ListeEtapesNom } from '../../composants/glisser.ts'
+import { FantomeGlisse } from '../../composants/FantomeGlisse.tsx'
+import { useGlisser, type RappelsGlisser } from '../../composants/useGlisser.ts'
 import { RailBibliotheque } from '../../composants/RailBibliotheque.tsx'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { BIBLIOTHEQUE } from '../../donnees/bibliotheque/index.ts'
@@ -79,6 +82,11 @@ function Fenetre({ titre, onFermer, children }: { titre: string; onFermer: () =>
 }
 
 interface Jour { index: number; date: DateISO; seances: SeancePlanifiee[] }
+
+// Ce qu'on tient en main pendant un glisser : une fiche du rail, ou une étape d'une séance (pour la réordonner).
+type Charge =
+  | { type: 'fiche'; entree: EntreeBibliotheque }
+  | { type: 'etape'; seanceId: string; liste: ListeEtapesNom; index: number; titre: string }
 
 // « Ajouter à… » : choisir le jour, puis la séance existante ou une nouvelle, puis où (solo ou mini-bloc).
 function AjouterA({ entree, jours, onAnnuler, onValider }: {
@@ -173,6 +181,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
   const [remplacement, setRemplacement] = useState<{ seanceId: string; index: number } | null>(null)
   const [aRetirer, setARetirer] = useState<SeancePlanifiee | null>(null)
   const [message, setMessage] = useState('')
+  const glisse = useGlisser<Charge>()
 
   useEffect(() => {
     const lire = () => lireContexte().then(setContexte).catch(() => {})
@@ -255,6 +264,53 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
     setAAjouter(entree)
   }
 
+  // ——— Glisser-déposer (D-17) : mêmes fonctions que les boutons (`ajouterFiche`, `monterOuDescendre` via `reordonnerEtapes`) ———
+  const toutesLesSeances = jours.flatMap((j) => j.seances)
+  const textePour = (charge: Charge, zone: string): string | null => {
+    const { type, parties } = lireZone(zone)
+    if (charge.type === 'fiche') {
+      if (type === 'jour') {
+        const j = jours[Number(parties[0])]
+        return j && j.seances.length === 0 ? `Dépose ici pour créer une séance avec ${charge.entree.nom}, ${JOURS_LONGS[j.index]}` : null
+      }
+      if (type === 'seance') {
+        const cible = toutesLesSeances.find((x) => x.id === parties[0])
+        return cible ? `Dépose ici pour ajouter ${charge.entree.nom} à « ${cible.solo.nom} »${cible.groupe ? ' (version solo)' : ''}` : null
+      }
+      return null
+    }
+    if (type === 'etape' && parties[0] === charge.seanceId && parties[1] === charge.liste && Number(parties[2]) !== charge.index) {
+      return `Dépose ici pour placer « ${charge.titre} » en position ${Number(parties[2]) + 1}`
+    }
+    return null
+  }
+  const rappelsGlisser: RappelsGlisser<Charge> = {
+    estValable: (charge, zone) => textePour(charge, zone) !== null,
+    onDepot: (charge, zone) => {
+      const { type, parties } = lireZone(zone)
+      if (charge.type === 'fiche') {
+        if (type === 'jour') ajouterFiche(charge.entree, Number(parties[0]), null, 'solo')
+        else {
+          const jour = jours.find((j) => j.seances.some((x) => x.id === parties[0]))
+          if (jour) ajouterFiche(charge.entree, jour.index, parties[0], 'solo')
+        }
+        return
+      }
+      const cible = toutesLesSeances.find((x) => x.id === charge.seanceId)
+      if (!cible) return
+      ecrire(reordonnerEtapes(cible, charge.liste, charge.index, Number(parties[2])))
+      setMessage(`« ${charge.titre} » déplacée en position ${Number(parties[2]) + 1}.`)
+    },
+    onAnnule: (_charge, cause) => setMessage(cause === 'echap' ? 'Glisser annulé, rien n’a changé.' : 'Rien n’a été déposé : aucune zone valable.'),
+  }
+  const enMain = glisse.etat?.charge
+  const glisseDe = (s: SeancePlanifiee): GlisseFiche | null => (!glisse.etat || !enMain ? null : {
+    texteSeance: enMain.type === 'fiche' ? textePour(enMain, idZone('seance', s.id)) : null,
+    zoneActive: glisse.etat.zone,
+    source: enMain.type === 'etape' && enMain.seanceId === s.id ? { liste: enMain.liste, index: enMain.index } : null,
+    texteEtape: (liste, index) => (enMain.type === 'etape' ? textePour(enMain, idZone('etape', s.id, liste, index)) : null),
+  })
+
   const fiche = ficheOuverte !== undefined ? parId.get(ficheOuverte) : undefined
   const donneesFiche: DonneesFiche | undefined = fiche && {
     entree: fiche, etat: etatDe(fiche, contexte.filtre), contexte: contexte.filtre,
@@ -296,6 +352,7 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
 
       <div className="semaine-corps">
         <RailBibliotheque entrees={entrees} contexte={contexte.filtre} remplacementDe={nomARemplacer}
+          onGlisser={remplacement ? undefined : (e, entree) => glisse.demarrer(e, { type: 'fiche', entree }, entree.nom, rappelsGlisser)}
           onVoir={setFicheOuverte} onAjouter={clicRail} onAnnulerRemplacement={() => setRemplacement(null)} />
 
         <section className="semaine-colonne pile-large" aria-labelledby="titre-semaine">
@@ -327,8 +384,10 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
                   <span className="donnee">{dateCourte(j.date)}</span>
                 </div>
                 {j.seances.length === 0 ? (
-                  <div className="jour-repos">
+                  <div className={`jour-repos${enMain && textePour(enMain, idZone('jour', j.index)) ? ' zone-valable' : ''}${glisse.etat?.zone === idZone('jour', j.index) ? ' zone-survolee' : ''}`}
+                    data-zone={idZone('jour', j.index)}>
                     <span className="texte-2">Repos</span>
+                    {enMain && textePour(enMain, idZone('jour', j.index)) && <p className="zone-texte">{textePour(enMain, idZone('jour', j.index))}</p>}
                     <div className="jour-actions">
                       <button type="button" className="bouton-texte" aria-label={`Ajouter une séance type, ${nomJour(j)}`} onClick={() => setJourSeanceType(j.index)}>Ajouter une séance type</button>
                       <button type="button" className="bouton-texte" aria-label={`Ajouter une séance vide, ${nomJour(j)}`} onClick={() => ajouterVide(j)}>Séance vide</button>
@@ -339,6 +398,8 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
                     {j.seances.map((s) => (
                       <FicheSeance key={s.id} seance={s} cycle={cycle} fiches={fiches} entrees={parId} contexte={contexte.filtre} couleurs={couleurs}
                         remplacement={remplacement?.seanceId === s.id ? remplacement.index : null}
+                        glisse={glisseDe(s)}
+                        onGlisserEtape={(e, liste, index, titre) => glisse.demarrer(e, { type: 'etape', seanceId: s.id, liste, index, titre }, titre, rappelsGlisser)}
                         onChanger={ecrire} onSupprimer={() => setARetirer(s)} onVoirFiche={setFicheOuverte}
                         onRemplacer={(index) => setRemplacement({ seanceId: s.id, index })} onAnnulerRemplacement={() => setRemplacement(null)} />
                     ))}
@@ -358,6 +419,8 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
         <AjouterSeanceType jour={nomJour(jours[jourSeanceType])} choix={choixTypes} onAnnuler={() => setJourSeanceType(null)} onChoisir={ajouterSeanceType} />
       )}
       {donneesFiche && <FicheDetail donnees={donneesFiche} onFermer={() => setFicheOuverte(undefined)} onAjouter={() => { setAAjouter(donneesFiche.entree); setFicheOuverte(undefined) }} />}
+
+      {glisse.etat && <FantomeGlisse libelle={glisse.etat.libelle} x={glisse.etat.x} y={glisse.etat.y} />}
 
       <Confirmation
         ouverte={aRetirer !== null}

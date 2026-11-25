@@ -647,3 +647,26 @@ form.pile-large { gap: 24px; }
 .biblio-cree { margin: 0; padding: var(--espace-3) var(--espace-4); border-left: 4px solid var(--accent); background: var(--surface-creuse); }
 @media (max-width: 1199px) { .perso-corps { grid-template-columns: 1fr; } .perso-apercu { position: static; } }
 .perso-essai { width: auto; align-self: flex-start; padding: 0 var(--espace-4); }
+
+/* Glisser-déposer du plan (D-17) */
+.poignee { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 48px; color: var(--texte-3); font-size: 22px; line-height: 1; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.rail-fiche { position: relative; }
+.rail-poignee { position: absolute; top: 0; right: 0; }
+.glissable { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.glisse-source { opacity: 0.55; outline: 2px solid var(--accent); outline-offset: -2px; }
+body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+.glisse-fantome { position: fixed; z-index: 100; max-width: 260px; padding: var(--espace-2) var(--espace-3); border: 2px solid var(--accent); border-radius: var(--rayon-carte); background: var(--surface); color: var(--texte); font-weight: 700; box-shadow: var(--ombre-flottante); transform: translate(12px, 12px) scale(1.02); pointer-events: none; }
+.zone-valable { border: 2px dashed var(--accent); border-radius: var(--rayon-controle); background: var(--accent-doux); }
+.etape-ligne.zone-valable { padding-inline: var(--espace-2); }
+.zone-survolee { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* Le texte d'une zone se superpose : s'il prenait de la place, la page bougerait sous le doigt pendant le glisser. */
+.zone-valable { position: relative; }
+.zone-texte { position: absolute; z-index: 1; margin: 0; color: var(--texte); font-size: 14px; font-weight: 700; background: var(--accent-doux); pointer-events: none; }
+.jour-repos .zone-texte { inset: 0; display: flex; align-items: center; justify-content: center; padding: var(--espace-2); text-align: center; }
+.fiche-seance > .zone-texte { top: 0; left: 0; right: 0; padding: var(--espace-3); }
+.etape-ligne .zone-texte { top: 50%; right: var(--espace-2); max-width: 55%; transform: translateY(-50%); padding: var(--espace-1) var(--espace-2); font-size: 13px; text-align: right; }
+.case-jour .zone-texte { inset: 0; padding: var(--espace-1); font-size: 12px; }
+/* Mouvement réduit : ni ombre flottante ni agrandissement, le contour résine suffit. */
+@media (prefers-reduced-motion: reduce) {
+  .glisse-fantome { box-shadow: none; transform: translate(12px, 12px); }
+}
