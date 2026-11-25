@@ -5,6 +5,8 @@ import {
   RESISTANCE_VOIE_PAR_SEMAINE,
   MARQUEURS_NERVEUX,
   MARQUEURS_QUOTA,
+  MARQUEURS_RISQUE_DOULEUR,
+  NOMS_MARQUEURS,
   NOMS_QUALITES,
   NOMS_ZONES,
   QUALITES_PHYSIQUES,
@@ -34,6 +36,14 @@ describe('listes de marqueurs et de qualités', () => {
     for (const protocole of BIBLIOTHEQUE) {
       expect(NOMS_QUALITES[protocole.qualite], protocole.id).toBeTruthy()
     }
+  })
+
+  it('donne un libellé sans underscore à chaque marqueur des quotas et du risque douleur', () => {
+    for (const m of [...MARQUEURS_QUOTA, ...MARQUEURS_RISQUE_DOULEUR]) {
+      expect(NOMS_MARQUEURS[m], m).toBeTruthy()
+      expect(NOMS_MARQUEURS[m], m).not.toContain('_')
+    }
+    expect(NOMS_MARQUEURS.poutre_intensive).toBe('poutre intensive')
   })
 
   it('donne un nom à chaque zone de douleur', () => {

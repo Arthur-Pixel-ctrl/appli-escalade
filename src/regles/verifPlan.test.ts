@@ -123,6 +123,9 @@ describe('verifierStructurePlan', () => {
     const a = verifier(p)
     expect(codes(a)).toContain('P-01')
     expect(a.find((x) => x.code === 'P-01')?.niveau).toBe('information')
+    expect(a.find((x) => x.code === 'P-01')?.message).toBe(
+      "Ton cycle s'écarte du format 12 semaines en 3 phases de 4. C'est possible, mais les repères de l'app sont faits pour ce format.",
+    )
   })
 
   it('P-01 : ne se déclenche pas en objectif daté', () => {
@@ -389,6 +392,15 @@ describe('verifierStructurePlan', () => {
       const a = verifier(planAvecObjectifs(['front', 'planche']), ctx).filter((x) => x.code === 'P-11')
       expect(a).toHaveLength(1)
       expect(a[0].message).toBe('« Front lever » et « Planche » comptent dans le même quota (poutre). Garde-en un pour cette phase.')
+    })
+
+    it('deux objectifs portant poutre_intensive : le libellé, jamais l\'identifiant brut', () => {
+      const ctx = ctxAvecObjectifs(
+        objectif('a', { nom: 'Traversée', marqueurs: ['poutre_intensive'] }),
+        objectif('b', { nom: 'Chute', marqueurs: ['poutre_intensive'] }),
+      )
+      const a = verifier(planAvecObjectifs(['a', 'b']), ctx).filter((x) => x.code === 'P-11')
+      expect(a[0].message).toBe('« Traversée » et « Chute » comptent dans le même quota (poutre intensive). Garde-en un pour cette phase.')
     })
 
     it('trois objectifs portant poutre : trois P-11 de sujets distincts', () => {

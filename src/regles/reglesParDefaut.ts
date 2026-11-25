@@ -47,6 +47,20 @@ export const NOMS_QUALITES: Record<Qualite, string> = {
   echauffement: 'échauffement',
 }
 
+// Un message n'affiche jamais l'identifiant brut d'un marqueur (B.2, consolidation 25/11).
+export const NOMS_MARQUEURS: Record<Marqueur, string> = {
+  maximale: 'effort maximal',
+  poutre_intensive: 'poutre intensive',
+  bloc_limite: 'bloc limite',
+  pan_gullich: 'pan sans pieds',
+  poutre: 'poutre',
+  arque: 'arqué',
+  bidoigts: 'bidoigts',
+  trou: 'trous',
+  pan: 'pan pieds posés',
+  resistance_voie: 'résistance en voie',
+}
+
 export const NOMS_ZONES: Record<ZoneDouleur, string> = {
   doigts: 'doigts',
   poignet: 'poignet',
