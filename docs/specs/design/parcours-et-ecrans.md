@@ -12,6 +12,8 @@ de l'expert entraînement ; le modèle de données et la navigation technique vi
 
 > **Consolidation du 23/11** (décision F6) : aucun niveau n'est imposé à la création d'un cycle. Dans **O-13**, la question du niveau vient **après** les accents des phases, avec un niveau présélectionné selon ces accents et une ligne qui dit pourquoi (`docs/specs/niveaux-de-detail.md` § 1.7). Pour un brouillon de cycle de l'assistant (**O-10**), la même question s'affiche en tête de la réponse. Mention « (consolidation 23/11, F6) ».
 
+> **Consolidation du 25/11, audit de fin de phase 3** (`docs/audits/audit-phase-3.md`, points M-3, M-8 et M-12) : une ligne « Ton profil ne dit pas encore : … » et les S-03 identiques regroupés dans les listes de la semaine (§ 4, O-02, O-03, O-05) ; l'étiquette « À VÉRIFIER » d'une étape devient « RÉGLAGE ESTIMÉ », « à vérifier » restant réservé aux fiches écartées (O-05, O-07, T-08) ; deux questions au lieu d'une pour les prises de l'exercice personnel (O-08) ; un avertissement d'une séance sans étapes nomme sa partie (O-05). Mention « (consolidation 25/11, audit phase 3) ». Tâches : vague 3.12 de `docs/backlog-v2.md`.
+
 Conventions : identifiant d'écran `T-xx` (téléphone) et `O-xx` (ordinateur). Pour chaque écran : **But**, **Contenu**,
 **Action principale** (une seule, en résine), **Autres actions**, **États**, **Adaptation**, **Accessibilité**.
 Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation ni emoji.
@@ -220,6 +222,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   « Passer l'étape » et « Terminer la séance » en boutons seconds ; « Terminer la séance » devient principal quand tout
   est traité.
 - **États** : étape sans réglage valable (protocole « à vérifier ») → avertissement ambre dans l'étape ; séance vide → impossible (on ne propose pas une séance vide).
+  (consolidation 25/11, audit phase 3) « à vérifier » désigne ici une fiche écartée (`exclureDeLaGeneration`, S-02), seule à mériter l'ambre ; un réglage estimé (`aVerifier`, voir O-07) n'affiche rien pendant la séance.
 
 ### T-09 Séance en groupe (adaptée)
 - **But** : noter les blocs et suivre les objectifs du jour.
@@ -310,7 +313,9 @@ au lieu de le pousser.
 - **Contenu** (grille de 12 colonnes) :
   - à gauche (8 colonnes) : titre `affiche` « Semaine 6 sur 12 » ; la bande des 12 semaines ; « Cette semaine » en
     lignes de jours avec l'état (faite, prévue, manquée) ; « Avertissements ouverts » (liste de rubalises, cliquables
-    vers l'endroit du plan) ;
+    vers l'endroit du plan) ; (consolidation 25/11, audit phase 3) sous le compte, la ligne « Ton profil ne dit pas
+    encore : … » si un S-03 de la semaine vient d'un profil non rempli, et les S-03 identiques en une seule rubalise
+    (§ 4) ;
   - à droite (4 colonnes) : fiche « Prochaine séance » (en lecture, avec « Les séances se lancent depuis ton téléphone » ; consolidation 17/11, B12) ; « Derniers tests »
     (chiffres clés en chasse fixe et petite courbe) ; « Objectifs de la phase » (1 ou 2, avec l'avancée).
 - **Action principale** : « Ouvrir la semaine en cours » (vers O-05).
@@ -340,7 +345,8 @@ au lieu de le pousser.
   « Deux objectifs au plus par phase : retire-en un pour en choisir un autre. »
 - **Action principale** : « Ouvrir la semaine en cours » (ou « Ouvrir la semaine 1 » avant le début).
 - **Avertissements** : un repère ambre sur la case d'une semaine qui en contient ; un résumé en haut
-  (« 2 avertissements dans la phase 1 »).
+  (« 2 avertissements dans la phase 1 »). (consolidation 25/11, audit phase 3) Sous ce résumé, la ligne « Ton profil ne
+  dit pas encore : … » si un S-03 du plan vient d'un profil non rempli (§ 4). Les comptes et les repères ne changent pas.
 - **États** : création → les phases sont vides avec, dans chacune, « Choisis l'accent de la phase » et une annotation
   au trait de topo ; erreur d'enregistrement → bandeau « Changement pas encore enregistré, nouvel essai dans
   quelques secondes » (les changements restent à l'écran).
@@ -369,7 +375,9 @@ au lieu de le pousser.
 - **Colonne Semaine** :
   - en-tête : mention du cycle, titre de la phase, choix de vue « 12 semaines / Phase / Semaine », bande des 12 semaines ;
   - ligne « Semaine 2 · 10 au 16 nov. », résumé « 3 séances · 2 dures », **action principale « Ajouter une séance »** ;
-  - avertissements de la semaine (rubalise ambre) avec « Pourquoi ? » et une correction en un clic ;
+  - avertissements de la semaine (rubalise ambre) avec « Pourquoi ? » et une correction en un clic ; (consolidation
+    25/11, audit phase 3) en tête de cette liste, la ligne « Ton profil ne dit pas encore : … » si un S-03 de la semaine
+    vient d'un profil non rempli, et les S-03 identiques regroupés en une ligne (§ 4) ;
   - 7 lignes de jours. Jour de repos : bande creuse « Repos ». Jour avec séance : **fiche de séance**.
 - **Fiche de séance** :
   - en-tête : étiquette de dureté (calculée), nom (modifiable en place), durée (calculée), **bascule « SOLO | GROUPE »**
@@ -381,10 +389,14 @@ au lieu de le pousser.
     *détaillé* = les étapes ci-dessous. Une séance qui a des étapes, affichée en simple ou en grandes lignes, montre le
     résumé calculé avec « Modifier le texte » et « Voir les étapes ». Une séance sans étapes passée en détaillé :
     « Cette séance n'a pas encore d'étapes. » avec « Remplir depuis la séance type » ou « Ajouter une étape ».
-    Un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape ;
-  - **version solo** : étapes numérotées (protocoles), chacune avec poignée, nom, étiquettes (PRÉREQUIS, À VÉRIFIER,
+    Un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape ; (consolidation
+    25/11, audit phase 3) pour une séance sans étapes (étapes résumées, une par partie qui a un exercice principal), la
+    ligne dit « Partie « {titre de la partie} » » au lieu de « Étape « … » » ;
+  - **version solo** : étapes numérotées (protocoles), chacune avec poignée, nom, étiquettes (PRÉREQUIS, RÉGLAGE ESTIMÉ,
     PERSO), durée, menu (« Voir la fiche », « Remplacer », « Monter », « Descendre », « Retirer ») ; zone de dépôt
-    en bas « Dépose un protocole ici » ;
+    en bas « Dépose un protocole ici » ; (consolidation 25/11, audit phase 3) « RÉGLAGE ESTIMÉ » remplace « À VÉRIFIER » :
+    l'étiquette lit le champ `aVerifier` de la fiche (un réglage que la source ne confirme pas), en étiquette contour,
+    avec le texte de la fiche en infobulle ; elle ne dit pas que la fiche est écartée (vocabulaire : O-07) ;
   - **version groupe** : échauffement commun (étapes), puis objectifs de groupe (libellé, cible, couleur conseillée
     optionnelle en pastille de prise, essais maximum), « Ajouter un objectif » ; un objectif peut être « tiré d'un
     protocole » (bouton) pour reprendre ses consignes ;
@@ -435,8 +447,18 @@ au lieu de le pousser.
   suspensions ») ; matériel et terrain ; seul ou en groupe ; partenaire ; **prérequis**, un par ligne avec son état
   pour toi (« Années de pratique : 1 an demandé · toi : 4 ans » ; « Test 15 s sur 25 mm : pas renseigné, compte comme
   non rempli ») ; **contre-indications** (zones) et, si une douleur déclarée y correspond, signal d'arrêt ;
-  **limite par semaine** ; **progression** ; **source** (auteur, lien) ; **« À vérifier »** s'il existe, en
-  avertissement ambre avec le texte de la fiche ; pour un exercice personnel : **référence « livre, page »**.
+  **limite par semaine** ; **progression** ; **« Réglage estimé »** s'il existe ; **source** (auteur, lien) ; pour un
+  exercice personnel : **référence « livre, page »**.
+  (consolidation 25/11, audit phase 3) **« Réglage estimé »** remplace « « À vérifier » en avertissement ambre » :
+  section simple, comme « Pour progresser », juste avant la source, titre « Réglage estimé » et le texte `aVerifier` de
+  la fiche ; plus de rubalise ambre. Pourquoi : ce n'est pas un risque (l'ambre est réservé aux avertissements, une
+  couleur par rôle), et la plupart des fiches en ont un, signalé par honnêteté.
+- **Vocabulaire** (consolidation 25/11, audit phase 3, M-8) :
+  - **« Réglage estimé »** : champ `aVerifier`. Un réglage (repos, durée, charge, seuil de prérequis…) que la source ne
+    confirme pas et que l'app a posé prudemment. La fiche reste proposable par le générateur et l'assistant.
+  - **« À vérifier »** et **« À LA MAIN SEULEMENT »** : champ `exclureDeLaGeneration` (ou fiche de test). Une valeur clé
+    reste à vérifier : ni le générateur ni l'assistant ne la proposent ; à la main, S-02 le dit (« a un réglage encore à
+    vérifier »). Seuls ces cas emploient « à vérifier ».
 - **Action principale** : « Ajouter au plan » (menu : semaine, jour, séance ; par défaut la semaine affichée).
 - **Autres actions** : « Essayer le chrono » (second, ouvre le chrono en aperçu) ; pour un exercice personnel :
   « Modifier », « Supprimer » (avec confirmation, et la liste des séances qui l'utilisent).
@@ -464,6 +486,11 @@ au lieu de le pousser.
      « Arqué, bidoigts ou trous ? », « Sans pieds au pan ? », « Pour quelles zones est-il déconseillé en cas de douleur ? »
      (doigts, poignet, coude, épaule, genou, dos). **Valeur prudente** : « Je ne sais pas » est traité comme « oui » par
      les règles, et l'aide le dit.
+     (consolidation 25/11, audit phase 3, M-12) Questions dans cet ordre : « Effort maximal des doigts ? », « Sur
+     poutre ? », « Bloc à ta limite ? » (ajoutée par D-13), « Arqué ou trous ? », « Bidoigts ? », « Sans pieds au pan ? »,
+     puis les zones. « Arqué, bidoigts ou trous ? » est coupée en deux : elle donnait les trois marqueurs ensemble, et un
+     exercice arqué à effort maximal recevait `bidoigts`, d'où un S-18 fort à tort. « Je ne sais pas » à « Bidoigts ? »
+     pose toujours `bidoigts` (prudence). Correspondances : backlog, D-13, amendement 3.
   9. Réglage du chrono : bouton « Essayer le chrono ».
 - **Action principale** : « Créer l'exercice ». Il apparaît dans la bibliothèque avec l'étiquette « PERSO ».
 - **États** : champ obligatoire manquant → message sous le champ, focus sur le premier ; quitter avec des changements →
@@ -617,6 +644,46 @@ Règles d'affichage :
 - un même avertissement n'apparaît qu'une fois par zone (pas de doublon semaine + séance + étape ouvert en même temps :
   il est ouvert au niveau le plus précis, résumé ailleurs).
 
+**Profil non renseigné et S-03 répétés** (consolidation 25/11, audit phase 3, M-3). Avec un profil peu rempli, une même
+fiche donne un S-03 dans chaque séance qui la contient (24 S-03 forts sur 40 avertissements dans l'exemple de l'audit) :
+le message utile, « complète ton profil », se noie, et on risque de tout garder sans lire. Deux règles d'affichage ;
+**rien n'est retiré du moteur**, chaque S-03 reste compté (résumés, repères, « dont n gardés ») et reste visible sur
+son étape, dans la fiche de séance, avec son « Je garde ce choix ».
+
+1. **Ligne de profil.** Quand au moins un S-03 de la zone porte `nonRenseignes` (B.3 de `moteur-verification.md` :
+   prérequis demandés que le profil laisse vides), la zone montre **une** ligne d'information (icône « i » encre,
+   comme le niveau Information ci-dessus, jamais ambre), placée **avant** les avertissements de la zone :
+   - titre en gras : « Ton profil ne dit pas encore : {liste}. » ; `{liste}` = réunion des `nonRenseignes` des S-03 de la
+     zone (gardés compris), sans doublon, dans cet ordre, chacun avec son libellé :
+     `tractionsStrictesMax` « combien de tractions strictes tu fais » ; `test15sSur25mm` « si tu tiens 15 s sur une
+     réglette de 25 mm » ; `niveauBloc` « ton niveau en bloc » ; `adulte` « si tu as 18 ans ou plus » ; séparés par « , »,
+     le dernier par « et » ;
+   - suite : « Ce qui n'est pas renseigné compte comme non rempli, par prudence. » ;
+   - bouton texte (jamais en résine) : « Compléter mon profil », qui ouvre la rubrique Profil ; sans moyen d'y aller,
+     le bouton n'est pas affiché et le texte reste.
+   Exemple : « **Ton profil ne dit pas encore : combien de tractions strictes tu fais et si tu as 18 ans ou plus.** Ce qui
+   n'est pas renseigné compte comme non rempli, par prudence. Compléter mon profil ».
+   Zones : la vue 12 semaines (O-03, sous le résumé en tête, pour tout le plan) ; la vue Semaine (O-05, en tête de la
+   liste des avertissements de la semaine) ; le tableau de bord (O-02, « Avertissements ouverts », sous le compte, pour
+   la semaine affichée). Pas dans la fiche de séance (elle se répéterait dans chaque fiche), ni dans la vue Phase.
+   La ligne n'est pas un avertissement du moteur : elle n'entre dans aucun compte et n'a ni « Pourquoi ? » ni
+   « Je garde ce choix ». Elle disparaît quand le profil est complété (les S-03 n'ont plus de `nonRenseignes`).
+2. **S-03 identiques regroupés**, dans les deux listes de la semaine : vue Semaine (O-05) et tableau de bord (O-02).
+   Un groupe = les S-03 de la liste dont le message est **identique** (même fiche, mêmes manques) et qui visent **au
+   moins deux séances différentes**. Il prend la place du premier, l'ordre des autres lignes ne change pas. Les autres
+   codes, et les signaux d'arrêt, ne sont jamais regroupés.
+   - Vue Semaine : une ligne résumée, comme les autres lignes de séance : icône avertissement, puis « **Dans {n}
+     séances** ({jours}) : {titre} », puis « (gardé) » si tous les S-03 du groupe sont gardés ; bouton « Voir la
+     séance » vers la première séance du groupe. `{n}` = nombre de séances distinctes ; `{jours}` = leurs jours, en
+     minuscules, dans l'ordre de la semaine, séparés par « , », le dernier par « et » (« mardi, jeudi et samedi ») ;
+     `{titre}` = première phrase du message, comme pour les autres lignes.
+   - Tableau de bord : une rubalise ambre, titre = première phrase du message, texte « Dans {n} séances ({jours}). ». Elle
+     compte pour **une** ligne dans la limite des lignes affichées ; les signaux d'arrêt restent d'abord et hors limite
+     (correction M-1) ; la phrase « et {k} autre(s), à voir dans le Plan » compte les avertissements du moteur non
+     montrés, pas les lignes.
+   - Un S-03 seul (une seule séance) reste une ligne ordinaire. Deux S-03 identiques dans une même séance (la même
+     fiche à deux étapes) ne forment pas un groupe.
+
 ---
 
 ## 5. Textes d'interface de référence
@@ -635,6 +702,9 @@ Règles d'affichage :
 | Brouillon | Rien n'est appliqué tant que tu ne gardes pas. |
 | Prérequis non rempli | Prérequis : 10 tractions strictes demandées. Tu peux l'ajouter quand même. |
 | Valeur inconnue | Pas renseigné : compte comme non rempli, par prudence. |
+| Profil incomplet (consolidation 25/11, audit phase 3) | Ton profil ne dit pas encore : combien de tractions strictes tu fais et si tu as 18 ans ou plus. Ce qui n'est pas renseigné compte comme non rempli, par prudence. · Compléter mon profil |
+| S-03 regroupés (consolidation 25/11, audit phase 3) | Dans 3 séances (mardi, jeudi et samedi) : « Tractions lestées, force max » demande : 10 tractions strictes (non renseigné) ; 18 ans ou plus. |
+| Réglage non confirmé à la source (consolidation 25/11, audit phase 3) | Étiquette : RÉGLAGE ESTIMÉ. Fiche : section « Réglage estimé » avec le texte de la fiche. |
 | Exercice personnel | Écris avec tes mots. Ne recopie pas le livre : note plutôt sa page. |
 
 ---

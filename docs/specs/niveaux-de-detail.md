@@ -356,6 +356,8 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
 
 **Écran** (D-26) : S-27 s'affiche en tête de la fiche de séance, avec « Recalculer les grandes lignes » (confirmation, puis `parties` effacé : les parties redeviennent calculées depuis les étapes) et « Voir les étapes ». Choisir un principal absent des étapes reste permis.
 
+**Exercice principal inconnu** (consolidation 25/11, audit phase 3, M-12) : quand la fiche d'un exercice principal n'existe pas (exercice personnel supprimé, identifiant inventé), S-01 a son propre message, écrit par le moteur : « Cet exercice n'existe pas dans ta bibliothèque ({ficheId}). Choisis un autre exercice principal pour la partie qui le cite. » (`moteur-verification.md` B.5). Il vaut pour un principal hors étapes (portée séance) comme pour une étape résumée d'une séance sans étapes (portée étape). L'écran affiche le message tel quel : il ne le réécrit plus.
+
 ---
 
 ## 4. Écrans
@@ -376,7 +378,7 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
   - *Grandes lignes* : 1 à 5 parties (titre, durée, exercice principal facultatif, consigne courte), « Ajouter une partie », « Monter », « Descendre », « Retirer » ;
   - *Détaillé* : l'éditeur actuel (D-16).
   - Une séance avec des étapes affichée en simple ou en grandes lignes montre le résumé calculé, avec « Modifier le texte » et « Voir les étapes ».
-  - Avertissements : un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape. Aucun ne disparaît. (consolidation 24/11) S-27 propose « Recalculer les grandes lignes » et « Voir les étapes » (§ 3.4).
+  - Avertissements : un avertissement qui vise une étape cachée s'affiche en tête de la fiche, avec le nom de l'étape. Aucun ne disparaît. (consolidation 24/11) S-27 propose « Recalculer les grandes lignes » et « Voir les étapes » (§ 3.4). (consolidation 25/11, audit phase 3) Une séance **sans étapes** n'a que des étapes résumées (une par partie qui a un exercice principal, § 3.1) : la ligne au-dessus de l'avertissement dit alors « Partie « {titre de la partie} » », jamais « Étape « inconnue » ».
 - **Aucun lancement de séance sur ordinateur** (R-6, B12), à aucun niveau.
 
 ### 4.2 Téléphone

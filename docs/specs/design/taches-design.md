@@ -478,6 +478,8 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
   2. `reglages.ts` : `decrireReglages(config: ConfigChrono): string` en français (« 9 échelles de 3, 6 puis 9 s · créneau
      de 45 s · 6 s entre deux suspensions »), un cas de test par gabarit.
   3. Contenu dans l'ordre de O-07, prérequis un par ligne avec l'état pour le profil ; « À vérifier » en avertissement.
+     (consolidation 25/11, audit phase 3) Remplacé : section « Réglage estimé » (texte `aVerifier`), sans rubalise ambre,
+     juste avant la source (O-07 consolidé, et son vocabulaire). Code : AUD3-05.
   4. Action principale « Ajouter au plan » (désactivée avec la raison tant que D-16 n'existe pas) ; « Essayer le chrono »
      (second) ouvre l'écran Chrono avec la config du protocole.
 - **Critères d'acceptation** : tests verts ; le panneau s'ouvre depuis une fiche de la bibliothèque, se ferme à Échap,
@@ -529,7 +531,8 @@ fournies par les tâches [archi] et [entraînement] citées ; **ne pas** invente
   (version compacte de D-11 pour la colonne de gauche) ; `src/index.css`.
 - **Étapes** : disposition 312 px / reste / (404 px réservés à l'assistant plus tard) ; 7 lignes de jours ; repos en bande
   creuse ; `FicheSeance` comme la démo : étiquette de dureté (calculée), nom modifiable, durée (calculée), bascule
-  « SOLO | GROUPE » (encre), étapes avec `.repere`, étiquettes PRÉREQUIS / À VÉRIFIER / PERSO, menu par étape (Voir la
+  « SOLO | GROUPE » (encre), étapes avec `.repere`, étiquettes PRÉREQUIS / RÉGLAGE ESTIMÉ (consolidation 25/11, audit
+  phase 3 : « À VÉRIFIER » avant ; champ `aVerifier`, voir O-07 ; code AUD3-05) / PERSO, menu par étape (Voir la
   fiche, Remplacer, Monter, Descendre, Retirer) ; version groupe : échauffement commun, objectifs (libellé, cible, couleur
   conseillée avec `PastillePrise`, essais max), « Ajouter un objectif », « Copier depuis la version solo » ;
   dans le rail, bouton « Ajouter à… » sur chaque fiche ; action principale « Ajouter une séance ».
