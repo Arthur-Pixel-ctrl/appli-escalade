@@ -311,6 +311,7 @@ export function Plan({ onOuvrirProfil, semaineInitiale }: { onOuvrirProfil?: () 
           avertissements={avertissements}
           onDecaler={decalerSeance}
           onGarder={garderAvertissement}
+          onOuvrirProfil={onOuvrirProfil}
         />
       ) : vue === 'phase' ? (
         <VuePhase
@@ -340,6 +341,7 @@ export function Plan({ onOuvrirProfil, semaineInitiale }: { onOuvrirProfil?: () 
           selecteurVue={selecteurVue}
           avertissements={avertissements}
           onGarder={garderAvertissement}
+          onOuvrirProfil={onOuvrirProfil}
         />
       )}
       {fenetre}

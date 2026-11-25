@@ -5,7 +5,7 @@ import type { Cycle, DateISO, DouleurDeclaree, ExercicePerso, FormeDuJour, Objec
 import { ajouterJours, debutSemaine } from '../../donnees/plan.ts'
 import {
   cleAvertissement, contexteVerif, formeAffichage, planVersVerif, toutesLesFiches, verifierPlan,
-  type Avertissement,
+  type Avertissement, type PrerequisNonRenseigne,
 } from '../../regles/index.ts'
 
 export type FormeAvertissement = 'information' | 'avertissement' | 'arret'
@@ -230,4 +230,78 @@ export function peutDecaler(e: EntreeAvertissement, cycle: Cycle, phases: PhaseC
   if (e.avertissement.code !== 'W-01' || e.seanceId === undefined) return false
   const s = seances.find((x) => x.id === e.seanceId)
   return s !== undefined && decalerAuLendemain(s, cycle, phases) !== null
+}
+
+// ——— Profil et regroupement ———
+// Deux règles d'affichage (M-3) : une ligne « profil non renseigné » et les S-03 identiques en une ligne.
+// Rien n'est retiré du moteur : les comptes se font toujours sur les entrées d'origine.
+
+export const LIBELLES_NON_RENSEIGNES: Record<PrerequisNonRenseigne, string> = {
+  tractionsStrictesMax: 'combien de tractions strictes tu fais',
+  test15sSur25mm: 'si tu tiens 15 s sur une réglette de 25 mm',
+  niveauBloc: 'ton niveau en bloc',
+  adulte: 'si tu as 18 ans ou plus',
+}
+
+// Ordre d'affichage voulu des prérequis.
+const ORDRE_NON_RENSEIGNES: PrerequisNonRenseigne[] = ['tractionsStrictesMax', 'test15sSur25mm', 'niveauBloc', 'adulte']
+
+/** « a », « a et b », « a, b et c ». */
+export function enumerer(mots: readonly string[]): string {
+  if (mots.length <= 1) return mots.join('')
+  return `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`
+}
+
+/** Prérequis que le profil laisse vides, d'après les S-03 de la zone (gardés compris), sans doublon. */
+export function nonRenseignesDe(entrees: readonly EntreeAvertissement[]): PrerequisNonRenseigne[] {
+  const trouves = new Set<PrerequisNonRenseigne>()
+  for (const e of entrees) {
+    if (e.avertissement.code !== 'S-03') continue
+    for (const n of e.avertissement.nonRenseignes ?? []) trouves.add(n)
+  }
+  return ORDRE_NON_RENSEIGNES.filter((n) => trouves.has(n))
+}
+
+export function phraseProfilIncomplet(champs: readonly PrerequisNonRenseigne[]): string {
+  return `Ton profil ne dit pas encore : ${enumerer(champs.map((c) => LIBELLES_NON_RENSEIGNES[c]))}.`
+}
+
+export type LigneAvertissement =
+  | { type: 'seule'; entree: EntreeAvertissement }
+  | { type: 'groupe'; entrees: EntreeAvertissement[]; seanceIds: string[] }
+
+/** Les S-03 de même message qui visent au moins deux séances forment un groupe, à la place de la première. */
+export function regrouperS03(entrees: readonly EntreeAvertissement[], seances: readonly SeancePlanifiee[]): LigneAvertissement[] {
+  const parMessage = new Map<string, EntreeAvertissement[]>()
+  for (const e of entrees) {
+    if (e.avertissement.code !== 'S-03' || e.seanceId === undefined) continue
+    const liste = parMessage.get(e.avertissement.message)
+    if (liste) liste.push(e)
+    else parMessage.set(e.avertissement.message, [e])
+  }
+  const dateDe = (id: string) => seances.find((s) => s.id === id)?.date ?? ''
+  const lignes: LigneAvertissement[] = []
+  for (const e of entrees) {
+    const membres = e.avertissement.code === 'S-03' && e.seanceId !== undefined ? parMessage.get(e.avertissement.message) : undefined
+    const distinctes = membres ? [...new Set(membres.map((m) => m.seanceId as string))] : []
+    if (!membres || distinctes.length < 2) { lignes.push({ type: 'seule', entree: e }); continue }
+    if (membres[0] !== e) continue // déjà rangée dans le groupe de la première
+    distinctes.sort((a, b) => dateDe(a).localeCompare(dateDe(b)))
+    lignes.push({ type: 'groupe', entrees: membres, seanceIds: distinctes })
+  }
+  return lignes
+}
+
+const JOURS_SEMAINE = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']
+
+/** « mardi » : le jour seul, en minuscules. */
+export function nomDuJour(date: DateISO): string {
+  const [a, m, j] = date.split('-').map(Number)
+  return JOURS_SEMAINE[new Date(a, m - 1, j).getDay()]
+}
+
+/** « mardi, jeudi et samedi » pour les séances d'un groupe. */
+export function joursDuGroupe(seanceIds: readonly string[], seances: readonly SeancePlanifiee[]): string {
+  const jours = seanceIds.map((id) => seances.find((s) => s.id === id)?.date).filter((d): d is DateISO => d !== undefined).map(nomDuJour)
+  return enumerer(jours)
 }

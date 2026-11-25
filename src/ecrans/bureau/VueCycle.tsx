@@ -8,7 +8,7 @@ import { ajouterJours, debutPhase, debutSemaine, finCycle } from '../../donnees/
 import { estProposeSeulementALaMain, objectifsPourAccent } from '../../donnees/objectifsSpecifiques.ts'
 import { AvertissementDuMoteur, type AvertissementsFiche } from '../../composants/FicheSeance.tsx'
 import { Icone } from '../../composants/Icone.tsx'
-import { compter, formeDuRepere, nombreDuRepere, phraseCompte, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
+import { compter, formeDuRepere, nombreDuRepere, nonRenseignesDe, phraseCompte, phraseProfilIncomplet, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
 import {
   ACCENTS, ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, NB_OBJECTIFS_MAX, REDUCTIONS_ALLEGEE, REDUCTION_PAR_DEFAUT,
   chargeRelative, dateCourte, dateLongue, estUnLundi, resumeSemaine, semaineDuJour, semainesAPlat, seancesAvecNiveauPropre,
@@ -37,12 +37,14 @@ interface Props {
   avertissements: AvertissementsDuPlan
   /** « Je garde ce choix » (`garder`) ou « Revoir » : `Plan` met à jour `Cycle.avertissementsGardes`. */
   onGarder: (cle: string, garder: boolean) => void
+  /** Ouvre la rubrique Profil ; sans lui, la ligne « profil non renseigné » n'a pas de bouton. */
+  onOuvrirProfil?: () => void
 }
 
 const TYPES_CHOISIS: SemainePlan['type'][] = ['charge', 'allegee', 'affutage']
 
 // Écran O-03 : la structure du cycle, en trois colonnes de phases.
-export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, onOuvrirSemaine, selecteurVue, avertissements, onGarder }: Props) {
+export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycle, onPhase, onObjectifs, onNiveau, onNouveauCycle, onOuvrirSemaine, selecteurVue, avertissements, onGarder, onOuvrirProfil }: Props) {
   // Ici seuls les avertissements de plan et de phase s'ouvrent : pas de séance, donc pas de correction en un clic.
   const actionsPlan: AvertissementsFiche = {
     propres: [], liees: [], peutDecaler: () => false, onDecaler: () => {},
@@ -109,7 +111,7 @@ export function VueCycle({ cycle, phases, seances, objectifs, aujourdhui, onCycl
 
       <div className="plan-selecteur pile">{selecteurVue}</div>
 
-      <ResumeAvertissements entrees={avertissements.entrees} duPlan={avertissements.duPlan} actions={actionsPlan} />
+      <ResumeAvertissements entrees={avertissements.entrees} duPlan={avertissements.duPlan} actions={actionsPlan} onOuvrirProfil={onOuvrirProfil} />
 
       <BandeSemaines
         semaines={plat.map((s) => ({
@@ -376,11 +378,17 @@ function ColonnePhase({ cycle, phase, seances, objectifs, minutesMax, numeroEnCo
 }
 
 // Résumé du plan en tête de la vue 12 semaines : les comptes, avertissements gardés compris. Le détail est dans la vue Semaine.
-function ResumeAvertissements({ entrees, duPlan, actions }: { entrees: EntreeAvertissement[]; duPlan: EntreeAvertissement[]; actions: AvertissementsFiche }) {
+function ResumeAvertissements({ entrees, duPlan, actions, onOuvrirProfil }: { entrees: EntreeAvertissement[]; duPlan: EntreeAvertissement[]; actions: AvertissementsFiche; onOuvrirProfil?: () => void }) {
   if (entrees.length === 0) return null
+  const champs = nonRenseignesDe(entrees)
   return (
     <section className="pile" aria-label="Avertissements du plan">
       <p className="donnee resume-avertissements"><Icone nom="avertissement" taille={20} /> {phraseCompte(compter(entrees))}</p>
+      {champs.length > 0 && (
+        <Avertissement niveau="information" titre={phraseProfilIncomplet(champs)}>
+          Ce qui n’est pas renseigné compte comme non rempli, par prudence.{onOuvrirProfil && <> <button type="button" className="bouton-texte bouton-en-ligne" onClick={onOuvrirProfil}>Compléter mon profil</button></>}
+        </Avertissement>
+      )}
       {duPlan.map((e) => <AvertissementDuMoteur key={e.cle} entree={e} actions={actions} />)}
     </section>
   )

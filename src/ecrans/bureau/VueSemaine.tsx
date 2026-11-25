@@ -17,7 +17,7 @@ import { PROFIL_VIDE } from '../../donnees/profil.ts'
 import { dureeSeanceType } from '../../donnees/seancesTypes.ts'
 import { lireTous, surDonneesChangees } from '../../donnees/stockage.ts'
 import { profilVersVerif, seanceDepuisType, toutesLesFiches, type DouleurVerif, type ZoneDouleur } from '../../regles/index.ts'
-import { compter, nombreDuRepere, phraseCompte, scinderMessage, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
+import { compter, joursDuGroupe, nombreDuRepere, nonRenseignesDe, phraseCompte, phraseProfilIncomplet, regrouperS03, scinderMessage, type AvertissementsDuPlan, type EntreeAvertissement } from './avertissementsPlan.ts'
 import { decalerAuLendemain } from './avertissementsPlan.ts'
 import { FicheDetail, type DonneesFiche } from './FicheDetail.tsx'
 import { ETIQUETTES_ACCENT, ETIQUETTES_TYPE_SEMAINE, dateCourte, resumeSemaine, semaineDuJour, semainesAPlat } from './Plan.outils.ts'
@@ -45,6 +45,8 @@ interface Props {
   onDecaler: (seanceId: string) => boolean
   /** « Je garde ce choix » (`garder`) ou « Revoir » : `Plan` met à jour `Cycle.avertissementsGardes`. */
   onGarder: (cle: string, garder: boolean) => void
+  /** Ouvre la rubrique Profil ; sans lui, la ligne « profil non renseigné » n'a pas de bouton. */
+  onOuvrirProfil?: () => void
 }
 
 interface Contexte {
@@ -180,7 +182,7 @@ function AjouterSeanceType({ jour, choix, onAnnuler, onChoisir }: {
 }
 
 // Écran O-05 : composer les séances de la semaine. Aucun lancement de séance ici (R-6).
-export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecteurVue, changeSurTelephone, onVoirNouvelle, onChoisirSemaine, onChangerSeances, avertissements, onDecaler, onGarder }: Props) {
+export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecteurVue, changeSurTelephone, onVoirNouvelle, onChoisirSemaine, onChangerSeances, avertissements, onDecaler, onGarder, onOuvrirProfil }: Props) {
   const { ordre, semaine } = positionDeLaSemaine(numero)
   const phase = phases.find((p) => p.ordre === ordre) ?? phases[0]
   const [contexte, setContexte] = useState<Contexte | undefined>(undefined)
@@ -343,6 +345,8 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
     onRouvrir: (e) => onGarder(e.cle, false),
   })
   const deLaSemaine = avertissements.parSemaine.get(numero) ?? []
+  const champsNonRenseignes = nonRenseignesDe(deLaSemaine)
+  const lignes = regrouperS03(deLaSemaine, seances)
   const nomDeSeance = (e: EntreeAvertissement) => seances.find((x) => x.id === e.seanceId)?.solo.nom
   const voirLaSeance = (id: string | undefined) => {
     const el = id ? document.querySelector<HTMLElement>(`[data-seance="${id}"]`) : null
@@ -421,21 +425,41 @@ export function VueSemaine({ cycle, phases, seances, aujourdhui, numero, selecte
                 {nombreDuRepere(deLaSemaine) > 0 && <span className="repere-avertissements"><Icone nom="avertissement" taille={20} /></span>}
                 {phraseCompte(compter(deLaSemaine))}
               </h3>
+              {champsNonRenseignes.length > 0 && (
+                <Avertissement niveau="information" titre={phraseProfilIncomplet(champsNonRenseignes)}>
+                  Ce qui n’est pas renseigné compte comme non rempli, par prudence.{onOuvrirProfil && <> <button type="button" className="bouton-texte bouton-en-ligne" onClick={onOuvrirProfil}>Compléter mon profil</button></>}
+                </Avertissement>
+              )}
               <ul className="liste-simple pile">
-                {deLaSemaine.map((e) => (
-                  <li key={e.cle}>
-                    {e.seanceId === undefined ? (
-                      // Portée semaine : c'est ici le niveau le plus précis, on l'ouvre.
-                      <AvertissementDuMoteur entree={e} actions={actionsFiche()} />
-                    ) : (
-                      <p className={`avertissement-resume${e.garde ? ' garde' : ''}`}>
-                        <Icone nom={e.forme === 'arret' ? 'arret' : e.forme === 'information' ? 'information' : 'avertissement'} taille={20} />
-                        <span><strong>{nomDeSeance(e)}</strong> : {scinderMessage(e.avertissement.message).titre}{e.garde ? ' (gardé)' : ''}</span>
-                        <button type="button" className="bouton-discret" onClick={() => voirLaSeance(e.seanceId)}>Voir la séance</button>
-                      </p>
-                    )}
+                {lignes.map((l) => {
+                  if (l.type === 'seule') {
+                    const e = l.entree
+                    return (
+                      <li key={e.cle}>
+                        {e.seanceId === undefined ? (
+                          // Portée semaine : c'est ici le niveau le plus précis, on l'ouvre.
+                          <AvertissementDuMoteur entree={e} actions={actionsFiche()} />
+                        ) : (
+                          <p className={`avertissement-resume${e.garde ? ' garde' : ''}`}>
+                            <Icone nom={e.forme === 'arret' ? 'arret' : e.forme === 'information' ? 'information' : 'avertissement'} taille={20} />
+                            <span><strong>{nomDeSeance(e)}</strong> : {scinderMessage(e.avertissement.message).titre}{e.garde ? ' (gardé)' : ''}</span>
+                            <button type="button" className="bouton-discret" onClick={() => voirLaSeance(e.seanceId)}>Voir la séance</button>
+                          </p>
+                        )}
+                      </li>
+                    )
+                  }
+                  // Groupe de S-03 identiques : une ligne, la fiche reste détaillée dans chaque séance.
+                  return (
+                  <li key={l.entrees[0].cle}>
+                    <p className={`avertissement-resume${l.entrees.every((x) => x.garde) ? ' garde' : ''}`}>
+                      <Icone nom="avertissement" taille={20} />
+                      <span><strong>Dans {l.seanceIds.length} séances</strong> ({joursDuGroupe(l.seanceIds, seances)}) : {scinderMessage(l.entrees[0].avertissement.message).titre}{l.entrees.every((x) => x.garde) ? ' (gardé)' : ''}</span>
+                      <button type="button" className="bouton-discret" onClick={() => voirLaSeance(l.seanceIds[0])}>Voir la séance</button>
+                    </p>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
             </section>
           )}

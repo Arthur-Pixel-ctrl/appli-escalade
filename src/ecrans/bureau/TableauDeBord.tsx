@@ -11,7 +11,7 @@ import { lireCycles, lireExercicesPerso, lirePlanDuCycle } from '../../donnees/p
 import { lireTous, lireUn, surDonneesChangees } from '../../donnees/stockage.ts'
 import { toutesLesFiches } from '../../regles/index.ts'
 import {
-  AUCUN_AVERTISSEMENT, arretsEnPremier, calculerAvertissements, phraseCompte, compter, ranger, scinderMessage,
+  AUCUN_AVERTISSEMENT, arretsEnPremier, calculerAvertissements, joursDuGroupe, nonRenseignesDe, phraseCompte, phraseProfilIncomplet, compter, ranger, regrouperS03, scinderMessage,
 } from './avertissementsPlan.ts'
 import { cycleAMontrer, dateLongue, ETIQUETTES_ACCENT } from './Plan.outils.ts'
 import {
@@ -61,10 +61,12 @@ interface Props {
   onOuvrirSemaine: (numero: number) => void
   onOuvrirPlan: () => void
   onOuvrirBilans: () => void
+  /** Ouvre la rubrique Profil ; sans lui, la ligne « profil non renseigné » n'a pas de bouton. */
+  onOuvrirProfil?: () => void
 }
 
 // Écran O-02 : où j'en suis, et le chemin vers le bon endroit. Aucune séance ne se lance d'ici (R-6).
-export function TableauDeBord({ onOuvrirSemaine, onOuvrirPlan, onOuvrirBilans }: Props) {
+export function TableauDeBord({ onOuvrirSemaine, onOuvrirPlan, onOuvrirBilans, onOuvrirProfil }: Props) {
   const [donnees, setDonnees] = useState<Donnees | undefined>(undefined)
   const [echec, setEchec] = useState(false)
   const aujourdhui = jourLocal()
@@ -161,6 +163,11 @@ export function TableauDeBord({ onOuvrirSemaine, onOuvrirPlan, onOuvrirBilans }:
   const ouverts = arretsEnPremier(delaSemaine.filter((e) => e.forme !== 'information'))
   const arrets = ouverts.filter((e) => e.forme === 'arret')
   const autres = ouverts.filter((e) => e.forme !== 'arret')
+  const champsNonRenseignes = nonRenseignesDe(delaSemaine)
+  // Les S-03 identiques tiennent en une ligne, qui compte pour une dans la limite de 3.
+  const lignesAutres = regrouperS03(autres, donnees.seances)
+  const lignesMontrees = lignesAutres.slice(0, 3)
+  const nbMontres = lignesMontrees.reduce((t, l) => t + (l.type === 'groupe' ? l.entrees.length : 1), 0)
   const libelleAction = semaine.commence ? 'Ouvrir la semaine en cours' : 'Ouvrir la semaine 1'
 
   return (
@@ -215,10 +222,22 @@ export function TableauDeBord({ onOuvrirSemaine, onOuvrirPlan, onOuvrirBilans }:
             ) : (
               <>
                 <p className="texte-2">{phraseCompte(compter(delaSemaine))}</p>
-                {[...arrets, ...autres.slice(0, 3)].map((e) => (
-                  <Avertissement key={e.cle} niveau={e.forme === 'arret' ? 'arret' : 'avertissement'} titre={scinderMessage(e.avertissement.message).titre} />
+                {champsNonRenseignes.length > 0 && (
+                  <Avertissement niveau="information" titre={phraseProfilIncomplet(champsNonRenseignes)}>
+                    Ce qui n’est pas renseigné compte comme non rempli, par prudence.{onOuvrirProfil && <> <button type="button" className="bouton-texte bouton-en-ligne" onClick={onOuvrirProfil}>Compléter mon profil</button></>}
+                  </Avertissement>
+                )}
+                {arrets.map((e) => (
+                  <Avertissement key={e.cle} niveau="arret" titre={scinderMessage(e.avertissement.message).titre} />
                 ))}
-                {autres.length > 3 && <p className="texte-3">et {autres.length - 3} autre(s), à voir dans le Plan.</p>}
+                {lignesMontrees.map((l) => l.type === 'groupe' ? (
+                  <Avertissement key={l.entrees[0].cle} niveau="avertissement" titre={scinderMessage(l.entrees[0].avertissement.message).titre}>
+                    Dans {l.seanceIds.length} séances ({joursDuGroupe(l.seanceIds, donnees.seances)}).
+                  </Avertissement>
+                ) : (
+                  <Avertissement key={l.entree.cle} niveau="avertissement" titre={scinderMessage(l.entree.avertissement.message).titre} />
+                ))}
+                {autres.length > nbMontres && <p className="texte-3">et {autres.length - nbMontres} autre(s), à voir dans le Plan.</p>}
               </>
             )}
           </section>

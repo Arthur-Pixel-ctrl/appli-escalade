@@ -44,6 +44,7 @@ export function MiseEnPageBureau({
                 onOuvrirSemaine={(numero) => { setSemaineDemandee(numero); onChoisirRubrique('Plan') }}
                 onOuvrirPlan={() => { setSemaineDemandee(undefined); onChoisirRubrique('Plan') }}
                 onOuvrirBilans={() => onChoisirRubrique('Bilans')}
+                onOuvrirProfil={() => onChoisirRubrique('Profil')}
               />
             </div>
           )}
