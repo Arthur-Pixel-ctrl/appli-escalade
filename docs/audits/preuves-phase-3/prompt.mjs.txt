@@ -1,0 +1,9 @@
+// Compare le prompt système du code au bloc ```text de la section D.6 de assistant-ia.md, caractère par caractère.
+import { readFileSync } from 'node:fs'
+const spec = readFileSync('/home/claude/wt/AUDIT-3/docs/specs/entrainement/assistant-ia.md', 'utf8')
+const d6 = spec.slice(spec.indexOf('## D.6'))
+const bloc = d6.slice(d6.indexOf('```text\n') + 8, d6.indexOf('\n```', d6.indexOf('```text\n') + 8))
+const { PROMPT_SYSTEME, VERSION_PROMPT } = await import('/home/claude/wt/AUDIT-3/src/assistant/promptSysteme.ts')
+console.log('longueur spec', bloc.length, 'code', PROMPT_SYSTEME.length, 'VERSION_PROMPT', VERSION_PROMPT)
+if (bloc === PROMPT_SYSTEME) console.log('IDENTIQUES (caractère par caractère)')
+else { let i = 0; while (bloc[i] === PROMPT_SYSTEME[i]) i++; console.log('PREMIÈRE DIFFÉRENCE à', i, JSON.stringify(bloc.slice(i - 40, i + 60)), 'vs', JSON.stringify(PROMPT_SYSTEME.slice(i - 40, i + 60))) }

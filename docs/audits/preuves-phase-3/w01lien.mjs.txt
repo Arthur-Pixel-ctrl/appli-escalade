@@ -1,0 +1,11 @@
+// Point (a) : l'écran retrouve la séance « d'avant » de W-01 par son nom. Deux cas où il se trompe.
+const { seanceDAvantPourW01 } = await import('/home/claude/wt/AUDIT-3/src/ecrans/bureau/avertissementsPlan.ts')
+const s = (id, date, nom) => ({ id, date, solo: { nom, etapes: [], durete: 'dure' } })
+const w01 = (bId, aNom, bNom) => ({ code: 'W-01', seanceId: bId, message: `« ${bNom} » (mardi 24) arrive moins de 48 h après « ${aNom} » (lundi 23) : deux séances maximales. Décale-la d'un jour ou fais sa version légère.` })
+// 1. Une autre séance du même nom le même jour que b (par exemple une séance légère copiée puis renommée)
+console.log('cas 1 (homonyme le jour de b) : lien =', seanceDAvantPourW01(w01('b', 'Poutre', 'Bloc'), [s('a', '2026-11-23', 'Poutre'), s('b', '2026-11-24', 'Bloc'), s('c', '2026-11-24', 'Poutre')]), '(attendu : a)')
+// 2. Nom qui contient « » ( »
+const nom = 'Bloc « dur » (salle)'
+console.log('cas 2 (nom avec guillemets et parenthèse) : lien =', seanceDAvantPourW01(w01('b', nom, 'Bloc'), [s('a', '2026-11-23', nom), s('b', '2026-11-24', 'Bloc')]), '(attendu : a)')
+// 3. La séance d'avant est une séance faite hors plan (absente des séances planifiées) ; une ancienne séance planifiée porte le même nom
+console.log('cas 3 (séance d’avant faite hors plan) : lien =', seanceDAvantPourW01(w01('b', 'Grimpe libre', 'Bloc'), [s('vieille', '2026-11-02', 'Grimpe libre'), s('b', '2026-11-24', 'Bloc')]), '(attendu : aucune)')

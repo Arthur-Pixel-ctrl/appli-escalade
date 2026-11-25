@@ -1,0 +1,12 @@
+Plans générés : 2472
+Problèmes de fiches ou de plafonds : 0
+
+Avertissements forts dans les plans générés : []
+Plans dont les avertissements changent en simple ou grandes lignes (hors S-15) : 0
+
+Objectifs de groupe dont la fiche de référence n'est pas vérifiée par le tri de la banque (5) :
+ST-END-01 : OG-08 → groupe-contacts-a-deux
+ST-END-01 : OG-07 → endurance-continuite-fin-de-seance
+ST-END-04 : OG-18 → endurance-4x4-voies
+ST-END-05 : OG-07 → endurance-continuite-fin-de-seance
+ST-TEC-02 : OG-18 → endurance-4x4-voies

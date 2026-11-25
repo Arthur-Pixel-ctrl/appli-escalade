@@ -1,0 +1,126 @@
+// Parcours ordinateur (1280 × 800) : bienvenue, cycle proposé, niveaux, avertissements, clavier.
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs'
+
+const URL = 'http://localhost:4190/'
+const OUT = '/home/claude/audits/phase-3/'
+const log = (...a) => console.log(...a)
+
+const navigateur = await chromium.launch()
+const page = await navigateur.newPage({ viewport: { width: 1280, height: 800 } })
+const erreurs = []
+page.on('pageerror', (e) => erreurs.push('pageerror ' + e.message))
+page.on('console', (m) => { if (m.type() === 'error') erreurs.push('console ' + m.text()) })
+
+async function bienvenue() {
+  await page.goto(URL)
+  await page.waitForTimeout(800)
+  const sansCompte = page.getByRole('button', { name: 'Continuer sans compte' })
+  if (await sansCompte.count()) await sansCompte.click()
+  await page.getByLabel('Prénom').fill('Arthur')
+  await page.getByRole('button', { name: 'Continuer' }).first().click()
+  await page.waitForTimeout(500)
+  const compris = page.getByRole('button', { name: /J.ai compris/ })
+  if (await compris.count()) await compris.click()
+  await page.waitForTimeout(500)
+}
+
+/** Boutons visibles de moins de 48 px de haut. */
+async function petitsBoutons(nom) {
+  const petits = await page.evaluate(() => [...document.querySelectorAll('button, [role=button], a[href], select, input:not([type=hidden])')]
+    .filter((b) => { const r = b.getBoundingClientRect(); const s = getComputedStyle(b); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && !b.closest('[hidden]') })
+    .map((b) => ({ texte: (b.getAttribute('aria-label') || b.textContent || b.tagName).trim().slice(0, 50), h: Math.round(b.getBoundingClientRect().height), tag: b.tagName, type: b.getAttribute('type') }))
+    .filter((b) => b.h < 48 && b.tag !== 'INPUT' || (b.tag === 'INPUT' && b.type !== 'checkbox' && b.type !== 'radio' && b.h < 44)))
+  log(`[${nom}] éléments interactifs < 48 px :`, JSON.stringify(petits))
+}
+
+async function boutonsDesactives(nom) {
+  const d = await page.evaluate(() => [...document.querySelectorAll('button[disabled]')].map((b) => (b.getAttribute('aria-label') || b.textContent).trim().slice(0, 60)))
+  log(`[${nom}] boutons désactivés :`, JSON.stringify(d))
+}
+
+await bienvenue()
+log('Titre après bienvenue :', await page.locator('h1').first().textContent())
+await page.screenshot({ path: OUT + 'b1-accueil.png' })
+
+// Rubrique Plan
+await page.getByRole('button', { name: 'Plan', exact: true }).or(page.getByRole('link', { name: 'Plan', exact: true })).first().click()
+await page.waitForTimeout(500)
+await page.getByRole('button', { name: 'Crée ton premier cycle' }).click()
+await page.waitForTimeout(400)
+// Fenêtre Nouveau cycle : niveau présélectionné et phrase
+const niveauPresse = async () => page.locator('.choix-niveau button[aria-pressed=true] strong').textContent()
+log('O-13 niveau présélectionné (accents de départ) :', await niveauPresse())
+const selects = page.locator('dialog select')
+log('O-13 accents de départ :', await selects.evaluateAll((s) => s.map((x) => x.value)))
+for (let i = 0; i < 3; i++) await selects.nth(i).selectOption(['endurance', 'resistance', 'technique'][i])
+log('O-13 niveau après accents endurance/résistance/technique :', await niveauPresse(), '|', await page.locator('dialog p[aria-live]').textContent())
+await page.locator('.choix-niveau button').nth(0).click() // Simple choisi à la main
+log('O-13 après choix Simple :', await niveauPresse(), '|', await page.locator('dialog p[aria-live]').textContent())
+await selects.nth(0).selectOption('doigts')
+log('O-13 après accent doigts (choix gardé) :', await niveauPresse(), '|', await page.locator('dialog p[aria-live]').textContent())
+// Remettre : accents doigts/puissance/resistance, niveau Grandes lignes choisi
+await selects.nth(1).selectOption('puissance'); await selects.nth(2).selectOption('resistance')
+await page.locator('.choix-niveau button').nth(1).click()
+await petitsBoutons('O-13')
+await page.getByLabel('Nom du cycle').fill('Cycle audit')
+await page.screenshot({ path: OUT + 'b2-nouveau-cycle.png' })
+await page.getByRole('button', { name: 'Proposer un plan' }).click()
+await page.waitForTimeout(1500)
+await page.screenshot({ path: OUT + 'b3-cycle-propose.png', fullPage: true })
+
+// Lecture de la base : niveau écrit, nombre d'étapes
+const lireBase = () => page.evaluate(async () => {
+  const ouvrir = () => new Promise((ok, ko) => { const r = indexedDB.open('appli-escalade'); r.onsuccess = () => ok(r.result); r.onerror = ko })
+  const db = await ouvrir()
+  const tout = (t) => new Promise((ok) => { const r = db.transaction(t).objectStore(t).getAll(); r.onsuccess = () => ok(r.result) })
+  const cycles = await tout('cycles'); const seances = await tout('seancesPlanifiees')
+  db.close()
+  return {
+    cycles: cycles.map((c) => ({ nom: c.nom, etat: c.etat, niveau: c.niveauDetail, supprime: !!c.supprimeLe })),
+    nbSeances: seances.length,
+    nbEtapes: seances.reduce((t, s) => t + s.solo.etapes.length, 0),
+    nbParties: seances.reduce((t, s) => t + (s.solo.parties?.length ?? 0), 0),
+    nbRecos: seances.filter((s) => s.solo.recommandation).length,
+    niveauxPropres: seances.filter((s) => s.niveauDetail).length,
+    champsInterdits: seances.filter((s) => 'marqueurs' in s.solo || 'dureeMin' in s.solo || 'statut' in s).length,
+  }
+})
+const base1 = await lireBase()
+log('Base après « Proposer un plan » :', JSON.stringify(base1))
+log('Bandeau / résumé :', (await page.locator('main').innerText()).slice(0, 900).replace(/\n+/g, ' ⏎ '))
+await boutonsDesactives('Vue 12 semaines')
+await petitsBoutons('Vue 12 semaines')
+
+// Changer le niveau du cycle : détaillé puis simple, rien ne se perd
+const niveauxCycle = page.locator('button', { hasText: /^(Simple|Grandes lignes|Détaillé)$/ })
+log('Boutons de niveau visibles :', await niveauxCycle.count())
+for (const n of ['Simple', 'Détaillé']) {
+  const b = page.getByRole('button', { name: n, exact: true }).first()
+  if (await b.count()) {
+    await b.click(); await page.waitForTimeout(300)
+    const action = page.getByRole('button', { name: 'Changer le niveau' })
+    if (await action.count()) { await action.click(); await page.waitForTimeout(600) }
+    log(`Après passage en ${n} :`, JSON.stringify(await lireBase()))
+  }
+}
+
+// Ouvrir la semaine 1
+await page.getByRole('button', { name: /Ouvrir la semaine 1|Semaine/ }).first().click().catch(() => {})
+await page.getByRole('button', { name: 'Semaine', exact: true }).click()
+await page.waitForTimeout(800)
+await page.screenshot({ path: OUT + 'b4-semaine1.png', fullPage: true })
+log('Semaine 1 :', (await page.locator('.semaine-colonne').innerText()).slice(0, 1500).replace(/\n+/g, ' ⏎ '))
+await boutonsDesactives('Vue semaine')
+await petitsBoutons('Vue semaine')
+
+// Focus visible : tabulation sur quelques éléments
+const focus = []
+for (let i = 0; i < 25; i++) {
+  await page.keyboard.press('Tab')
+  focus.push(await page.evaluate(() => { const e = document.activeElement; if (!e || e === document.body) return null; const s = getComputedStyle(e); return { t: (e.getAttribute('aria-label') || e.textContent || e.tagName).trim().slice(0, 30), outline: s.outlineStyle + ' ' + s.outlineWidth, ombre: s.boxShadow !== 'none' } }))
+}
+log('Focus (25 tabulations) sans contour ni ombre :', JSON.stringify(focus.filter((f) => f && f.outline.startsWith('none') && !f.ombre)))
+
+log('Erreurs de page :', JSON.stringify(erreurs))
+await page.context().storageState({ path: OUT + 'etat-bureau.json' })
+await navigateur.close()

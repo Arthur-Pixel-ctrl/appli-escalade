@@ -1,0 +1,87 @@
+// Audit phase 3 : E-16 (26 séances types), écart J-02/J-04, nombre de S-03 avec un profil peu rempli,
+// passerelles C-01 (null, allégée ↔ decharge, marqueurs non stockés).
+const R = '/home/claude/wt/AUDIT-3/src/'
+const M = await import(R + 'regles/index.ts')
+const { SEANCES_TYPES } = await import(R + 'donnees/seancesTypes.ts')
+const { PROFIL_VIDE } = await import(R + 'donnees/profil.ts')
+const { contexteDeReference, PROFIL_DE_REFERENCE } = await import(R + 'regles/exemples.ts')
+const { seanceDepuisType, seanceVersVerif, verifierSeance, verifierJour, fichesDeLaBibliotheque, profilVersVerif, planVersVerif, genererCycle, contexteVerif, verifierPlan, trierFiches, seancesTypesDisponibles } = M
+const fiches = fichesDeLaBibliotheque()
+const sortie = []
+const dire = (...a) => sortie.push(a.join(' '))
+
+// ——— E-16 : chaque séance type (et variante), profil « tout rempli », aux trois niveaux ———
+const complet = { ...PROFIL_DE_REFERENCE, experiencePoutre: 'reguliere', anneesPratique: 8, grimpeEnTete: true, niveauBloc: '7C', tractionsStrictesMax: 20, lieux: ['salle_bloc', 'salle_voie', 'maison'], disciplinePrincipale: 'voie' }
+const ctx = contexteDeReference({ profil: complet })
+let n = 0, avecAvert = []
+for (const st of SEANCES_TYPES) {
+  for (const variante of [undefined, ...Object.keys(st.variantes)]) {
+    for (const niveau of [undefined, 'simple', 'grandes_lignes']) {
+      n++
+      const pl = seanceDepuisType(st, variante, { id: 'x', cycleId: 'c', phaseId: 'p', semaine: 1, date: '2026-11-24', maintenant: '2026-11-20T00:00:00Z' })
+      if (niveau) pl.niveauDetail = niveau
+      const a = verifierSeance(seanceVersVerif(pl, fiches), ctx)
+      if (a.length) avecAvert.push(`${st.id}${variante ? '/' + variante : ''} ${niveau ?? 'detaille'} : ${a.map((x) => x.code).join(',')}`)
+    }
+  }
+}
+dire(`E-16 : ${SEANCES_TYPES.length} séances types, ${n} vérifications (variantes × 3 niveaux), avec avertissement : ${avecAvert.length}`)
+avecAvert.slice(0, 15).forEach((l) => dire('   ', l))
+
+// ——— J-02 / J-04 : séance solo dure sans exercice, version groupe maximale ———
+{
+  const c = contexteDeReference({ aujourdhui: '2026-11-25', maintenant: '2026-11-25T08:00:00.000Z',
+    formes: ['2026-11-23', '2026-11-24', '2026-11-25'].map((date) => ({ date, sommeil: 3, fatigue: 3, courbatures: 3, douleur: 3, peau: 3, heuresSommeil: 5 })) })
+  const groupeMax = { durete: 'dure', etapes: [], objectifs: [{ libelle: '3 blocs à ta limite', accents: ['puissance'], marqueurs: ['maximale', 'bloc_limite'], blocs: 3, essaisMaxParBloc: 4 }], dureeMin: 90 }
+  const duJour = { id: 'j', nom: 'Grimpe dure', date: '2026-11-25', qualite: 'puissance', solo: { durete: 'dure', etapes: [], dureeMin: 90 }, groupe: groupeMax }
+  const hier = { id: 'h', nom: 'Hier', date: '2026-11-24', qualite: 'doigts', solo: { durete: 'dure', etapes: [{ ficheId: 'traction-lestee-force-lattice' }] }, realisee: { version: 'solo', finLe: '2026-11-24T20:00:00.000Z', dureeMin: 60, effortPercu: 8, marqueurs: ['maximale'] } }
+  const j = verifierJour(duJour, c, [hier])
+  dire(`J-04/J-02, séance du jour (solo dure sans exercice + groupe « 3 blocs à ta limite », marqueur maximale), séance maximale faite il y a 12 h, 5 h de sommeil : codes = ${j.map((x) => x.code).join(',') || '(aucun)'} ; estMaximale côté W-01 :`,
+    M.verifierSemaine('2026-11-23', { origine: 'utilisateur', debut: '2026-11-23', nbSemaines: 1, seancesParSemaine: 3, mode: 'accent_tournant', mesocycles: [{ ordre: 1, accent: 'puissance', objectifsPersoIds: [] }], semaines: [{ lundi: '2026-11-23', type: 'charge', mesocycleOrdre: 1, numero: 1 }], seances: [{ ...hier, realisee: undefined }, duJour] }, c).filter((x) => x.code === 'W-01').length + ' W-01')
+  const sansSolo = { ...duJour, solo: { durete: 'legere', etapes: [], dureeMin: 90 } }
+  dire(`   même séance mais solo légère : codes = ${verifierJour(sansSolo, c, [hier]).map((x) => x.code).join(',')}`)
+}
+
+// ——— (b) Profil peu rempli : nombre de S-03 dans un plan composé à la main de séances types ———
+{
+  const vide = profilVersVerif({ ...PROFIL_VIDE, prenom: 'Arthur' })
+  const ctxV = contexteDeReference({ profil: vide })
+  const ctxC = contexteDeReference({ profil: complet })
+  let s03V = 0, s03C = 0, seancesAvec = 0
+  const manques = new Map()
+  for (const st of SEANCES_TYPES) {
+    const v = seanceVersVerif(seanceDepuisType(st, undefined, { id: st.id, cycleId: 'c', phaseId: 'p', semaine: 1, date: '2026-11-24', maintenant: 'x' }), fiches)
+    const a = verifierSeance(v, ctxV).filter((x) => x.code === 'S-03')
+    s03V += a.length; if (a.length) seancesAvec++
+    for (const x of a) for (const m of x.message.split(' demande : ')[1].split('. Choisis')[0].split(' ; ')) manques.set(m, (manques.get(m) ?? 0) + 1)
+    s03C += verifierSeance(v, ctxC).filter((x) => x.code === 'S-03').length
+  }
+  dire(`(b) Profil vide (PROFIL_VIDE) : ${s03V} S-03 sur les ${SEANCES_TYPES.length} séances types (${seancesAvec} séances touchées) ; profil complet : ${s03C}`)
+  dire('    manques cités :', JSON.stringify([...manques]))
+  const dispo = seancesTypesDisponibles(trierFiches(Object.values(fiches), vide, []).disponibles)
+  dire(`    séances types proposables par le générateur avec ce profil : ${dispo.length} sur ${SEANCES_TYPES.length}`)
+  // plan de 12 semaines où l'on recopie les séances types non proposables : combien de S-03 forts à l'écran ?
+  const g = genererCycle({ profil: { ...PROFIL_VIDE }, douleurs: [], exercicesPerso: [], debut: '2026-11-30', nom: 'x', seancesParSemaine: 3, accents: ['doigts', 'puissance', 'resistance'], niveauDetail: 'detaille', aujourdhui: '2026-11-25', maintenant: 'x', nouvelId: (() => { let k = 0; return () => 'g' + ++k })() })
+  dire(`    plan généré avec ce profil : ${g.seances.length} séances, avertissements ${JSON.stringify(Object.entries(g.avertissements.reduce((m, a) => ({ ...m, [a.code]: (m[a.code] ?? 0) + 1 }), {})))} ; manques : ${JSON.stringify(g.manques)}`)
+  // remplacer à la main la séance du mardi de chaque semaine par ST-DOI-02 (doigts) : nombre de S-03
+  const st = SEANCES_TYPES.find((x) => x.id === 'ST-TRA-02') ?? SEANCES_TYPES[0]
+  const seances = g.seances.map((s, i) => (i % 3 === 0 ? { ...seanceDepuisType(st, undefined, { id: s.id, cycleId: s.cycleId, phaseId: s.phaseId, semaine: s.semaine, date: s.date, maintenant: 'x' }) } : s))
+  const ctxG = contexteVerif({ profil: { ...PROFIL_VIDE }, exercicesPerso: [], douleurs: [], formes: [], objectifs: [], aujourdhui: '2026-11-25', maintenant: 'x' })
+  const av = verifierPlan(planVersVerif({ cycle: g.cycle, phases: g.phases, seances, realisees: [], objectifs: [], origine: 'utilisateur', fiches }), ctxG)
+  dire(`    même plan, une séance sur trois remplacée à la main par ${st.id} : ${av.filter((x) => x.code === 'S-03').length} S-03 forts (sur ${av.length} avertissements, ${av.filter((x) => x.niveau === 'fort').length} forts)`)
+}
+
+// ——— C-01 : null du profil, allégée ↔ decharge, marqueurs jamais stockés ———
+{
+  const p = profilVersVerif({ ...PROFIL_VIDE, niveauBloc: '' })
+  dire(`C-01 profilVersVerif(PROFIL_VIDE, niveauBloc '') : tractions ${p.tractionsStrictesMax}, test15s ${p.test15sSur25mm}, adulte ${p.adulte}, tête ${p.grimpeEnTete}, niveauBloc ${p.niveauBloc}, lieux ${p.lieux}`)
+  const m = M.manquesPrerequis({ tractionsStrictesMin: 5, test15sSur25mm: true, adulte: true, niveauBlocMin: '6A' }, p)
+  dire(`    manques pour (5 tractions, test 15 s, adulte, 6A) : ${m.join(' ; ')}`)
+  const { EXEMPLE_PHASES, EXEMPLE_CYCLE } = await import(R + 'donnees/exemplesV2.ts')
+  const pv = planVersVerif({ cycle: EXEMPLE_CYCLE, phases: EXEMPLE_PHASES, seances: [], realisees: [], objectifs: [], origine: 'utilisateur', fiches })
+  dire(`    planVersVerif types de semaine : ${[...new Set(pv.semaines.map((s) => s.type))].join(',')} (phases : ${[...new Set(EXEMPLE_PHASES.flatMap((ph) => ph.semaines.map((w) => w.type)))].join(',')})`)
+  const g = genererCycle({ profil: { ...PROFIL_VIDE }, douleurs: [], exercicesPerso: [], debut: '2026-11-30', nom: 'x', seancesParSemaine: 3, accents: ['doigts', 'puissance', 'resistance'], niveauDetail: 'detaille', aujourdhui: '2026-11-25', maintenant: 'x', nouvelId: (() => { let k = 0; return () => 'h' + ++k })() })
+  const json = JSON.stringify(g)
+  dire(`    plan généré : clés « marqueurs » stockées : ${(json.match(/"marqueurs"/g) ?? []).length} ; types de semaine stockés : ${[...new Set(g.phases.flatMap((ph) => ph.semaines.map((w) => w.type)))].join(',')} ; champs calculés (statut, mode, origine, dureeMin solo) : ${/"statut"|"mode"|"origine":"(utilisateur|assistant)"/.test(json)}`)
+}
+console.log(sortie.join('\n'))

@@ -1,0 +1,47 @@
+OK  cas 1 : obtenu (aucun)
+OK  cas 13 (simple) : obtenu (aucun)
+OK  cas 2 : obtenu W-01 sur tra
+OK  cas 3 (semaine du 30) : obtenu lun
+OK  cas 4 : obtenu W-01: W-02:fort
+OK  cas 5 : obtenu true
+OK  cas 6 : obtenu true
+OK  cas 7 (1500) : obtenu fort
+OK  cas 7 (1000) : obtenu information
+OK  cas 7 (950) : obtenu 
+OK  cas 8 : obtenu fort
+OK  cas 9 (1700) : obtenu information 13 %
+OK  cas 9 (1640) : obtenu 
+OK  cas 10 (120 s) : obtenu fort
+OK  cas 10 (7-53 sans réglage) : obtenu 
+OK  cas 10 (7-53 à 40 s) : obtenu fort
+OK  cas 16 (grandes lignes) : obtenu 
+OK  cas 16 (détaillé) : obtenu fort
+OK  cas 11 : obtenu fort
+OK  cas 12 : obtenu S-02:fort S-03:fort
+OK  cas 14 : obtenu S-26
+OK  cas 15 : obtenu (aucun)
+OK  cas 15 variante : obtenu W-01 mer:fort
+OK  cas 17 : obtenu W-20 fort
+OK  cas 17a : obtenu (aucun)
+OK  cas 17a + samedi : obtenu W-20
+OK  cas 17b prévue : obtenu W-20
+OK  cas 17b réalisée solo : obtenu (aucun)
+OK  cas 17c : obtenu (aucun)
+OK  cas 18 : obtenu o1,o2 clés différentes : true
+OK  cas 18 (verifierPlan) : obtenu 2
+OK  cas 18 variante : obtenu antagonistes-lattice:information,mobilite-grand-ecart-lattice:information
+OK  cas 19 niveau (aucun : détaillé) : obtenu S-03,S-27,W-01
+OK  cas 19 niveau défaut par verifierPlan (hors P-) : obtenu S-03,S-27,W-01
+OK  cas 19 niveau simple : obtenu S-03,S-27,W-01
+OK  cas 19 niveau simple par verifierPlan (hors P-) : obtenu S-03,S-27,W-01
+OK  cas 19 niveau grandes_lignes : obtenu S-03,S-27,W-01
+OK  cas 19 niveau grandes_lignes par verifierPlan (hors P-) : obtenu S-03,S-27,W-01
+OK  cas 19 niveau detaille : obtenu S-03,S-27,W-01
+OK  cas 19 niveau detaille par verifierPlan (hors P-) : obtenu S-03,S-27,W-01
+OK  cas 19 cycle simple : obtenu S-03,S-27,W-01
+OK  cas 19 cycle grandes_lignes : obtenu S-03,S-27,W-01
+OK  cas 19 S-27 cible : obtenu seance/solo/doigts-suspensions-max-lestees/undefined
+OK  cas 19b : obtenu S-04 arret
+OK  cas 19c : obtenu (aucun)
+
+45 OK, 0 écart(s)

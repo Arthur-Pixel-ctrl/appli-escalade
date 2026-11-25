@@ -1,0 +1,110 @@
+// Audit phase 3, point 6 : le générateur sur de nombreux profils.
+// Vérifie : aucune fiche à vérifier (exclureDeLaGeneration), de test, contre-indiquée, hors lieux ou à prérequis manquants ;
+// aucun maxParSemaine dépassé ; aucun avertissement fort ; mêmes avertissements aux trois niveaux (sauf S-15).
+const R = '/home/claude/wt/AUDIT-3/src/'
+const { genererCycle, contexteVerif, planVersVerif, verifierPlan, trierFiches, lieuPermet, manquesPrerequis, toutesLesFiches } = await import(R + 'regles/index.ts')
+const { PROFIL_VIDE } = await import(R + 'donnees/profil.ts')
+const { objectifGroupeParId } = await import(R + 'donnees/objectifsGroupe.ts')
+
+const ACCENTS = ['doigts', 'traction_gainage', 'puissance', 'resistance', 'endurance', 'technique']
+const profils = {
+  vide: { ...PROFIL_VIDE },
+  complet: { ...PROFIL_VIDE, niveauBloc: '7A', anneesPratique: 6, experiencePoutre: 'reguliere', tractionsStrictes: 15, tient15sSur25mm: true, majeur: true, grimpeEnTete: true, lieux: ['salle_bloc', 'salle_voie', 'maison'] },
+  debutant: { ...PROFIL_VIDE, anneesPratique: 0.5, niveauBloc: '5A', majeur: true },
+  voie: { ...PROFIL_VIDE, disciplinePrincipale: 'voie', anneesPratique: 5, experiencePoutre: 'occasionnelle', tractionsStrictes: 12, tient15sSur25mm: true, majeur: true, grimpeEnTete: true, lieux: ['salle_voie'] },
+  maison: { ...PROFIL_VIDE, anneesPratique: 4, majeur: true, tractionsStrictes: 10, tient15sSur25mm: true, lieux: ['maison'] },
+  doigtsDouloureux: { ...PROFIL_VIDE, anneesPratique: 4, majeur: true, tractionsStrictes: 10, tient15sSur25mm: true, experiencePoutre: 'reguliere', douleursEnCours: ['doigts'] },
+  epaule: { ...PROFIL_VIDE, anneesPratique: 4, majeur: true, tractionsStrictes: 10, douleursEnCours: ['epaule', 'coude'] },
+  mineur: { ...PROFIL_VIDE, anneesPratique: 3, majeur: false, tractionsStrictes: 10, tient15sSur25mm: true },
+}
+
+let id = 0
+const nouvelId = () => 'id' + ++id
+let essais = 0
+const problemes = []
+const fortsVus = new Map()
+const niveauxDifferents = []
+
+const triplets = []
+for (const a of ACCENTS) for (const b of ACCENTS) for (const c of ACCENTS) triplets.push([a, b, c])
+
+for (const [nomProfil, profil] of Object.entries(profils)) {
+  for (const n of [2, 3, 4, 5]) {
+    for (const accents of triplets.filter((_, k) => k % 7 === 0 || n === 3)) {
+      essais++
+      const entree = {
+        profil: { ...profil, seancesParSemaine: n }, douleurs: [], exercicesPerso: [], debut: '2026-11-30', nom: 'x',
+        seancesParSemaine: n, accents, niveauDetail: 'detaille', aujourdhui: '2026-11-25', maintenant: '2026-11-25T10:00:00Z', nouvelId,
+      }
+      const plan = genererCycle(entree)
+      const ctx = contexteVerif({ profil: entree.profil, exercicesPerso: [], douleurs: [], formes: [], objectifs: [], aujourdhui: entree.aujourdhui, maintenant: entree.maintenant })
+      const fiches = ctx.fiches
+      const zones = ctx.profil.douleursEnCours
+      // 1. fiches placées
+      const parSemaine = new Map()
+      for (const s of plan.seances) {
+        const ids = [...s.solo.etapes.map((e) => e.origine?.refId), ...(s.groupe?.miniBloc?.etapes ?? []).map((e) => e.origine?.refId)]
+        const refsObjectifs = (s.groupe?.objectifs ?? []).map((o) => o.ficheReference).filter(Boolean)
+        for (const fid of [...ids, ...refsObjectifs]) {
+          const f = fiches[fid]
+          const ou = refsObjectifs.includes(fid) && !ids.includes(fid) ? 'objectif de groupe' : 'étape'
+          if (!f) { problemes.push(`${nomProfil} n=${n} ${accents}: fiche inconnue ${fid}`); continue }
+          const raisons = []
+          if (f.exclureDeLaGeneration !== undefined) raisons.push('à vérifier')
+          if (f.estTest) raisons.push('test')
+          if (manquesPrerequis(f.prerequis, ctx.profil).length) raisons.push('prérequis : ' + manquesPrerequis(f.prerequis, ctx.profil).join(' ; '))
+          if (f.contreIndications.some((z) => zones.includes(z))) raisons.push('contre-indiquée')
+          if (!lieuPermet(f.contexte?.terrain, ctx.profil.lieux)) raisons.push('hors lieux')
+          if (f.contexte?.grimpeEnTete && ctx.profil.grimpeEnTete !== true) raisons.push('tête')
+          if (raisons.length) problemes.push(`${nomProfil} n=${n} [${accents}] ${s.seanceTypeId} (${ou}) ${fid} : ${raisons.join(', ')}`)
+        }
+        // 2. maxParSemaine : une fois par séance (solo + mini-bloc)
+        const cle = s.date.slice(0, 10)
+        const lundi = new Date(Date.parse(s.date) - ((new Date(s.date).getUTCDay() + 6) % 7) * 86400000).toISOString().slice(0, 10)
+        void cle
+        if (!parSemaine.has(lundi)) parSemaine.set(lundi, new Map())
+        for (const fid of new Set(ids)) parSemaine.get(lundi).set(fid, (parSemaine.get(lundi).get(fid) ?? 0) + 1)
+      }
+      for (const [lundi, m] of parSemaine) for (const [fid, k] of m) {
+        const max = fiches[fid]?.maxParSemaine
+        if (max !== undefined && k > max) problemes.push(`${nomProfil} n=${n} [${accents}] semaine ${lundi} : ${fid} ${k} fois > ${max}`)
+      }
+      // 3. avertissements forts
+      for (const a of plan.avertissements.filter((x) => x.niveau === 'fort')) {
+        const k = `${a.code} (${nomProfil})`
+        fortsVus.set(k, (fortsVus.get(k) ?? 0) + 1)
+      }
+      // 4. trois niveaux : mêmes avertissements, sauf S-15
+      if (essais % 5 === 0) {
+        const verif = (niveau) => {
+          const cycle = { ...plan.cycle, niveauDetail: niveau }
+          const p = planVersVerif({ cycle, phases: plan.phases, seances: plan.seances, realisees: [], objectifs: [], origine: 'utilisateur', fiches })
+          return verifierPlan(p, ctx).filter((a) => a.code !== 'S-15').map((a) => `${a.code}|${a.seanceId ?? ''}|${a.etapeIndex ?? ''}|${a.lundi ?? ''}|${a.sujet ?? ''}`).sort().join('\n')
+        }
+        const d = verif('detaille')
+        for (const niv of ['simple', 'grandes_lignes']) if (verif(niv) !== d) niveauxDifferents.push(`${nomProfil} n=${n} [${accents}] ${niv}`)
+      }
+    }
+  }
+}
+
+// Objectifs de groupe du catalogue dont la fiche de référence n'est ni dans le solo ni dans le mini-bloc de leur séance type
+const { SEANCES_TYPES } = await import(R + 'donnees/seancesTypes.ts')
+const horsSolo = []
+for (const st of SEANCES_TYPES) {
+  if (!st.groupe) continue
+  const ids = new Set([...st.solo.map((e) => e.ficheId), ...(st.groupe.miniBloc?.etapes ?? []).map((e) => e.ficheId)])
+  for (const oid of st.groupe.objectifIds) {
+    const ref = objectifGroupeParId(oid)?.ficheReference
+    if (ref && !ids.has(ref)) horsSolo.push(`${st.id} : ${oid} → ${ref}`)
+  }
+}
+
+console.log(`Plans générés : ${essais}`)
+console.log(`Problèmes de fiches ou de plafonds : ${problemes.length}`)
+console.log([...new Set(problemes)].slice(0, 40).join('\n'))
+console.log(`Avertissements forts dans les plans générés : ${JSON.stringify([...fortsVus])}`)
+console.log(`Plans dont les avertissements changent en simple ou grandes lignes (hors S-15) : ${niveauxDifferents.length}`)
+console.log(niveauxDifferents.slice(0, 10).join('\n'))
+console.log(`Objectifs de groupe dont la fiche de référence n'est pas vérifiée par le tri de la banque (${horsSolo.length}) :`)
+console.log(horsSolo.join('\n'))

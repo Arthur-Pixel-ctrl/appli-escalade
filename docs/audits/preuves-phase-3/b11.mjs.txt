@@ -1,0 +1,140 @@
+// Audit phase 3 : cas chiffrés de B.11 (1 à 19), refaits indépendamment des tests du dépôt.
+// Le cas 19 est rejoué aux trois niveaux affichés (simple, grandes lignes, détaillé), par verifierSemaine + verifierSeance
+// et par verifierPlan (le chemin de l'écran, D-18).
+const R = '/home/claude/wt/AUDIT-3/src/'
+const M = await import(R + 'regles/index.ts')
+const { contexteDeReference, PROFIL_DE_REFERENCE, seanceSolo } = await import(R + 'regles/exemples.ts')
+const { protocoleParId } = await import(R + 'donnees/bibliotheque/index.ts')
+const { EXEMPLE_SEANCE_PLANIFIEE } = await import(R + 'donnees/exemplesV2.ts')
+const { verifierSeance, verifierSemaine, verifierPlan, verifierJour, seanceVersVerif, etapeDepuisProtocole, formeAffichage, fichesDeLaBibliotheque, cleAvertissement } = M
+
+const L1 = '2026-11-23'
+const DOI = ['echauffement-general', 'echauffement-doigts-poutre', 'doigts-reglette-minimale-lopez', 'puissance-bloc-limite', 'antagonistes-lattice']
+const TRA = ['echauffement-general', 'puissance-bloc-limite', 'traction-lestee-force-lattice', 'antagonistes-lattice']
+const END = ['echauffement-general', 'technique-tout-en-drapeau', 'endurance-1-on-1-off', 'endurance-continuite-fin-de-seance', 'antagonistes-legers']
+const sem = (lundi, type = 'charge', o = {}) => ({ lundi, type, mesocycleOrdre: 1, numero: 1, ...o })
+const plan = (semaines, seances, o = {}) => ({ origine: 'utilisateur', debut: semaines[0].lundi, nbSemaines: semaines.length, seancesParSemaine: 3, mode: 'accent_tournant', mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: [] }], semaines, seances, ...o })
+const conforme = (niveau) => {
+  const s = [
+    seanceSolo('doi', '2026-11-24', DOI, { nom: 'Doigts', qualite: 'doigts', durete: 'dure' }),
+    seanceSolo('tra', '2026-11-26', TRA, { nom: 'Traction', qualite: 'traction_gainage', durete: 'dure' }),
+    seanceSolo('end', '2026-11-28', END, { nom: 'Endurance', qualite: 'endurance', durete: 'legere' }),
+  ]
+  if (niveau) for (const x of s) x.solo.niveau = niveau
+  return s
+}
+const tout = (seances, ctx = contexteDeReference(), lundi = L1, p = {}) => [
+  ...verifierSemaine(lundi, plan([sem(lundi)], seances, p), ctx), ...seances.flatMap((s) => verifierSeance(s, ctx, p.origine)),
+]
+const codes = (a) => a.map((x) => x.code).sort().join(',') || '(aucun)'
+const resultats = []
+const verifier = (cas, obtenu, attendu) => { const ok = obtenu === attendu; resultats.push(`${ok ? 'OK ' : 'ÉCART'} ${cas} : obtenu ${obtenu}${ok ? '' : ' ; attendu ' + attendu}`) }
+
+// 1, 13
+verifier('cas 1', codes(tout(conforme())), '(aucun)')
+verifier('cas 13 (simple)', codes(tout(conforme('simple'))), '(aucun)')
+// 2
+{ const [d, t, e] = conforme(); const a = tout([d, { ...t, date: '2026-11-25' }, e]); verifier('cas 2', codes(a) + ' sur ' + [...new Set(a.map((x) => x.seanceId))], 'W-01 sur tra') }
+// 3
+{ const a = tout([seanceSolo('dim', '2026-11-29', ['echauffement-general', 'traction-lestee-force-lattice'], { durete: 'dure' }), seanceSolo('lun', '2026-11-30', ['echauffement-general', 'traction-lestee-force-lattice'], { durete: 'dure' })], contexteDeReference(), L1)
+  const b = verifierSemaine('2026-11-30', plan([sem(L1), sem('2026-11-30')], [seanceSolo('dim', '2026-11-29', ['echauffement-general', 'traction-lestee-force-lattice'], { durete: 'dure' }), seanceSolo('lun', '2026-11-30', ['echauffement-general', 'traction-lestee-force-lattice'], { durete: 'dure' })]), contexteDeReference())
+  void a; verifier('cas 3 (semaine du 30)', b.filter((x) => x.code === 'W-01').map((x) => x.seanceId).join(), 'lun') }
+// 4
+{ const pi = ['echauffement-general', 'echauffement-doigts-poutre', 'doigts-suspensions-max-lestees']
+  const a = verifierSemaine(L1, plan([sem(L1)], ['2026-11-23', '2026-11-25', '2026-11-27'].map((d, i) => seanceSolo('p' + i, d, pi, { durete: 'dure' }))), contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, experiencePoutre: 'reguliere' } }))
+  verifier('cas 4', ['W-01', 'W-02'].map((c) => c + ':' + a.filter((x) => x.code === c).map((x) => x.niveau).join('/')).join(' '), 'W-01: W-02:fort') }
+// 5, 6
+{ const a = verifierSeance(seanceSolo('s', L1, ['traction-lestee-force-lattice']), contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, tractionsStrictesMax: null } }))
+  verifier('cas 5', String(a.some((x) => x.code === 'S-03' && x.niveau === 'fort' && x.message.includes('10 tractions strictes (non renseigné)'))), 'true') }
+{ const a = verifierSeance(seanceSolo('s', L1, ['echauffement-general', 'puissance-bloc-limite']), contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['doigts'] } }))
+  verifier('cas 6', String(a.some((x) => x.code === 'S-04' && x.niveau === 'fort')), 'true') }
+// 7 : charges fabriquées par l'effort prévu et la durée (effort × minutes)
+{ const s = (id, d, charge) => ({ id, nom: id, date: d, qualite: 'endurance', solo: { durete: 'legere', effortPrevu: 1, etapes: [], dureeMin: charge } })
+  const semaines = ['2026-11-02', '2026-11-09', '2026-11-16', '2026-11-23'].map((l, i) => sem(l, i === 3 ? 'decharge' : 'charge', { numero: i + 1 }))
+  for (const [charge, attendu] of [[1500, 'fort'], [1000, 'information'], [950, '']]) {
+    const p = plan(semaines, [s('a', '2026-11-03', 1500), s('b', '2026-11-10', 1600), s('c', '2026-11-17', 1700), s('d', '2026-11-24', charge)])
+    verifier(`cas 7 (${charge})`, verifierSemaine('2026-11-23', p, contexteDeReference()).filter((x) => x.code === 'W-10').map((x) => x.niveau).join(), attendu)
+  } }
+// 8
+{ const p = plan(['2026-11-02', '2026-11-09', '2026-11-16', '2026-11-23'].map((l, i) => sem(l, 'charge', { numero: i + 1 })), [])
+  verifier('cas 8', verifierPlan(p, contexteDeReference()).filter((x) => x.code === 'P-02').map((x) => x.niveau).join(), 'fort') }
+// 9
+{ const s = (id, d, charge) => ({ id, nom: id, date: d, qualite: 'endurance', solo: { durete: 'legere', effortPrevu: 1, etapes: [], dureeMin: charge } })
+  for (const [c2, attendu] of [[1700, 'information'], [1640, '']]) {
+    const p = plan([sem('2026-11-16'), sem('2026-11-23', 'charge', { numero: 2 })], [s('a', '2026-11-17', 1500), s('b', '2026-11-24', c2)])
+    const w = verifierSemaine('2026-11-23', p, contexteDeReference()).filter((x) => x.code === 'W-09')
+    verifier(`cas 9 (${c2})`, w.map((x) => x.niveau + ' ' + (x.message.match(/\d+ %/) ?? [''])[0]).join(), attendu === '' ? '' : 'information 13 %')
+  } }
+// 10, 16
+{ const ctx = contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, experiencePoutre: 'reguliere' } })
+  const s = (etape, niveau) => { const x = seanceSolo('s', L1, ['echauffement-general', 'echauffement-doigts-poutre', etape.ficheId], { durete: 'dure' }); x.solo.etapes[2] = etape; if (niveau) x.solo.niveau = niveau; return x }
+  const s15 = (e, n) => verifierSeance(s(e, n), ctx).filter((x) => x.code === 'S-15').map((x) => x.niveau).join()
+  verifier('cas 10 (120 s)', s15({ ficheId: 'doigts-suspensions-max-lestees', reglages: { reposS: 120 } }), 'fort')
+  verifier('cas 10 (7-53 sans réglage)', s15({ ficheId: 'doigts-7-53-horst' }), '')
+  verifier('cas 10 (7-53 à 40 s)', s15({ ficheId: 'doigts-7-53-horst', reglages: { reposS: 40 } }), 'fort')
+  verifier('cas 16 (grandes lignes)', s15({ ficheId: 'doigts-suspensions-max-lestees', reglages: { reposS: 120 } }, 'grandes_lignes'), '')
+  verifier('cas 16 (détaillé)', s15({ ficheId: 'doigts-suspensions-max-lestees', reglages: { reposS: 120 } }, 'detaille'), 'fort') }
+// 11
+verifier('cas 11', verifierSeance(seanceSolo('s', L1, ['echauffement-general', 'resistance-boulder-triples', 'puissance-bloc-limite']), contexteDeReference()).filter((x) => x.code === 'S-12').map((x) => x.niveau).join(), 'fort')
+// 12
+{ const a = verifierSeance(seanceSolo('s', L1, ['echauffement-general', 'puissance-pan-gullich-stien']), contexteDeReference(), 'assistant')
+  verifier('cas 12', ['S-02', 'S-03'].map((c) => c + ':' + a.filter((x) => x.code === c).map((x) => x.niveau).join()).join(' '), 'S-02:fort S-03:fort') }
+// 14, 15
+{ const [d, , e] = conforme()
+  const dure = { id: 'mer', nom: 'Mercredi', date: '2026-11-25', qualite: 'traction_gainage', solo: { durete: 'dure', etapes: [], dureeMin: 90 } }
+  verifier('cas 14', codes(tout([d, dure, e])), 'S-26')
+  const resume = (fid) => ({ ...dure, solo: { durete: 'dure', etapes: [{ ficheId: fid, reglages: { dureeMin: 90 } }], etapesDetaillees: false, dureeMin: 90 } })
+  verifier('cas 15', codes(tout([d, resume('traction-simple-4x5'), e])), '(aucun)')
+  const v = tout([d, resume('traction-lestee-force-lattice'), e])
+  verifier('cas 15 variante', codes(v) + ' ' + v.filter((x) => x.code === 'W-01').map((x) => x.seanceId + ':' + x.niveau).join(), 'W-01 mer:fort') }
+// 17
+{ const rs = (id, d, fid) => seanceSolo(id, d, [fid], { qualite: 'resistance', durete: 'dure' })
+  const w = (s, profil = PROFIL_DE_REFERENCE, lundi = L1, sems = [sem(L1)]) => verifierSemaine(lundi, plan(sems, s), contexteDeReference({ profil })).filter((x) => x.code === 'W-20' || x.code === 'W-05')
+  const a = w([rs('a', '2026-11-24', 'resistance-voies-repetees'), rs('b', '2026-11-26', 'resistance-circuits-30-mouvements')])
+  verifier('cas 17', codes(a) + ' ' + a.map((x) => x.niveau).join(), 'W-20 fort')
+  const voie = { ...PROFIL_DE_REFERENCE, disciplinePrincipale: 'voie' }
+  verifier('cas 17a', codes(w([rs('a', '2026-11-24', 'resistance-voies-repetees'), rs('b', '2026-11-26', 'resistance-circuits-30-mouvements')], voie)), '(aucun)')
+  verifier('cas 17a + samedi', codes(w([rs('a', '2026-11-24', 'resistance-voies-repetees'), rs('b', '2026-11-26', 'resistance-circuits-30-mouvements'), rs('c', '2026-11-28', 'resistance-capacity-power')], voie)), 'W-20')
+  const b = rs('b', '2026-11-26', 'resistance-boulder-triples'); b.groupe = { durete: 'dure', etapes: [{ ficheId: 'resistance-circuits-30-mouvements' }], objectifs: [] }
+  verifier('cas 17b prévue', codes(w([rs('a', '2026-11-24', 'resistance-voies-repetees'), b])), 'W-20')
+  verifier('cas 17b réalisée solo', codes(w([rs('a', '2026-11-24', 'resistance-voies-repetees'), { ...b, realisee: { version: 'solo', finLe: '2026-11-26T19:00:00Z', dureeMin: 60, effortPercu: 7, marqueurs: [] } }])), '(aucun)')
+  const c = [rs('a', '2026-11-29', 'resistance-voies-repetees'), rs('b', '2026-11-30', 'resistance-circuits-30-mouvements')]
+  verifier('cas 17c', codes([...w(c, PROFIL_DE_REFERENCE, L1, [sem(L1), sem('2026-11-30', 'charge', { mesocycleOrdre: 2 })]), ...w(c, PROFIL_DE_REFERENCE, '2026-11-30', [sem(L1), sem('2026-11-30', 'charge', { mesocycleOrdre: 2 })])]), '(aucun)') }
+// 18
+{ const objectifsPerso = { o1: { id: 'o1', nom: 'Bidoigts', marqueurs: [], prerequis: {}, contreIndications: [] }, o2: { id: 'o2', nom: 'Épaules', marqueurs: [], prerequis: {}, contreIndications: [] } }
+  const p = plan([sem(L1)], conforme(), { mesocycles: [{ ordre: 1, accent: 'doigts', objectifsPersoIds: ['o1', 'o2'] }] })
+  const w18 = verifierSemaine(L1, p, contexteDeReference({ objectifsPerso })).filter((x) => x.code === 'W-18')
+  verifier('cas 18', w18.map((x) => x.sujet).join() + ' clés différentes : ' + (new Set(w18.map(cleAvertissement)).size === 2), 'o1,o2 clés différentes : true')
+  const w18p = verifierPlan(p, contexteDeReference({ objectifsPerso })).filter((x) => x.code === 'W-18')
+  verifier('cas 18 (verifierPlan)', String(w18p.length), '2')
+  const s = conforme(); s[2].solo.etapes = s[2].solo.etapes.map((e) => (e.ficheId === 'antagonistes-legers' ? { ficheId: 'antagonistes-lattice' } : e))
+  for (const x of s) x.solo.etapes.push({ ficheId: 'mobilite-grand-ecart-lattice' })
+  const w05 = verifierSemaine(L1, plan([sem(L1)], s), contexteDeReference()).filter((x) => x.code === 'W-05')
+  verifier('cas 18 variante', w05.map((x) => x.sujet + ':' + x.niveau).sort().join(), 'antagonistes-lattice:information,mobilite-grand-ecart-lattice:information') }
+// 19 aux trois niveaux, puis variantes
+{ const P = 'doigts-suspensions-max-lestees'
+  const fiches = fichesDeLaBibliotheque()
+  const etape = (id) => etapeDepuisProtocole(protocoleParId(id), id)
+  const du25 = (niveauDetail, parties = [{ titre: 'Échauffement', dureeMin: 30 }, { titre: 'Effort principal', dureeMin: 40, principal: { source: 'bibliotheque', refId: P } }], cycleNiveau) => {
+    const pl = { ...EXEMPLE_SEANCE_PLANIFIEE, id: 'tp', date: '2026-11-25', qualite: 'traction_gainage', groupe: null, solo: { nom: 'Tractions et poutre', durete: 'dure', etapes: [etape('echauffement-general'), etape('traction-simple-4x5')], ...(parties ? { parties } : {}) } }
+    if (niveauDetail) pl.niveauDetail = niveauDetail; else delete pl.niveauDetail
+    return seanceVersVerif(pl, fiches, undefined, cycleNiveau ? { niveauDetail: cycleNiveau } : undefined)
+  }
+  const [d, , e] = conforme()
+  const attendu = 'S-03,S-27,W-01'
+  for (const n of [undefined, 'simple', 'grandes_lignes', 'detaille']) {
+    const a = tout([d, du25(n), e])
+    verifier(`cas 19 niveau ${n ?? '(aucun : détaillé)'}`, codes(a), attendu)
+    const viaPlan = verifierPlan(plan([sem(L1)], [d, du25(n), e]), contexteDeReference()).filter((x) => !x.code.startsWith('P-'))
+    verifier(`cas 19 niveau ${n ?? 'défaut'} par verifierPlan (hors P-)`, codes(viaPlan), attendu)
+  }
+  for (const n of ['simple', 'grandes_lignes']) verifier(`cas 19 cycle ${n}`, codes(tout([d, du25(undefined, undefined, n), e])), attendu)
+  const a = tout([d, du25()], contexteDeReference()).find((x) => x.code === 'S-27')
+  verifier('cas 19 S-27 cible', `${a.portee}/${a.version}/${a.sujet}/${a.etapeIndex}`, `seance/solo/${P}/undefined`)
+  const ctxB = contexteDeReference({ aujourdhui: '2026-11-25', profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['doigts'] } })
+  const j = verifierJour(du25(), ctxB, [])
+  verifier('cas 19b', codes(j) + ' ' + j.map(formeAffichage).join(), 'S-04 arret')
+  verifier('cas 19c', codes(tout([d, du25(undefined, null), e])), '(aucun)') }
+
+console.log(resultats.join('\n'))
+console.log(`\n${resultats.filter((r) => r.startsWith('OK')).length} OK, ${resultats.filter((r) => r.startsWith('ÉCART')).length} écart(s)`)

@@ -1,0 +1,96 @@
+// Parcours téléphone (390 × 844) : cycle brouillon invisible, séance solo, groupe, débrief, profil.
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs'
+
+const URL = 'http://localhost:4190/'
+const OUT = '/home/claude/audits/phase-3/'
+const log = (...a) => console.log(...a)
+const navigateur = await chromium.launch()
+const contexte = await navigateur.newContext({ viewport: { width: 1280, height: 800 } })
+const page = await contexte.newPage()
+const erreurs = []
+page.on('pageerror', (e) => erreurs.push('pageerror ' + e.message))
+page.on('console', (m) => { if (m.type() === 'error') erreurs.push('console ' + m.text()) })
+const pause = (ms = 400) => page.waitForTimeout(ms)
+const texte = async () => (await page.locator('body').innerText()).replace(/\n+/g, ' ⏎ ')
+const etape = async (nom, f) => { try { await f() } catch (e) { log(`!! ${nom} : ${e.message.split('\n')[0]}`) } }
+const clic = async (nom, opts = {}) => { await page.getByRole('button', { name: nom, ...opts }).first().click(); await pause() }
+
+// Sur ordinateur : un cycle brouillon proposé, qui commence cette semaine (lundi 23/11 : aujourd'hui est dans le cycle)
+await page.goto(URL); await pause(800)
+if (await page.getByRole('button', { name: 'Continuer sans compte' }).count()) await clic('Continuer sans compte')
+await page.getByLabel('Prénom').fill('Arthur')
+await clic('Continuer'); if (await page.getByRole('button', { name: /J.ai compris/ }).count()) await clic(/J.ai compris/)
+await clic('Plan', { exact: true }); await clic('Crée ton premier cycle')
+await page.getByLabel('Nom du cycle').fill('Brouillon secret')
+await page.getByLabel('Début (un lundi)').fill('2026-11-23')
+await clic('Proposer un plan'); await pause(1200)
+log('Ordinateur, cycle :', (await texte()).match(/BROUILLON|Brouillon/)?.[0] ?? 'pas d’étiquette')
+
+// Passage au téléphone
+await page.setViewportSize({ width: 390, height: 844 }); await pause(800)
+await etape('Aujourd’hui', async () => {
+  const t = await texte()
+  log('Téléphone, Aujourd’hui :', t.slice(0, 700))
+  log('  le nom du brouillon apparaît :', /Brouillon secret/.test(t))
+  await page.screenshot({ path: OUT + 't1-aujourdhui.png', fullPage: true })
+})
+await etape('Programme', async () => {
+  await page.getByRole('button', { name: 'Programme' }).or(page.getByRole('tab', { name: 'Programme' })).first().click(); await pause()
+  const t = await texte()
+  log('Téléphone, Programme :', t.slice(0, 400), '| brouillon visible :', /Brouillon secret/.test(t))
+})
+await etape('Petits boutons téléphone', async () => {
+  await page.getByRole('button', { name: /Aujourd/ }).or(page.getByRole('tab', { name: /Aujourd/ })).first().click(); await pause()
+  const petits = await page.evaluate(() => [...document.querySelectorAll('button, a[href]')].filter((b) => { const r = b.getBoundingClientRect(); return r.height > 0 && r.height < 48 }).map((b) => (b.getAttribute('aria-label') || b.textContent).trim().slice(0, 40) + ' ' + Math.round(b.getBoundingClientRect().height)))
+  log('  boutons < 48 px :', JSON.stringify(petits))
+})
+
+// Séance solo : démarrer, « Stop, ça fait mal », revenir, terminer
+await etape('Solo', async () => {
+  await clic(/Je grimpe seul/); await pause(600)
+  let t = await texte(); log('Solo, premier écran :', t.slice(0, 300))
+  const stop = page.getByRole('button', { name: 'Stop, ça fait mal' })
+  log('  « Stop, ça fait mal » visible :', await stop.count())
+  await stop.first().click(); await pause()
+  t = await texte(); log('  après Stop :', t.slice(0, 400))
+  await page.screenshot({ path: OUT + 't2-solo-stop.png', fullPage: true })
+  await clic('Revenir à la séance'); await pause()
+  // aller au bout : boutons « Terminer » / « Étape suivante »
+  for (let i = 0; i < 15; i++) {
+    const fin = page.getByRole('button', { name: /Terminer la séance|Terminer/ })
+    if (await fin.count()) { await fin.first().click(); await pause(); break }
+    const suivant = page.getByRole('button', { name: /suivante|Passer|Fait|Suivant/ })
+    if (!(await suivant.count())) break
+    await suivant.first().click(); await pause(300)
+  }
+  t = await texte(); log('  fin de séance :', t.slice(0, 400))
+})
+await etape('Questions et débrief', async () => {
+  for (let i = 0; i < 6; i++) {
+    const t = await texte()
+    if (/Débrief|Bilan|bien noté|Enregistr/.test(t) && i > 2) break
+    const choix = page.getByRole('button', { name: /^Non$|^Bien$|^3$|Correcte|^Oui$/ })
+    if (await choix.count()) await choix.first().click()
+    const suite = page.getByRole('button', { name: /Continuer|Valider|Enregistrer|Suivant|Voir/ })
+    if (await suite.count()) await suite.first().click()
+    await pause(400)
+  }
+  log('  après questions :', (await texte()).slice(0, 500))
+  await page.screenshot({ path: OUT + 't3-debrief.png', fullPage: true })
+})
+await etape('Groupe', async () => {
+  await page.goto(URL); await pause(800)
+  await clic(/Je grimpe en groupe/); await pause(500)
+  const t = await texte()
+  log('Groupe :', t.slice(0, 400), '| Stop visible :', await page.getByRole('button', { name: 'Stop, ça fait mal' }).count())
+  await page.screenshot({ path: OUT + 't4-groupe.png', fullPage: true })
+})
+await etape('Profil', async () => {
+  await page.goto(URL); await pause(800)
+  await page.getByRole('button', { name: 'Profil' }).or(page.getByRole('tab', { name: 'Profil' })).first().click(); await pause()
+  const t = await texte()
+  log('Profil :', t.slice(0, 500))
+  await page.screenshot({ path: OUT + 't5-profil.png', fullPage: true })
+})
+log('Erreurs de page :', JSON.stringify(erreurs))
+await navigateur.close()

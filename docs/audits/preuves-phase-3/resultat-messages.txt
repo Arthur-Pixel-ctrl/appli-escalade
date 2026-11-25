@@ -1,0 +1,174 @@
+S-01	IDENTIQUE	niveau fort (spéc. fort)	Cet exercice n'existe pas dans ta bibliothèque (inexistante). Remplace-le ou supprime l'étape.
+S-01	source code : Choix de l'app (intégrité ; protège contre une invention de l'assistant)	| spéc. : [CDC] (intégrité ; protège contre une invention de l'assistant)
+S-02	IDENTIQUE	niveau information/fort (spéc. voir condition)	« Fiche exclue » a un réglage encore à vérifier : réglage à confirmer. Garde-la seulement si tu sais la régler.
+S-02	IDENTIQUE	niveau information/fort (spéc. voir condition)	L'assistant a proposé « Fiche exclue », qui n'est pas encore prête : réglage à confirmer. Remplace-la.
+S-02	source code : Audit de la bibliothèque (I-2, I-9, I-10)	| spéc. : [AUD I-2, I-9, I-10]
+S-03	IDENTIQUE	niveau fort (spéc. fort)	« Fiche prereq » demande : 10 ans de pratique (tu en as 4) ; une expérience de poutre régulière ; 20 tractions strictes (non renseigné) ; tenir 15 s sur une réglette de 25 mm ; un niveau 8A en bloc ; 18 ans ou plus. Choisis une fiche plus accessible, ou complète ton profil si c'est déjà le cas.
+S-03	IDENTIQUE	niveau fort (spéc. fort)	« Fiche prereq » demande : 10 ans de pratique (tu en as 4) ; une expérience de poutre régulière ; 20 tractions strictes (tu en fais 5) ; un niveau 8A en bloc. Choisis une fiche plus accessible, ou complète ton profil si c'est déjà le cas.
+S-03	source code : Audit de la bibliothèque (B-1, B-3), Synthèse (López, Hörst, BMC, Lattice)	| spéc. : [AUD B-1, B-3], [SYN] (López, Hörst, BMC, Lattice)
+S-04	IDENTIQUE	niveau fort (spéc. fort)	Tu as signalé une douleur (doigts, épaule). « Fiche ci » la sollicite : remplace-la par un exercice qui ne fait pas mal, ou retire-la.
+S-04	source code : Modèle de données, Synthèse (réduction ciblée)	| spéc. : [MOD], [SYN] (réduction ciblée)
+S-05	IDENTIQUE	niveau fort (spéc. fort)	Tu as signalé un signe d'alerte (craquement, gonflement). Pas de séance dure avant d'avoir consulté un médecin ou un kiné qui connaît l'escalade.
+S-05	source code : Synthèse (arrêt immédiat et consultation)	| spéc. : [SYN] (arrêt immédiat et consultation)
+S-06	IDENTIQUE	niveau fort (spéc. fort)	Tu as une douleur en cours. Pendant 1 à 2 semaines, retire « Fiche arque » : pas d'arqué, de pan, de trous ni d'effort maximal. Garde de la grimpe facile qui ne fait pas mal.
+S-06	source code : Synthèse	| spéc. : [SYN]
+S-07	IDENTIQUE	niveau fort (spéc. fort)	« Fiche tete » demande de savoir grimper et tomber en tête, avec un assureur formé à l'assurage dynamique. Fais-toi d'abord former.
+S-07	source code : Synthèse, Audit de la bibliothèque (I-13)	| spéc. : [SYN], [AUD I-13]
+S-08	IDENTIQUE	niveau information (spéc. information)	« Fiche partenaire » se fait avec un partenaire (assureur ou observateur). Prévois-le.
+S-08	source code : Audit de la bibliothèque (I-13)	| spéc. : [AUD I-13]
+S-09	IDENTIQUE	niveau information (spéc. information)	« Fiche tete » se fait en voie. Vérifie que ta salle en a.
+S-09	source code : Audit de la bibliothèque (I-13)	| spéc. : [AUD I-13]
+S-10	IDENTIQUE	niveau fort (spéc. fort)	Ajoute un échauffement avant « Fiche max » : 20 à 30 min de grimpe de plus en plus dure.
+S-10	source code : Vérifications, Synthèse	| spéc. : [VER 6], [SYN]
+S-11	IDENTIQUE	niveau information (spéc. information)	Avant « Fiche piSeule », fais 3 à 8 suspensions progressives (fiche Échauffement des doigts) : la dernière te donne la charge du jour.
+S-11	source code : Synthèse (López)	| spéc. : [SYN] (López)
+S-12	IDENTIQUE	niveau fort (spéc. fort)	« Fiche max » vient après « Fiche resist » : les efforts maximaux se font frais. Place-le avant, ou dans une autre séance.
+S-12	source code : Synthèse	| spéc. : [SYN] (« à séparer : force maximale et résistance congestionnante ; poutre maximale après un gros volume »)
+S-13	IDENTIQUE	niveau fort (spéc. fort)	« Fiche pan » se fait en début de séance, jamais fatigué : place-le juste après l'échauffement.
+S-13	source code : Synthèse (BMC ; Anderson)	| spéc. : [SYN] (BMC ; Anderson), fiches `puissance-pan-gullich-initiation` et `puissance-bloc-sans-pieds`
+S-14	IDENTIQUE	niveau information (spéc. information)	Deux protocoles de suspensions maximales dans la même séance : garde-en un, ou réduis le volume de chacun de 25 à 30 %.
+S-14	source code : Synthèse (López ; Hörst)	| spéc. : [SYN] (López : −25 à 30 % ; Hörst : pas le 7-53 avec le 10 s lesté)
+S-15	IDENTIQUE	niveau fort (spéc. fort)	60 s de repos entre deux efforts maximaux dans « Fiche max » : prends au moins 3 min.
+S-15	source code : Synthèse, Modèle de données, Audit de la bibliothèque	| spéc. : [SYN] (3 à 5 min), [MOD]. Exception pour les protocoles conçus ainsi (7-53 : 53 s) : [AUD I-11]
+S-16	IDENTIQUE	niveau information (spéc. information)	80 min d'efforts maximaux dans cette séance : le repère est de 30 à 60 min. Raccourcis, ou répartis sur deux séances.
+S-16	source code : Synthèse	| spéc. : [SYN] (gabarit de séance)
+S-17	IDENTIQUE	niveau information (spéc. information)	Cette séance est notée légère mais contient un effort maximal. Passe-la en dure : la récupération sera comptée de toute façon.
+S-17	source code : Choix de l'app	| spéc. : [CDC]
+S-18	IDENTIQUE	niveau fort (spéc. fort)	Les bidoigts se travaillent à faible charge seulement. Retire le lest ou l'intensité maximale de « Fiche bidoigts ».
+S-18	source code : Synthèse	| spéc. : [SYN] (lombricaux)
+S-19	IDENTIQUE	niveau information (spéc. information)	Pour « Fiche perso », dis si c'est un effort maximal, sur poutre ou en bloc limite : sinon les règles de récupération ne le comptent pas.
+S-19	source code : Choix de l'app	| spéc. : [CDC]
+S-20	IDENTIQUE	niveau information (spéc. information)	Une séance en groupe tient en 1 à 3 objectifs. Tu en as 0.
+S-20	source code : Modèle de données, Plan v2	| spéc. : [MOD], [PLAN]
+S-21	IDENTIQUE	niveau information (spéc. information)	Les versions solo et groupe de « Séance 21 » n'ont pas la même intensité (bloc_limite, dureté). Aligne-les pour que la semaine reste équilibrée quel que soit ton choix.
+S-21	source code : Choix de l'app	| spéc. : [CDC] (A6-1, A6-2)
+S-22	IDENTIQUE	niveau information (spéc. information)	Fixe un nombre de blocs et d'essais pour « Trois blocs durs » : un objectif à la limite sans plafond pousse à trop en faire.
+S-22	source code : Choix de l'app	| spéc. : [CDC] (A6-4)
+S-23	IDENTIQUE	niveau information (spéc. information)	La version groupe de « Séance 20 » ne travaille pas sa qualité dominante (force des doigts). Ajoute un objectif qui la travaille.
+S-23	IDENTIQUE	niveau information (spéc. information)	La version groupe de « Séance 21 » ne travaille pas sa qualité dominante (force des doigts). Ajoute un objectif qui la travaille.
+S-23	source code : Modèle de données, Choix de l'app	| spéc. : [MOD] (`ObjectifGroupe.accents`), [CDC] (A6-1)
+S-24	IDENTIQUE	niveau information (spéc. information)	Le module « Fiche module » dure 30 min : un objectif spécifique tient en 10 à 15 min.
+S-24	source code : Plan v2, Modèle de données	| spéc. : [PLAN], [MOD]
+S-25	IDENTIQUE	niveau information (spéc. information)	Le module « Fiche moduleNerveux » est un effort intense : place-le en début de séance dure, juste après l'échauffement.
+S-25	source code : Synthèse, Choix de l'app	| spéc. : [SYN] (intense à frais), [CDC] (A7-5)
+S-26	IDENTIQUE	niveau information (spéc. information)	« Séance 1 » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte.
+S-26	IDENTIQUE	niveau information (spéc. information)	« Grimpe dure » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte.
+S-26	IDENTIQUE	niveau information (spéc. information)	« Séance 66 » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte.
+S-26	IDENTIQUE	niveau information (spéc. information)	« Séance 67 » est notée dure, sans exercice de la bibliothèque : l'app la compte comme une séance dure ordinaire. Si tu y fais de la poutre ou du bloc à ta limite, choisis son exercice principal : la règle des 48 h et les quotas en tiendront compte.
+S-26	source code : Choix de l'app (décision d'Arthur)	| spéc. : [CDC] ; décision F7 d'Arthur
+S-27	IDENTIQUE	niveau information (spéc. information)	« Fiche max » est dans les grandes lignes de « Tractions et poutre », pas dans ses étapes. L'app vérifie ses prérequis, tes douleurs et la récupération, mais pas sa place dans la séance. Mets-les d'accord : ajoute cet exercice aux étapes, ou recalcule les grandes lignes.
+S-27	source code : Choix de l'app	| spéc. : [CDC] (`niveaux-de-detail.md` § 3.4)
+W-01	IDENTIQUE	niveau fort (spéc. fort)	« B » (mercredi 25) arrive moins de 48 h après « A » (mardi 24) : deux séances maximales. Décale-la d'un jour ou fais sa version légère.
+W-01	IDENTIQUE	niveau fort (spéc. fort)	« B » (mercredi 25) arrive moins de 48 h après « A » (mardi 24) : deux séances de poutre intensive. Décale-la d'un jour ou fais sa version légère.
+W-01	source code : Synthèse (48 h, López), modèle	| spéc. : [SYN] (48 h ; jamais deux jours de suite ; López : 48 h sur une même prise), [MOD]
+W-02	IDENTIQUE	niveau fort (spéc. fort)	4 séances de poutre intensive cette semaine : 2 au plus. Allège ou déplace la dernière.
+W-02	source code : Synthèse, plan	| spéc. : [SYN], [PLAN]
+W-03	IDENTIQUE	niveau fort (spéc. fort)	4 séances de bloc limite cette semaine : 2 au plus. Remplace la dernière par du volume ou des intervalles plus faciles.
+W-03	source code : Synthèse, plan	| spéc. : [SYN], [PLAN]
+W-04	IDENTIQUE	niveau fort (spéc. fort)	4 séances avec poutre cette semaine : 3 au plus, tous exercices confondus.
+W-04	source code : Audit I-8	| spéc. : [AUD I-8]
+W-05	IDENTIQUE	niveau fort/information (spéc. voir condition)	« Fiche plafondQuota » est prévue 2 fois cette semaine ; sa fiche conseille 1 fois au plus.
+W-05	IDENTIQUE	niveau fort/information (spéc. voir condition)	« Fiche plafond » est prévue 2 fois cette semaine ; sa fiche conseille 1 fois au plus.
+W-05	source code : Fiches de la bibliothèque	| spéc. : Fiches de la bibliothèque
+W-06	IDENTIQUE	niveau fort (spéc. fort)	Tu sollicites tes doigts 5 jours cette semaine : 4 au plus, et au moins 3 jours de repos des doigts. Remplace une séance par de la mobilité ou du gainage au sol.
+W-06	source code : Hörst (synthèse)	| spéc. : [VER 9] (Hörst)
+W-07	IDENTIQUE	niveau information (spéc. information)	4 séances prévues pour 3 choisies : ton plan est plus chargé que prévu. Retire-en une ou change ton nombre de séances.
+W-07	IDENTIQUE	niveau information (spéc. information)	5 séances prévues pour 3 choisies : ton plan est plus chargé que prévu. Retire-en une ou change ton nombre de séances.
+W-07	source code : Cahier des charges	| spéc. : [CDC]
+W-08	IDENTIQUE	niveau fort (spéc. fort)	4 séances dures cette semaine : avec 3 séances par semaine, garde-en 3 au plus et rends les autres légères.
+W-08	IDENTIQUE	niveau fort (spéc. fort)	5 séances dures cette semaine : avec 3 séances par semaine, garde-en 3 au plus et rends les autres légères.
+W-08	source code : Synthèse (semaines types), cahier des charges	| spéc. : [SYN] (semaines types), [CDC] (A.3.8)
+W-09	IDENTIQUE	niveau information (spéc. information)	La charge prévue monte de 29 % par rapport à ta dernière semaine de charge. Le repère prudent est 10 % au plus.
+W-09	source code : FFME (repère, non validé)	| spéc. : [SYN] (FFME, repère non validé)
+W-10	APOSTROPHE	niveau fort/information (spéc. voir condition)	Ta semaine allégée est presque aussi chargée qu’une semaine normale. Divise les séries par deux et vise environ 60 unités.
+W-10	IDENTIQUE	niveau fort/information (spéc. voir condition)	Ta semaine allégée reste un peu chargée : vise environ 60 unités (50 % de moins que tes semaines de charge).
+W-10	source code : Lattice (synthèse) ; seuils de l’app	| spéc. : [SYN] (Lattice : 40 à 60 %), [MOD] ; seuils 90 % et 10 points : [CDC]
+W-11	APOSTROPHE	niveau information (spéc. information)	« Fiche nouvelle » n’apparaît pas dans tes semaines de charge : en semaine allégée, garde des exercices connus.
+W-11	APOSTROPHE	niveau information (spéc. information)	« Fiche max » n’apparaît pas dans tes semaines de charge : en semaine allégée, garde des exercices connus.
+W-11	APOSTROPHE	niveau information (spéc. information)	« Fiche nouvelle » n’apparaît pas dans tes semaines de charge : en semaine d’affûtage, garde des exercices connus.
+W-11	source code : Lattice (synthèse)	| spéc. : [SYN] (Lattice : aucun exercice nouveau)
+W-12	IDENTIQUE	niveau information (spéc. information)	Ta semaine allégée compte plus de séances maximales (1) que ta dernière semaine de charge (0) : garde-en 0 au plus.
+W-12	source code : Lattice (synthèse) ; règle de l’app	| spéc. : [SYN] (Lattice : quelques efforts intenses conservés), [CDC] (A4-4)
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : traction et gainage, puissance, résistance, endurance. Ajoute une étape courte pour les entretenir (10 à 20 min suffisent).
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : traction et gainage, résistance, endurance. Ajoute une étape courte pour les entretenir (10 à 20 min suffisent).
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : force des doigts, traction et gainage, puissance, résistance, endurance. Ajoute une étape courte pour les entretenir (10 à 20 min suffisent).
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : force des doigts, traction et gainage, puissance, résistance. Ajoute une étape courte pour les entretenir (10 à 20 min suffisent).
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : endurance. Ajoute une étape courte pour l'entretenir (10 à 20 min suffisent).
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : puissance, résistance, endurance. Ajoute une étape courte pour les entretenir (10 à 20 min suffisent).
+W-13	IDENTIQUE	niveau information (spéc. information)	Cette semaine ne contient rien pour : force des doigts, traction et gainage, puissance, endurance. Ajoute une étape courte pour les entretenir (10 à 20 min suffisent).
+W-13	source code : Plan de l’app, synthèse (toutes les qualités entretenues)	| spéc. : [PLAN], [SYN] (toutes les qualités entretenues ; bloqueur : « un bloc d'endurance ciblé, Boulder Triples ou 1 on / 1 off »)
+W-14	APOSTROPHE	niveau information (spéc. information)	Cette phase met en avant force des doigts, mais aucune séance de la semaine n’a cette qualité.
+W-14	APOSTROPHE	niveau information (spéc. information)	Plus de séances traction et gainage que de séances force des doigts, l’accent de cette phase. C’est voulu ?
+W-14	APOSTROPHE	niveau information (spéc. information)	Cette phase met en avant résistance, mais aucune séance de la semaine n’a cette qualité.
+W-14	source code : Plan de l’app (accent tournant)	| spéc. : [PLAN] (accent tournant), [CDC]
+W-15	IDENTIQUE	niveau information (spéc. information)	Avec 4 ans de pratique, Bechtel conseille 2 séances de poutre par semaine au plus. Tu en prévois 4.
+W-15	IDENTIQUE	niveau information (spéc. information)	Avec 2 ans de pratique, Bechtel conseille 1 séance de poutre par semaine au plus. Tu en prévois 2.
+W-15	APOSTROPHE	niveau information (spéc. information)	Moins d’un an de pratique : la grimpe suffit, la poutre viendra après un an sans blessure.
+W-15	IDENTIQUE	niveau information (spéc. information)	Avec 4 ans de pratique, Bechtel conseille 2 séances de poutre par semaine au plus. Tu en prévois 3.
+W-15	source code : Bechtel ; coachs Lattice (synthèse)	| spéc. : [SYN] (Bechtel ; coachs Lattice)
+W-16	APOSTROPHE	niveau information (spéc. information)	Aucune séance d’antagonistes cette semaine : 2 courtes séances après la grimpe protègent épaules et coudes.
+W-16	APOSTROPHE	niveau information (spéc. information)	Une seule séance d’antagonistes cette semaine : 2 courtes séances après la grimpe protègent épaules et coudes.
+W-16	source code : Vérification de la synthèse (antagonistes)	| spéc. : [VER 5]
+W-17	IDENTIQUE	niveau information (spéc. information)	Fais les antagonistes après une séance de grimpe, pas un jour de repos.
+W-17	source code : Vérification de la synthèse (antagonistes)	| spéc. : [VER 5]
+W-18	IDENTIQUE	niveau information (spéc. information)	Le module « Réglettes » est prévu 0 fois cette semaine : 1 à 2 fois par semaine.
+W-18	IDENTIQUE	niveau information (spéc. information)	Le module « Arquées » est prévu 0 fois cette semaine : 1 à 2 fois par semaine.
+W-18	IDENTIQUE	niveau information (spéc. information)	Le module « Pinces » est prévu 0 fois cette semaine : 1 à 2 fois par semaine.
+W-18	source code : Plan de l’app ; synthèse (objectifs spécifiques)	| spéc. : [PLAN], [MOD]
+W-19	IDENTIQUE	niveau information (spéc. information)	Laisse au moins 6 h entre les suspensions légères pieds au sol et toute autre séance.
+W-19	source code : Gilmore et al. (étude), fiche des suspensions légères	| spéc. : [SYN] (Gilmore et al.), fiche `doigts-abrahangs`
+W-20	IDENTIQUE	niveau fort (spéc. fort)	2 séances de résistance en voie cette semaine : 1 au plus avec un profil « bloc ». Garde-en une et fais le reste en bloc, ou change ton profil si ton objectif devient la voie.
+W-20	IDENTIQUE	niveau fort (spéc. fort)	3 séances de résistance en voie cette semaine : 2 au plus. Remplace la dernière par de l'endurance ou de la technique.
+W-20	source code : Décision d'Arthur (F2, point 13) ; audit B21, I-8 (Lattice)	| spéc. : Décision F2 d'Arthur, point 13 ; audit B21, I-8 (Lattice [VER 4] : 2 séances par semaine au plus ; Barrows : 1,5 à 2)
+P-01	IDENTIQUE	niveau information (spéc. information)	Ton cycle s'écarte du format 12 semaines en 3 blocs de 4. C'est possible, mais les repères de l'app sont faits pour ce format.
+P-01	source code : Plan de l'app	| spéc. : [PLAN]
+P-02	IDENTIQUE	niveau fort (spéc. fort)	4 semaines de charge d'affilée (semaines 1 à 4) : place une semaine allégée après la troisième.
+P-02	IDENTIQUE	niveau fort (spéc. fort)	9 semaines de charge d'affilée (semaines 1 à 9) : place une semaine allégée après la troisième.
+P-02	source code : Synthèse (3 semaines de charge, 1 de décharge), plan de l'app	| spéc. : [SYN] (3 de charge, 1 de décharge), [PLAN]
+P-03	IDENTIQUE	niveau information (spéc. information)	Deux phases de suite sur force des doigts : pour la force et la puissance, la BMC conseille 3 à 5 semaines. Change l'accent de la phase 2.
+P-03	source code : Synthèse (BMC)	| spéc. : [SYN] (BMC)
+P-04	IDENTIQUE	niveau information (spéc. information)	Plus de 8 semaines d'accent résistance : le travail lactique se limite à 3 à 8 semaines.
+P-04	source code : Synthèse (consensus minimal)	| spéc. : [SYN] (consensus minimal)
+P-05	IDENTIQUE	niveau information (spéc. information)	Ton objectif du 29 novembre 2026 n'a pas de semaines d'affûtage. Prévois-en 2, avec 40 à 60 % de volume en moins.
+P-05	IDENTIQUE	niveau information (spéc. information)	Ton objectif du 1er février 2027 n'a pas de semaines d'affûtage. Prévois-en 2, avec 40 à 60 % de volume en moins.
+P-05	source code : Synthèse (Bosquet)	| spéc. : [SYN] (Bosquet)
+P-06	IDENTIQUE	niveau information (spéc. information)	Réduction de 70 % en semaine allégée : le repère est de 40 à 60 %.
+P-06	source code : Synthèse	| spéc. : [SYN]
+P-07	IDENTIQUE	niveau information (spéc. information)	Pour un objectif daté, finis par la puissance puis la résistance (en voie), juste avant l'affûtage.
+P-07	source code : Synthèse (Lattice ; Bechtel)	| spéc. : [SYN] (Lattice ; Bechtel)
+P-08	IDENTIQUE	niveau information (spéc. information)	Pas de poutre intensive dans les 3 jours avant ton objectif : tes doigts doivent arriver frais.
+P-08	source code : Synthèse (Lattice) ; 3 jours : choix de l'app	| spéc. : [SYN] (Lattice), 3 jours : [CDC]
+P-09	IDENTIQUE	niveau information (spéc. information)	La phase 1 n'a pas de test en fin de semaine allégée. Ajoute au moins tes tractions strictes et un bloc repère pour voir tes progrès.
+P-09	IDENTIQUE	niveau information (spéc. information)	La phase 2 n'a pas de test en fin de semaine allégée. Ajoute au moins tes tractions strictes et un bloc repère pour voir tes progrès.
+P-09	IDENTIQUE	niveau information (spéc. information)	La phase 3 n'a pas de test en fin de semaine allégée. Ajoute au moins tes tractions strictes et un bloc repère pour voir tes progrès.
+P-09	source code : Synthèse	| spéc. : [SYN]
+P-10	IDENTIQUE	niveau information (spéc. information)	3 objectifs spécifiques sur cette phase : 2 au plus, pour qu'ils restent courts.
+P-10	source code : Plan de l'app, modèle de données	| spéc. : [PLAN], [MOD]
+P-11	IDENTIQUE	niveau information (spéc. information)	« Réglettes » et « Arquées » comptent dans le même quota (poutre). Garde-en un pour cette phase.
+P-11	source code : Modèle de données	| spéc. : [MOD]
+P-12	IDENTIQUE	niveau fort (spéc. fort)	L'objectif « Réglettes » ne te convient pas aujourd'hui : 9 ans de pratique (tu en as 4). Essaie plutôt « Réglettes faciles ».
+P-12	IDENTIQUE	niveau fort (spéc. fort)	L'objectif « Arquées » ne te convient pas aujourd'hui : douleur déclarée (doigts).
+P-12	source code : Modèle de données (objectifs proposables)	| spéc. : [MOD] (`objectifsProposables`)
+P-13	IDENTIQUE	niveau information (spéc. information)	Ton plan compte 4 séances par semaine, ton profil 3. Mets-les d'accord.
+P-13	source code : Choix de l'app	| spéc. : [CDC]
+P-15	IDENTIQUE	niveau information (spéc. information)	1 séance n'a pas d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance.
+P-15	IDENTIQUE	niveau information (spéc. information)	2 séances n'ont pas d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance.
+P-15	source code : Choix de l'app	| spéc. : [CDC]
+P-14	IDENTIQUE	niveau information (spéc. information)	Le cycle suivant commence tout de suite : une semaine de transition, en grimpe libre, aide à récupérer.
+P-14	source code : Synthèse	| spéc. : [SYN]
+J-01	IDENTIQUE	niveau information (spéc. information)	Deux voyants sont au rouge ce matin. Fais plutôt la version légère, ou une séance technique.
+J-01	source code : Synthèse de l'entraînement	| spéc. : [SYN], [MOD]
+J-02	IDENTIQUE	niveau information (spéc. information)	Moins de 7 h de sommeil en moyenne sur 3 nuits : transforme la séance maximale en séance technique ou de volume.
+J-02	source code : Walsh et al.	| spéc. : [SYN] (Walsh et al.)
+J-03	IDENTIQUE	niveau information (spéc. information)	Tu signales une douleur ce matin. Allège la séance, et arrête si elle dépasse 2 sur 10 pendant l'effort.
+J-03	source code : Synthèse de l'entraînement	| spéc. : [SYN]
+J-04	IDENTIQUE	niveau fort (spéc. fort)	Ta dernière séance maximale date de 14 h. Attends encore 34 h, ou fais la version légère.
+J-04	source code : Synthèse de l'entraînement	| spéc. : [SYN], [MOD] ; fonction existante `prochaineSeanceDurePossible`
+J-05	IDENTIQUE	niveau fort (spéc. fort)	Ta douleur (coude) dure depuis 22 jours. Consulte un médecin ou un kiné qui connaît l'escalade.
+J-05	source code : Synthèse de l'entraînement	| spéc. : [SYN]
+J-06	IDENTIQUE	niveau information (spéc. information)	Ton test « Tractions » baisse et tu es fatigué : prends une semaine allégée avant de continuer.
+J-06	source code : Synthèse de l'entraînement	| spéc. : [SYN]
+J-07	IDENTIQUE	niveau information (spéc. information)	Ta peau était abîmée à la dernière séance. Si tes pulpes sont roses et brillantes, prends un jour de repos.
+J-07	source code : Pratique de grimpeurs	| spéc. : [SYN] (pratique de grimpeurs)
+
+Codes de la spécification : 69 ; déclenchés : 69 ; codes inconnus émis : aucun ; écarts : 10
