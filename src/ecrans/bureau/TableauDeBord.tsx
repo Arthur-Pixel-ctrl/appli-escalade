@@ -57,7 +57,7 @@ function enJour(date: string): string {
 }
 
 interface Props {
-  /** Mène au Plan (vue Semaine, sur la semaine donnée : voir la note dans MiseEnPageBureau). */
+  /** Mène au Plan, en vue Semaine, sur la semaine donnée. */
   onOuvrirSemaine: (numero: number) => void
   onOuvrirPlan: () => void
   onOuvrirBilans: () => void
