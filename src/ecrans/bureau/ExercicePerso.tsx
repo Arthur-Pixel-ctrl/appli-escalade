@@ -1,8 +1,9 @@
-import { Fragment, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Avertissement } from '../../composants/Avertissement.tsx'
 import { Confirmation } from '../../composants/Confirmation.tsx'
+import { ApercuChrono } from './FicheDetail.tsx'
 import { FicheProtocole } from '../../composants/FicheProtocole.tsx'
-import { QUALITES, TERRAINS, entreesDepuis, etatDe, nomQualite, type ContexteFiltre } from '../../donnees/bibliotheque/filtres.ts'
+import { QUALITES, TERRAINS, entreesDepuis, etatDe, nomQualite, type ContexteFiltre, type EntreeBibliotheque } from '../../donnees/bibliotheque/filtres.ts'
 import {
   BROUILLON_VIDE, ZONES_PROPOSEES, brouillonModifie, entier, erreursDuBrouillon, exerciceDepuisBrouillon, premierChampEnErreur,
   type BrouillonExercice, type ChampErreur, type FormeChoisie, type GabaritSimple, type Reponse, type ReponsesSecurite,
@@ -63,6 +64,8 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
   const [enCours, setEnCours] = useState(false)
   const [echec, setEchec] = useState(false)
   const [confirmerSortie, setConfirmerSortie] = useState(false)
+  // Le réglage essayé : une copie prise au clic, pour que l'aperçu ne bouge pas pendant qu'il tourne.
+  const [essai, setEssai] = useState<{ entree: EntreeBibliotheque; forme: Parameters<typeof ApercuChrono>[0]['forme'] } | undefined>(undefined)
   const champs = useRef(new Map<ChampErreur, HTMLElement>())
   const idPrefixe = useId()
   const id = (nom: string) => `${idPrefixe}-${nom}`
@@ -80,6 +83,34 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
     return entree ? { entree, etat: etatDe(entree, contexte) } : undefined
   }, [b, contexte])
 
+  // L'aperçu n'est pas une boîte de dialogue native : Échap se gère ici.
+  useEffect(() => {
+    if (!essai) return
+    const surTouche = (e: KeyboardEvent) => { if (e.key === 'Escape') setEssai(undefined) }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [essai])
+
+  const focusSurErreur = (trouvees: ReturnType<typeof erreursDuBrouillon>) => {
+    const premier = premierChampEnErreur(trouvees)
+    if (premier === undefined) return false
+    // Le focus va au premier champ en erreur ; pour un groupe de boutons, à son premier bouton.
+    const element = champs.current.get(premier)
+    const cible = element?.matches('input, select, textarea, button') ? element : element?.querySelector('button')
+    ;(cible as HTMLElement | null | undefined)?.focus()
+    return true
+  }
+
+  const essayerLeChrono = () => {
+    const trouvees = erreursDuBrouillon(b)
+    setErreurs(trouvees)
+    // Réglage incohérent (0 série…) : rien ne se lance, on montre le champ et son message.
+    if (focusSurErreur(trouvees)) return
+    const exercice = exerciceDepuisBrouillon(b, 'essai', 'essai')
+    const entree = entreesDepuis([], [exercice])[0]
+    if (entree && exercice.forme === 'chrono') setEssai({ entree, forme: exercice })
+  }
+
   const retour = () => { if (brouillonModifie(b)) setConfirmerSortie(true); else onQuitter() }
 
   const envoyer = async (evenement: FormEvent) => {
@@ -87,14 +118,7 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
     if (enCours) return
     const trouvees = erreursDuBrouillon(b)
     setErreurs(trouvees)
-    const premier = premierChampEnErreur(trouvees)
-    if (premier !== undefined) {
-      // Le focus va au premier champ en erreur ; pour un groupe de boutons, à son premier bouton.
-      const element = champs.current.get(premier)
-      const cible = element?.matches('input, select, textarea, button') ? element : element?.querySelector('button')
-      ;(cible as HTMLElement | null | undefined)?.focus()
-      return
-    }
+    if (focusSurErreur(trouvees)) return
     setEnCours(true)
     setEchec(false)
     try {
@@ -159,7 +183,7 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
       </header>
 
       <div className="perso-corps">
-        <form className="pile-large perso-formulaire" onSubmit={(e) => { void envoyer(e) }} noValidate aria-label="Nouvel exercice personnel">
+        <form className="pile-large perso-formulaire" inert={essai ? true : undefined} onSubmit={(e) => { void envoyer(e) }} noValidate aria-label="Nouvel exercice personnel">
           {champ('nom', 'Nom', b.nom, (v) => maj({ nom: v }))}
 
           {groupe('qualite', 'Qualité travaillée', QUALITES.map((q) => bouton(b.qualite === q, () => maj({ qualite: q }), nomQualite(q))))}
@@ -182,6 +206,7 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
                 Mot affiché pendant l’effort
                 <input id={id('mot')} value={b.mot} placeholder="SUSPENDS-TOI" autoComplete="off" onChange={(e) => maj({ mot: e.target.value })} />
               </label>
+              <button type="button" className="bouton-second perso-essai" aria-haspopup="dialog" onClick={essayerLeChrono}>Essayer le chrono</button>
             </fieldset>
           )}
 
@@ -258,7 +283,7 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
           <button type="submit" className="bouton principal" disabled={enCours}><strong>{enCours ? 'Enregistrement…' : 'Créer l’exercice'}</strong></button>
         </form>
 
-        <aside className="perso-apercu" aria-label="Aperçu de la fiche">
+        <aside className="perso-apercu" aria-label="Aperçu de la fiche" inert={essai ? true : undefined}>
           <p className="surtitre">Aperçu</p>
           {/* L'aperçu ne se manipule pas : `inert` le sort du parcours au clavier. */}
           <div inert>
@@ -267,6 +292,8 @@ export function ExercicePerso({ contexte, onCree, onQuitter }: {
           <p className="texte-3">Voici comment la fiche apparaîtra dans la bibliothèque.</p>
         </aside>
       </div>
+
+      {essai && <ApercuChrono entree={essai.entree} forme={essai.forme} onFermer={() => setEssai(undefined)} />}
 
       <Confirmation
         ouverte={confirmerSortie} titre="Quitter sans créer l’exercice ?" texte="Ce que tu as écrit ici sera perdu."
