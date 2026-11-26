@@ -439,10 +439,9 @@ describe('verifierStructurePlan', () => {
     })
 
     it('douleur déclarée sur une zone contre-indiquée : P-12, sans remplacement', () => {
-      const base = contexteDeReference()
       const ctx = contexteDeReference({
         fiches: contexteSansTests().fiches,
-        profil: { ...base.profil, douleursEnCours: ['coude'] },
+        douleurs: [{ date: '2026-11-20', zone: 'coude', niveau: 'reduction', signes: [] }],
         objectifsPerso: { os: objectif('os', { nom: 'Levier', contreIndications: ['coude'] }) },
       })
       const a = verifier(planAvecObjectifs(['os']), ctx).filter((x) => x.code === 'P-12')
@@ -453,7 +452,8 @@ describe('verifierStructurePlan', () => {
       const base = contexteDeReference()
       const ctx = contexteDeReference({
         fiches: contexteSansTests().fiches,
-        profil: { ...base.profil, tractionsStrictesMax: 6, douleursEnCours: ['coude'] },
+        profil: { ...base.profil, tractionsStrictesMax: 6 },
+        douleurs: [{ date: '2026-11-20', zone: 'coude', niveau: 'reduction', signes: [] }],
         objectifsPerso: { os: objectif('os', { prerequis: { tractionsStrictesMin: 10 }, contreIndications: ['coude'] }) },
       })
       const a = verifier(planAvecObjectifs(['os']), ctx).filter((x) => x.code === 'P-12')

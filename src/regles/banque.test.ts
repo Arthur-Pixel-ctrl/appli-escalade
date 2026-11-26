@@ -68,9 +68,6 @@ describe('trierFiches : une raison par cas', () => {
     expect(raisonDe('puissance-bloc-limite', profil(), ['doigts'])).toBe('douleur')
     expect(raisonDe('puissance-bloc-limite', profil(), [])).toBeUndefined()
   })
-  it('douleur : une douleur du profil compte même si la liste des zones est vide', () => {
-    expect(raisonDe('puissance-bloc-limite', profil({ douleursEnCours: ['doigts'] }), [])).toBe('douleur')
-  })
   it('contexte : lieux salle de bloc seulement', () => {
     expect(raisonDe('endurance-4x4-voies', profil({ lieux: ['salle_bloc'] }))).toBe('contexte')
   })

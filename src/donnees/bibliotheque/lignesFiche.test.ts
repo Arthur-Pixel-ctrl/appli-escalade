@@ -4,7 +4,7 @@ import type { ProfilVerif } from '../../regles/types.ts'
 
 const profil: ProfilVerif = {
   disciplinePrincipale: 'bloc', niveauBloc: '6B', anneesPratique: 4, experiencePoutre: 'occasionnelle', tractionsStrictesMax: 12,
-  test15sSur25mm: null, adulte: true, grimpeEnTete: null, douleursEnCours: [], seancesParSemaine: 3, lieux: ['salle_bloc'],
+  test15sSur25mm: null, adulte: true, grimpeEnTete: null, seancesParSemaine: 3, lieux: ['salle_bloc'],
 }
 const AUJOURDHUI = '2026-11-24'
 

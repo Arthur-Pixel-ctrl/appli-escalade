@@ -183,10 +183,10 @@ describe('doigts, douleurs, forme', () => {
     expect(dureeVersion(s.solo, fiches)).toBe(90)
   })
 
-  it('zonesDouloureuses : profil, douleurs ouvertes, déclarées avant le jour', () => {
+  it('zonesDouloureuses : douleurs ouvertes, déclarées avant le jour', () => {
     const c = contexteDeReference({
-      profil: { ...ctx.profil, douleursEnCours: ['doigts'] },
       douleurs: [
+        { date: '2026-11-01', zone: 'doigts', niveau: 'reduction', signes: [] },
         { date: '2026-11-20', zone: 'coude', niveau: 'reduction', signes: [] },
         { date: '2026-11-20', zone: 'epaule', niveau: 'alerte', signes: [], resolueLe: '2026-11-21' },
         { date: '2026-11-25', zone: 'dos', niveau: 'reduction', signes: [] },

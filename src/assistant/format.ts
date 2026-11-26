@@ -29,7 +29,6 @@ export interface ContexteAssistant {
     adulte: boolean | null
     grimpeEnTete: boolean | null
     pointsFaibles: string[]
-    douleursEnCours: string[] // zones
     seancesParSemaine: number
     joursDisponibles: string[]
     grimpeSouventEnGroupe: boolean

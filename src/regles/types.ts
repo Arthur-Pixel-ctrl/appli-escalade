@@ -23,7 +23,6 @@ export interface ProfilVerif {
   test15sSur25mm: boolean | null
   adulte: boolean | null
   grimpeEnTete: boolean | null
-  douleursEnCours: ZoneDouleur[]
   seancesParSemaine: number
   // (consolidation 18/11) jamais vide : C-01 met ['salle_bloc'] si le profil n'en dit rien
   lieux: ('salle_bloc' | 'salle_voie' | 'maison')[]

@@ -99,6 +99,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | C-04 | Douleurs déclarées et datées (Profil sur téléphone et ordinateur, après une séance) : zones, signes d'alerte (une seule liste), conduite de réduction, aucun diagnostic ; « Marquer comme résolue » avec confirmation ; S-04 à S-06 et J-05 dans Aujourd'hui | Fait |
 | D-28 | Téléphone : mini-bloc des séances de groupe joué avant ou après le groupe (chrono, « Stop, ça fait mal »), ses étapes enregistrées et montrées au débrief avec les blocs | Fait |
 | G2-01 | Décision G2 : la question du profil disparaît (téléphone et ordinateur) ; au premier écran, les zones cochées deviennent des douleurs datées du jour ; les zones déjà notées sont reprises une seule fois, avec une date prudente | Fait |
+| G2-02 | Décision G2 : l'ancien champ des douleurs du profil est retiré du moteur et de l'assistant ; les règles lisent seulement les douleurs déclarées (aucune douleur perdue, S-04 à S-06 et J-05 testés) | Fait |
 
 ## Ouvrir l'app
 

@@ -114,13 +114,13 @@ describe('B.11 : cas 1 à 12', () => {
   })
 
   it('cas 6 : douleur aux doigts, S-04 fort sur puissance-bloc-limite', () => {
-    const ctx = contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['doigts'] } })
+    const ctx = contexteDeReference({ douleurs: [{ date: '2026-11-20', zone: 'doigts', niveau: 'reduction', signes: [] }] })
     const s = seanceSolo('a', '2026-11-24', [ECHAUFFEMENT, 'puissance-bloc-limite'])
     const s04 = seulement(verifierSeance(s, ctx), 'S-04')
     expect(s04.length).toBeGreaterThan(0)
     expect(s04.every((a) => a.niveau === 'fort')).toBe(true)
     // Le jour même, S-04 reste visible (signal d'arrêt).
-    expect(codes(verifierJour(s, contexteDeReference({ aujourdhui: '2026-11-24', profil: ctx.profil }), []))).toContain('S-04')
+    expect(codes(verifierJour(s, contexteDeReference({ aujourdhui: '2026-11-24', douleurs: ctx.douleurs }), []))).toContain('S-04')
   })
 
   describe('cas 7 : semaine allégée', () => {
@@ -414,7 +414,7 @@ describe('dédoublonnage et tri', () => {
       seanceSolo('tard', '2026-11-27', [ECHAUFFEMENT, 'puissance-bloc-limite'], { durete: 'dure', qualite: 'puissance' }),
       seanceSolo('tot', '2026-11-24', [ECHAUFFEMENT, 'puissance-bloc-limite'], { durete: 'dure', qualite: 'puissance' }),
     ]
-    const ctx = contexteDeReference({ profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['doigts'] } })
+    const ctx = contexteDeReference({ douleurs: [{ date: '2026-11-20', zone: 'doigts', niveau: 'reduction', signes: [] }] })
     const alertes = seulement(verifierPlan(plan([semaine(L1)], seances), ctx), 'S-04')
     expect(alertes.map((a) => a.seanceId)).toEqual(['tot', 'tard'])
   })
@@ -546,14 +546,23 @@ describe('B.11 : cas 19, principal hors étapes (consolidation 24/11)', () => {
   })
 
   it('cas 19 (b) : douleur aux doigts, verifierJour rend S-04 fort (même cible), forme « arret »', () => {
-    const ctx = contexteDeReference({ aujourdhui: '2026-11-25', profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['doigts'] } })
+    const ctx = contexteDeReference({
+      aujourdhui: '2026-11-25',
+      douleurs: [{ date: '2026-11-25', zone: 'doigts', niveau: 'reduction', signes: [] }],
+    })
     const s = seanceDu25()
     const s04 = seulement(verifierJour(s, ctx, []), 'S-04')
     expect(s04).toHaveLength(1)
     expect(s04[0]).toMatchObject({ niveau: 'fort', portee: 'seance', version: 'solo', sujet: P })
     expect(s04[0]).not.toHaveProperty('etapeIndex')
     expect(formeAffichage(s04[0])).toBe('arret')
-    expect(codes(verifierJour(s, ctx, [])).filter((c) => c === 'S-27' || c === 'S-03')).toEqual([])
+    // S-06 : effort maximal pendant une douleur de moins de 14 jours, même cible, forme « arret ».
+    const alertes = verifierJour(s, ctx, [])
+    expect(codes(alertes)).toEqual(['S-04', 'S-06'])
+    expect(alertes[1]).toMatchObject({ niveau: 'fort', portee: 'seance', version: 'solo', sujet: P })
+    expect(alertes[1]).not.toHaveProperty('etapeIndex')
+    expect(formeAffichage(alertes[1])).toBe('arret')
+    expect(codes(alertes).filter((c) => c === 'S-27' || c === 'S-03')).toEqual([])
   })
 
   it('cas 19 (c) : parties effacées, champ absent et plus aucun avertissement', () => {
@@ -603,7 +612,6 @@ describe('B.4 : S-06 dans verifierJour, verifierJourSansSeance (consolidation 26
   it('même douleur au coude : S-04 et S-06', () => {
     const ctx = contexteDeReference({
       aujourdhui: '2026-11-26',
-      profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['coude'] },
       douleurs: [douleurReduction('2026-11-23', 'coude')],
     })
     const c = codesDe(verifierJour(seanceLimite(), ctx, []))
