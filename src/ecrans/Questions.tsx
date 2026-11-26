@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { SeanceRealisee } from '../donnees/base.ts'
 import { Avertissement } from '../composants/Avertissement.tsx'
+import { jourLocal, type SeanceRealisee } from '../donnees/base.ts'
+import { DeclarerDouleur } from './DeclarerDouleur.tsx'
 
 type Reponses = Pick<SeanceRealisee, 'effortPercu' | 'peau' | 'douleur'>
 
@@ -21,7 +22,11 @@ export function Questions({ contexte, onValider, erreur, douleurInitiale }: {
   const [effort, setEffort] = useState<number | null>(null)
   const [peau, setPeau] = useState<1 | 2 | 3 | null>(null)
   const [douleur, setDouleur] = useState<boolean | null>(douleurInitiale ?? null)
+  // La précision de la douleur remplace l'écran sur place : les trois réponses restent dans l'état.
+  const [precision, setPrecision] = useState(false)
   const complet = effort !== null && peau !== null && douleur !== null
+
+  if (precision) return <DeclarerDouleur date={jourLocal()} onFini={() => setPrecision(false)} />
 
   return (
     <main className="ecran">
@@ -55,6 +60,7 @@ export function Questions({ contexte, onValider, erreur, douleurInitiale }: {
           <button aria-pressed={douleur === false} onClick={() => setDouleur(false)}>Non, rien</button>
           <button aria-pressed={douleur === true} onClick={() => setDouleur(true)}>Oui</button>
         </div>
+        {douleur === true && <button className="bouton-second" onClick={() => setPrecision(true)}>Préciser la douleur (facultatif)</button>}
       </fieldset>
 
       {/* Les réponses ne sont pas perdues : elles restent dans l'état de l'écran. */}
