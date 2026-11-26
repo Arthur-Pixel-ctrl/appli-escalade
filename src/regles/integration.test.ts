@@ -9,6 +9,7 @@ import { etapeDepuisProtocole, formeAffichage, realiseeVersVerif, seanceVersVeri
 import {
   cleAvertissement,
   verifierJour,
+  verifierJourSansSeance,
   verifierPlan,
   verifierSeance,
   verifierSemaine,
@@ -581,5 +582,42 @@ describe('B.11 : cas 19, principal hors étapes (consolidation 24/11)', () => {
 
   it('les 18 premiers cas restent identiques : le cas 1 est vide', () => {
     expect(toutVerifier(semaineConforme())).toEqual([])
+  })
+})
+
+describe('B.4 : S-06 dans verifierJour, verifierJourSansSeance (consolidation 26/11, cadrage phase 4)', () => {
+  const douleurReduction = (date: Jour, zone: 'dos' | 'coude') => ({ date, zone, niveau: 'reduction' as const, signes: [] })
+  const seanceLimite = () => seanceSolo('jour', '2026-11-26', [ECHAUFFEMENT, 'puissance-bloc-limite'], { durete: 'dure' })
+  const codesDe = (alertes: Avertissement[]) => alertes.map((a) => a.code)
+
+  it('douleur « réduction » au dos (zone non contre-indiquée) : S-06 fort, forme « arret », sans S-04', () => {
+    const ctx = contexteDeReference({ aujourdhui: '2026-11-26', douleurs: [douleurReduction('2026-11-23', 'dos')] })
+    const alertes = verifierJour(seanceLimite(), ctx, [])
+    const s06 = alertes.filter((a) => a.code === 'S-06')
+    expect(s06).toHaveLength(1)
+    expect(s06[0].niveau).toBe('fort')
+    expect(formeAffichage(s06[0])).toBe('arret')
+    expect(codesDe(alertes)).not.toContain('S-04')
+  })
+
+  it('même douleur au coude : S-04 et S-06', () => {
+    const ctx = contexteDeReference({
+      aujourdhui: '2026-11-26',
+      profil: { ...PROFIL_DE_REFERENCE, douleursEnCours: ['coude'] },
+      douleurs: [douleurReduction('2026-11-23', 'coude')],
+    })
+    const c = codesDe(verifierJour(seanceLimite(), ctx, []))
+    expect(c).toContain('S-04')
+    expect(c).toContain('S-06')
+  })
+
+  it('verifierJourSansSeance : douleur « réduction » de 14 jours → J-05 seul', () => {
+    const ctx = contexteDeReference({ aujourdhui: '2026-11-26', douleurs: [douleurReduction('2026-11-12', 'dos')] })
+    expect(codesDe(verifierJourSansSeance(ctx))).toEqual(['J-05'])
+  })
+
+  it('verifierJourSansSeance : une forme à deux voyants rouges ne dit rien (J-01 demande une séance dure)', () => {
+    const forme = { date: '2026-11-26', sommeil: 2 as const, fatigue: 2 as const, courbatures: 4 as const, douleur: 4 as const, peau: 4 as const }
+    expect(verifierJourSansSeance(contexteDeReference({ aujourdhui: '2026-11-26', formes: [forme] }))).toEqual([])
   })
 })

@@ -99,13 +99,23 @@ export function verifierPlan(plan: PlanVerif, ctx: ContexteVerif): Avertissement
   return finaliser(alertes, plan.seances, plan.debut)
 }
 
-/** J-01 à J-07, plus S-04 et S-05 (douleur, signe d'alerte) sur la séance du jour. */
+/** J-01 à J-07, plus S-04, S-05 et S-06 sur la séance du jour (B.4, consolidation 26/11). */
 export function verifierJour(seanceDuJour: SeanceVerif, ctx: ContexteVerif, realisees: SeanceVerif[]): Avertissement[] {
-  const douleur = verifierSeanceProfil(seanceDuJour, ctx, 'utilisateur').filter((a) => a.code === 'S-04' || a.code === 'S-05')
+  const douleur = verifierSeanceProfil(seanceDuJour, ctx, 'utilisateur').filter((a) => a.code === 'S-04' || a.code === 'S-05' || a.code === 'S-06')
   return finaliser([...verifierJourBrut(seanceDuJour, ctx, realisees), ...douleur], [seanceDuJour], ctx.aujourdhui)
 }
 
+/** Un jour sans séance à faire : seules J-05 et J-06 peuvent sortir. Un signal d'arrêt reste visible même un jour de repos (B.4). */
+export function verifierJourSansSeance(ctx: ContexteVerif): Avertissement[] {
+  const neutre: SeanceVerif = {
+    id: 'jour-' + ctx.aujourdhui, nom: 'Jour sans séance', date: ctx.aujourdhui, qualite: 'technique',
+    solo: { durete: 'legere', etapes: [] },
+  }
+  return verifierJour(neutre, ctx, [])
+}
+
 // ——— Réexports pour les écrans ———
+export { itemsRouges } from './base.ts'
 export * from './allegement.ts'
 export * from './banque.ts'
 export * from './generateur.ts'
