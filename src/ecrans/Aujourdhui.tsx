@@ -5,10 +5,11 @@ import { useEnLigne } from '../compte/useEnLigne.ts'
 import { Avertissement } from '../composants/Avertissement.tsx'
 import { jourLocal } from '../donnees/base.ts'
 import { chiffresBlocs } from '../donnees/debrief.ts'
+import { resumeForme } from '../donnees/formes.ts'
 import { dureeVersionSolo, niveauAffiche } from '../donnees/niveaux.ts'
 import { ZONES, type Profil } from '../donnees/profil.ts'
 import { lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
-import { toutesLesFiches } from '../regles/index.ts'
+import { itemsRouges, toutesLesFiches } from '../regles/index.ts'
 import { etatSynchroCourt, surEtatSynchro, synchroEnCours } from '../synchro/automatique.ts'
 import { compterEnAttente } from '../synchro/synchro.ts'
 import { nomDuJour, scinderMessage } from './bureau/avertissementsPlan.ts'
@@ -18,8 +19,10 @@ import {
   peutLancerGroupe, peutLancerSolo, prochaineAVenir, seanceManquee, sousTitreGroupe, sousTitreSolo, vueDuJour,
   type EtatJour,
 } from './Aujourdhui.outils.ts'
+import { controlesDuJour } from './controlesDuJour.ts'
 import { useDonneesTelephone, useSynchroEnCours } from './donneesTelephone.ts'
 import { BoutonMode, Chargement, ContenuFiche, SansPlan } from './ElementsTelephone.tsx'
+import { FormeDuJour } from './FormeDuJour.tsx'
 import type { DemandeLancement } from './lancement.ts'
 
 // Le bandeau « crée ton compte » masqué par le « × » le reste jusqu'à la fermeture de l'app (pas d'un onglet à l'autre).
@@ -89,6 +92,17 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
       aujourdhui, maintenant: maintenant.toISOString(),
     }, vue.seance.id)
   }, [donnees, plan, vue, profil, aujourdhui, maintenant])
+  // Les contrôles du jour (J-01 à J-07, S-04 à S-06). Séance du jour seulement si elle est encore à faire ;
+  // sinon (repos, faite, sautée, pas de plan), seuls J-05 et J-06 peuvent sortir : un signal d'arrêt reste visible.
+  const controles = useMemo(() => {
+    if (!donnees) return []
+    return controlesDuJour({
+      profil, ...(donnees.reglages ? { reglages: { reglesSecurite: donnees.reglages.reglesSecurite } } : {}),
+      exercicesPerso: donnees.exercicesPerso, douleurs: donnees.douleurs, formes: donnees.formes, objectifs: donnees.objectifs,
+      aujourdhui, maintenant: maintenant.toISOString(),
+    }, donnees.realisees, plan && vue?.type === 'seance' ? { seance: vue.seance, cycle: plan.cycle } : undefined)
+  }, [donnees, plan, vue, profil, aujourdhui, maintenant])
+  const [formeOuverte, setFormeOuverte] = useState(false)
 
   if (!donnees) {
     if (!echec) return <Chargement titre="Chargement de ton plan…" />
@@ -97,6 +111,11 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
         <Avertissement niveau="avertissement" titre="Ton plan ne s’est pas chargé">Ferme complètement l’app puis rouvre-la.</Avertissement>
       </main>
     )
+  }
+
+  const formeDuJour = donnees.formes.find((f) => f.date === aujourdhui && !f.supprimeLe)
+  if (formeOuverte) {
+    return <FormeDuJour date={aujourdhui} {...(formeDuJour ? { initiale: formeDuJour } : {})} onFini={() => setFormeOuverte(false)} />
   }
 
   const invitation = afficherInvitation && (
@@ -123,13 +142,48 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
     </Avertissement>
   )
 
+  // Une seule pile : arrêts, avertissements, informations ; contrôles du jour d'abord, puis rubalise de la semaine.
+  const RANG = { arret: 0, avertissement: 1, information: 2 } as const
+  const pile = [
+    ...controles.map(({ avertissement: a, forme }) => ({ cle: `jour|${a.code}|${a.message}`, a, forme, garde: false, controle: true })),
+    ...avertissements.map(({ avertissement: a, forme, garde }) => ({ cle: `semaine|${a.code}|${a.message}`, a, forme, garde, controle: false })),
+  ]
+    // Le moteur dit S-04 une fois par version (solo, groupe) : le même message deux fois n'apprend rien.
+    .filter((x, i, tous) => tous.findIndex((y) => y.cle === x.cle) === i)
+    .sort((x, y) => RANG[x.forme] - RANG[y.forme])
+  const pileControles = pile.length > 0 && (
+    <div className="pile">
+      {pile.map(({ cle, a, forme, garde, controle }) => {
+        const { titre, suite } = scinderMessage(a.message)
+        return (
+          <Avertissement
+            key={cle}
+            niveau={forme}
+            titre={titre}
+            replie={garde}
+            {...(controle && forme !== 'information' ? { pourquoi: `Source : ${a.source}` } : {})}
+            {...(controle && forme === 'arret' ? { correction: { libelle: 'Voir les mises en garde', action: onMisesEnGarde } } : {})}
+          >{suite || undefined}</Avertissement>
+        )
+      })}
+    </div>
+  )
+  const ligneForme = (
+    <button className="ligne" onClick={() => setFormeOuverte(true)}>
+      <span>Forme du jour</span>
+      <span>{formeDuJour ? resumeForme(itemsRouges(formeDuJour)) : 'À renseigner'}</span>
+    </button>
+  )
+
   if (!plan || !vue) {
     return (
       <main className="ecran" aria-labelledby="titre-jour">
         {invitation}
         {ligneDate}
         {signalDouleur}
+        {pileControles}
         <SansPlan grimpeSouventEnGroupe={profil.grimpeSouventEnGroupe} enAttente={synchroTourne} onLancer={onLancer} />
+        {ligneForme}
       </main>
     )
   }
@@ -181,6 +235,7 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
       <main className="ecran" aria-labelledby="titre-jour">
         {invitation}
         {signalDouleur}
+        {pileControles}
         {entete('Séance faite')}
         <p className="texte-2">{vue.seance.solo.nom}</p>
         <div className="chiffres-cles chiffres">
@@ -192,6 +247,7 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
         </div>
         <button className="bouton principal centre" onClick={() => onOuvrirSeance(r.id)}><strong>Revoir le débrief</strong></button>
         {infoManquee}
+        {ligneForme}
         {semaine}
       </main>
     )
@@ -203,6 +259,7 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
       <main className="ecran" aria-labelledby="titre-jour">
         {invitation}
         {signalDouleur}
+        {pileControles}
         {entete('Repos')}
         {vue.sautee && <Avertissement niveau="information" titre="Séance sautée." />}
         {infoManquee}
@@ -213,6 +270,7 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
           <button className="bouton principal centre" onClick={onVoirProgramme}><strong>Voir la semaine</strong></button>
           <button className="bouton-texte" onClick={libre}>Faire une séance quand même</button>
         </div>
+        {ligneForme}
         {semaine}
       </main>
     )
@@ -230,17 +288,9 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
     <main className="ecran" aria-labelledby="titre-jour">
       {invitation}
       {signalDouleur}
+      {pileControles}
       {entete(seance.solo.nom)}
       {infoManquee}
-
-      {avertissements.length > 0 && (
-        <div className="pile">
-          {avertissements.map(({ avertissement: a, forme, garde }) => {
-            const { titre, suite } = scinderMessage(a.message)
-            return <Avertissement key={`${a.code}|${a.message}`} niveau={forme} titre={titre} replie={garde}>{suite || undefined}</Avertissement>
-          })}
-        </div>
-      )}
 
       <article className="fiche" aria-label="Séance du jour">
         <span className="vis g" aria-hidden="true" />
@@ -270,7 +320,7 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
         )}
       </div>
 
-      {/* Forme du jour : revient en phase 4, utile aux contrôles du jour (tâche C-03, décision B10). */}
+      {ligneForme}
 
       {semaine}
     </main>
