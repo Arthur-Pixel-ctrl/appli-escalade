@@ -92,6 +92,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | AUD3-03 | Exercice personnel : « Bidoigts ? » séparé de « Arqué ou trous ? » | Fait |
 | AUD3-04 | Profil non renseigné : ligne « Ton profil ne dit pas encore » avec « Compléter mon profil », S-03 identiques regroupés | Fait |
 | AUD3-05 | Étiquette « Réglage estimé » (au lieu de « À vérifier ») et messages du moteur affichés tels quels | Fait |
+| D-22 | Téléphone : « Aujourd'hui » et « Programme » branchés sur le cycle validé en cours (jamais un brouillon), séance au niveau affiché, séance lancée depuis le plan reliée à son débrief, séance manquée non rattrapée, plus aucune séance d'exemple | Fait |
 
 ## Ouvrir l'app
 

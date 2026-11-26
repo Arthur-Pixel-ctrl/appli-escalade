@@ -3,12 +3,14 @@ import { enregistrerProfil, enregistrerSeance, lireProfil, type Brouillon } from
 import type { Profil as TypeProfil } from './donnees/profil.ts'
 import { salleParId } from './donnees/salles.ts'
 import { surMiseAJourDisponible } from './miseAJour.ts'
-import { SEANCE_EXEMPLE } from './donnees/seanceExemple.ts'
-import { SEANCE_GROUPE_EXEMPLE } from './donnees/seanceGroupeExemple.ts'
-import { bilanObjectifs } from './moteur/seanceGroupe.ts'
+import { lireExercicesPerso } from './donnees/plan.ts'
+import { toutesLesFiches } from './regles/index.ts'
 import { Bienvenue } from './ecrans/Bienvenue.tsx'
 import { Compte } from './ecrans/Compte.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
+import {
+  brouillonGroupe, brouillonSolo, lancementDepuisPlan, lancementLibre, type DemandeLancement, type Lancement,
+} from './ecrans/lancement.ts'
 import { Chargement, Erreur } from './ecrans/Erreur.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
 import { supabase } from './compte/client.ts'
@@ -31,8 +33,8 @@ import { useEcranLarge } from './miseEnPage/useEcranLarge.ts'
 // séance → trois questions → (mises en garde si douleur) → débrief.
 type Vue =
   | { nom: 'onglets' }
-  | { nom: 'seance_solo' }
-  | { nom: 'seance_groupe' }
+  | { nom: 'seance_solo'; lancement: Extract<Lancement, { mode: 'solo' }> }
+  | { nom: 'seance_groupe'; lancement: Extract<Lancement, { mode: 'groupe' }> }
   | { nom: 'questions'; brouillon: Brouillon; douleurInitiale?: boolean }
   | { nom: 'mises_en_garde'; puisDebrief?: string; premierLancement?: boolean }
   | { nom: 'debrief'; seanceId: string }
@@ -107,6 +109,19 @@ export default function App() {
   // Erreur d'enregistrement, affichée dans l'écran Questions (les réponses restent gardées).
   const [erreurEnregistrement, setErreurEnregistrement] = useState<string | undefined>(undefined)
   const accueil = () => { setErreurEnregistrement(undefined); setVue({ nom: 'onglets' }) }
+  // Une séance du plan relit les exercices personnels pour calculer ses marqueurs (instantané gardé dans la séance réalisée).
+  // Si la lecture échoue, on lance quand même : mieux vaut une séance sans marqueurs qu'une séance bloquée.
+  const lancer = async (demande: DemandeLancement) => {
+    let lancement: Lancement | undefined
+    if (demande.type === 'libre') {
+      lancement = lancementLibre(demande.mode)
+    } else {
+      const fiches = toutesLesFiches(await lireExercicesPerso().catch(() => []))
+      lancement = lancementDepuisPlan(demande.seance, demande.mode, fiches)
+    }
+    if (!lancement) return
+    setVue(lancement.mode === 'solo' ? { nom: 'seance_solo', lancement } : { nom: 'seance_groupe', lancement })
+  }
   // Quitter une séance demande confirmation ; la séance reste affichée (donc intacte) derrière la fenêtre.
   const [confirmeQuitter, setConfirmeQuitter] = useState(false)
   const quitter = () => setConfirmeQuitter(true)
@@ -149,20 +164,17 @@ export default function App() {
 
   // Pendant une séance, tout l'écran lui est réservé : pas de barre d'onglets.
   if (vue.nom === 'seance_solo') {
+    const { lancement } = vue
     return (
       <div className="app">
         <SeanceSolo
-          seance={SEANCE_EXEMPLE}
+          seance={lancement.seance}
           onQuitter={quitter}
           onTerminer={(statuts, dureeMin, douleur) =>
             setVue({
               nom: 'questions',
               douleurInitiale: douleur,
-              brouillon: {
-                mode: 'solo', nom: SEANCE_EXEMPLE.nom, durete: 'dure', dureeMin,
-                etapes: SEANCE_EXEMPLE.etapes.map((e, i) => ({ titre: e.titre, statut: statuts[i] })),
-                objectifs: [], blocs: [],
-              },
+              brouillon: brouillonSolo(lancement, statuts, dureeMin, profil.salleHabituelleId),
             })
           }
         />
@@ -172,21 +184,18 @@ export default function App() {
   }
 
   if (vue.nom === 'seance_groupe') {
+    const { lancement } = vue
     return (
       <div className="app">
         <SeanceGroupe
-          seance={SEANCE_GROUPE_EXEMPLE}
+          seance={lancement.seance}
           salle={salle}
           onQuitter={quitter}
           onTerminer={(blocs, dureeMin, douleur) =>
             setVue({
               nom: 'questions',
               douleurInitiale: douleur,
-              brouillon: {
-                mode: 'groupe', nom: SEANCE_GROUPE_EXEMPLE.nom, durete: 'dure', dureeMin,
-                etapes: [], blocs,
-                objectifs: bilanObjectifs(SEANCE_GROUPE_EXEMPLE, blocs),
-              },
+              brouillon: brouillonGroupe(lancement, blocs, dureeMin, profil.salleHabituelleId),
             })
           }
         />
@@ -257,8 +266,7 @@ export default function App() {
       {...actions}
       onglet={onglet}
       onChoisirOnglet={choisirOnglet}
-      onSeanceSolo={() => setVue({ nom: 'seance_solo' })}
-      onSeanceGroupe={() => setVue({ nom: 'seance_groupe' })}
+      onLancer={(demande) => { void lancer(demande) }}
     />
   )
 }
