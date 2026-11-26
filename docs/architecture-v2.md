@@ -234,7 +234,8 @@ export interface Profil {
   experiencePoutre: 'aucune' | 'occasionnelle' | 'reguliere'
   poidsCorpsKg: number | null           // jamais envoyé à l'assistant
   pointsFaibles: string
-  douleursEnCours: ZoneDouleur[]
+  // (consolidation 26/11, décision G2) `douleursEnCours: ZoneDouleur[]` est retiré : une douleur est une DouleurDeclaree
+  // datée (table `douleurs`). Les zones d'un ancien profil sont reprises une fois, à la lecture du profil (§ 4.4, G2-01)
   seancesParSemaine: number
   grimpeSouventEnGroupe: boolean        // donne le mode habituel (bouton principal d'Aujourd'hui)
   salleHabituelleId: string
@@ -459,6 +460,9 @@ export interface FormeDuJour extends Document {
 }
 
 /** Une douleur déclarée, datée (tâche C-04). Aucune information médicale libre. */
+// (consolidation 26/11, décision G2) Seule source des douleurs. Elle naît dans Trois questions ou dans Profil (C-04),
+// au premier lancement (une par zone cochée, datée du jour, sans signe : G2-01), ou par la reprise d'un ancien profil
+// (identifiant `reprise-profil-{zone}`, § 4.4)
 export interface DouleurDeclaree extends Document {
   date: DateISO
   zone: ZoneDouleur
@@ -607,6 +611,7 @@ this.version(3).stores({
 - La migration vers la version 3 ajoute à chaque séance et au profil existants : `aEnvoyer: 1`, `versionFormat: 1`, `creeLe` (= `modifieLe` s'il manque) et, pour le profil, les champs ajoutés en v2 par `completerProfil` (quatre prérequis à `null`, `joursDisponibles: []`, `repereTraction: 'aucun'` ; consolidation 17/11).
 - `aEnvoyer` vaut 0 ou 1 (Dexie n'indexe pas les booléens).
 - (consolidation 18/11) Les niveaux de détail, les lieux du profil, `recommandation` et `parties` sont des champs de documents, sans index : **aucune nouvelle version de la base**, `versionFormat` reste 1.
+- (consolidation 26/11, décision G2) La reprise des zones de douleur du profil ne demande **pas** de version 4 : elle se fait à la lecture du profil (§ 4.4), pour couvrir aussi les sauvegardes rechargées et les profils reçus du serveur, qu'une montée de version de Dexie ne verrait pas. `versionFormat` reste 1.
 - Les tables synchronisées sont listées une seule fois, dans `TABLES_SYNCHRONISEES` (`src/donnees/stockage.ts`), **11 tables** (consolidation 17/11). Le type envoyé au serveur est le nom de la table.
 
 `etatSynchro` contient : `compteId` (identifiant du compte auquel les données de l'appareil sont liées), `compteEmail`, `curseur`, `derniereSynchro`, `derniereErreur`.
@@ -636,6 +641,8 @@ this.version(3).stores({
 | Recommandation par défaut (consolidation 18/11) | `recommandationParDefaut` si `recommandation` est absente (C-01) |
 | Durée d'une version solo sans étapes (consolidation 18/11) | Somme des `dureeMin` de ses parties |
 | Fiches disponibles pour le générateur et l'assistant (consolidation 18/11) | `trierFiches` (G-01) : à vérifier, test, prérequis, douleur, contexte (lieux, grimpe en tête) |
+| Douleur reprise d'un ancien profil (consolidation 26/11, décision G2) | Son identifiant commence par `reprise-profil-` (`estRepriseDuProfil`, G2-01) : aucun champ « origine » n'est stocké |
+| Zones douloureuses d'un jour (consolidation 26/11, décision G2) | Douleurs déclarées non supprimées, déclarées ce jour-là ou avant, pas encore résolues (`zonesDouloureuses`, `douleursOuvertes`) ; le profil n'en a plus |
 
 ### 3.6 Ce que les deux autres concepteurs trouveront dans le modèle
 
@@ -743,6 +750,19 @@ La fonction `situationReprise(compteIdLocal, compteIdSession)` (pure, testée) d
 ### 4.3 Un utilisateur qui refuse de créer un compte
 
 Rien ne change pour lui : toutes les fonctions de séance, de chrono, de saisie, de débrief et (plus tard) de plan marchent sur l'appareil. Ce qu'il n'a pas : le partage entre téléphone et ordinateur, et la copie de sécurité sur le serveur. L'écran Compte le dit en une phrase et rappelle la sauvegarde par fichier. Il peut créer un compte n'importe quand : la reprise § 4.2 enverra tout son historique. Si la configuration Supabase est absente de la construction (développement local sans `.env.local`), l'écran Compte est masqué et l'app reste en mode local.
+
+### 4.4 Zones de douleur d'un ancien profil (consolidation 26/11, décision G2)
+
+Jusqu'à la phase 4, le profil portait `douleursEnCours` : les zones cochées à « Une douleur en ce moment ? », sans date. La décision G2 d'Arthur les remplace par les douleurs déclarées et datées (table `douleurs`, C-04), seule source des règles. Reprise (tâche G2-01, `src/donnees/base.ts`) :
+
+- **Où.** Dans `lireProfil`, juste avant la lecture. Tout profil y passe, d'où qu'il vienne : base de l'appareil, sauvegarde rechargée (même ancienne), profil reçu du serveur depuis un appareil pas encore à jour. Pas de version 4 de Dexie : une montée de version ne verrait ni les sauvegardes ni la synchronisation.
+- **Quoi.** Chaque zone du champ devient une `DouleurDeclaree` `{ id: 'reprise-profil-{zone}', date, zone, niveau: 'reduction', signes: [] }`. Puis le champ est retiré du document du profil, dans la même transaction (tout ou rien). Un champ vide (`[]`) n'est pas réécrit : aucune écriture inutile, il disparaît au prochain enregistrement du profil.
+- **Date.** Le jour local de `creeLe` du profil (à défaut, de `modifieLe`), jamais après aujourd'hui. Sans date lisible (le 1970 de repli d'un fichier sans date), 14 jours avant aujourd'hui. Pourquoi : la zone a été cochée à une date inconnue, entre la création du profil et sa dernière modification. On prend la plus ancienne, pour que la douleur ne paraisse jamais plus récente qu'elle n'est. Ainsi J-05 (« consulte au bout de 14 jours ») ne vient jamais trop tard. Si cette date a plus de 14 jours, S-06 (1 à 2 semaines sans effort à risque) est déjà passé, mais J-05 prend le relais dès la mise à jour : les deux règles se suivent sans trou, et le signal de douleur d'Aujourd'hui reste affiché tant que la douleur est ouverte. Si la zone était en fait récente, l'utilisateur la marque résolue et la déclare de nouveau ; Profil explique la date sous la ligne de la douleur reprise.
+- **Niveau.** `reduction`, sans signe : l'ancienne question ne demandait pas les signes d'alerte. Écrire `alerte` inventerait un signe que S-05 citerait.
+- **Une seule fois, sans doublon.** L'identifiant est fixe par zone. Si un document de cet identifiant existe déjà, même résolu ou supprimé, rien n'est écrit pour cette zone : une zone renvoyée par un ancien appareil ne rouvre pas une douleur résolue. Le téléphone et l'ordinateur qui reprennent le même profil écrivent le même identifiant : la synchronisation (« dernière modification gagne ») garde une seule douleur.
+- **Sans perte.** Le champ n'est retiré qu'une fois les douleurs écrites, dans la même transaction. C'est une exception assumée à la règle d'or (« on ne retire rien ») : le champ n'est pas perdu, il est déplacé. Une sauvegarde faite avant la mise à jour garde le champ et se recharge toujours ; la reprise se fait alors à la lecture suivante.
+- **Serveur.** Rien à changer : le serveur garde des documents JSON. Le profil réécrit (`modifieLe` = maintenant, `aEnvoyer` 1) l'emporte sur l'ancien. Les douleurs partent comme des documents ordinaires. Un appareil pas encore à jour lit un profil sans le champ comme un profil sans zone (son `completerProfil` met `[]`) et ses règles voient les douleurs déclarées. Le choix de profil de la première connexion (§ 4.2) ne change pas : un profil du compte qui a encore des zones est repris dès qu'il est lu.
+- **Conséquence visible.** Le profil réécrit a une nouvelle date de modification (« Profil mis à jour le… » des prérequis, O-12) : accepté, c'est une vraie modification du document.
 
 ## 5. Assistant IA (technique)
 

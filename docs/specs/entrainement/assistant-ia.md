@@ -66,7 +66,8 @@ interface ContexteAssistant {
     adulte: boolean | null
     grimpeEnTete: boolean | null
     pointsFaibles: string[]
-    douleursEnCours: string[]         // zones
+    // (consolidation 26/11, décision G2) plus de `douleursEnCours` (zones du profil) : les douleurs n'arrivent que par
+    // `douleursOuvertes`, ci-dessous (G2-02 retire le champ de `format.ts` ; E-13, amendement 6)
     seancesParSemaine: number
     joursDisponibles: string[]        // ["mardi", "jeudi", "samedi"]
     grimpeSouventEnGroupe: boolean

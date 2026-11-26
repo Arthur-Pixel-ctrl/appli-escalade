@@ -25,6 +25,13 @@ Principe : **avertir, jamais bloquer** [PLAN], [MOD], CLAUDE.md.
 
 > **(consolidation 26/11, cadrage phase 4)** Deux trous trouvés en relisant C-03 et C-04 contre le code (B.4) : (1) `verifierJour` rendait S-04 et S-05 mais pas **S-06** (effort à risque pendant une douleur en réduction, signal d'arrêt) : le téléphone ne l'aurait jamais montré ; il entre dans `verifierJour`. (2) Un jour **sans séance à faire**, aucun contrôle du jour n'était calculé : **J-05** (« consulte ») restait caché un jour de repos ; nouveau point d'entrée `verifierJourSansSeance`. Aucune vérification ajoutée ni retirée, aucun message, niveau ni clé ne change. Tâche de code : C-03.
 
+> **(consolidation 26/11, décision G2)** Arthur a remplacé la question du profil « Une douleur en ce moment ? » (des zones sans date) par les douleurs déclarées et datées (C-04). Les douleurs n'ont plus qu'**une seule source** pour S-04, S-05, S-06, J-05, P-12, le tri de la banque (G-01) et le générateur : `ContexteVerif.douleurs`. `ProfilVerif.douleursEnCours` est retiré (B.1). `zonesDouloureuses` ne lit plus que les douleurs déclarées (B.2). Les cas 6 et 19 (b) de B.11 sont réécrits avec une douleur déclarée.
+> - Les zones d'un ancien profil sont reprises une fois en douleurs déclarées `reduction`, sans signe, datées du jour de création du profil (`docs/architecture-v2.md` § 4.4). Une douleur reprise de 14 jours ou plus donne donc J-05 dès la mise à jour : c'est voulu, par prudence. Plus récente, elle donne S-06 jusqu'à 14 jours, puis J-05 : les deux règles se suivent sans trou.
+> - J-03 ne change pas : elle lit la note « Douleur » de la forme du jour, un ressenti du matin sans zone. Ce n'est pas une douleur déclarée, et la forme du jour n'en crée pas.
+> - Aucun message, niveau, code ni clé ne change.
+>
+> Tâches de code : G2-01 (la passerelle donne `[]`), puis G2-02 (le moteur).
+
 Sources : mêmes codes que `regles-planification.md` (`[SYN]`, `[VER n]`, `[AUD x]`, `[PLAN]`, `[MOD]`, `[CDC]`).
 
 ---
@@ -52,7 +59,7 @@ interface ProfilVerif {
   test15sSur25mm: boolean | null
   adulte: boolean | null
   grimpeEnTete: boolean | null
-  douleursEnCours: ZoneDouleur[]
+  // (consolidation 26/11, décision G2) plus de `douleursEnCours` : toutes les douleurs viennent de ContexteVerif.douleurs (tâche G2-02)
   seancesParSemaine: number
   lieux: ('salle_bloc' | 'salle_voie' | 'maison')[] // (consolidation 18/11) jamais vide : C-01 met ['salle_bloc'] si le profil n'en dit rien
 }
@@ -227,7 +234,7 @@ interface Regles {
 | `solliciteDoigts(f)` | faux pour les identifiants de la liste ci-dessous et pour toute fiche de qualité `antagonistes` ou `mobilite` ; vrai sinon. Exercice perso : vrai si `contexte.terrain` vaut `bloc`, `voie`, `pan` ou `poutre`, faux sinon | [VER 9] (Hörst : jours de grimpe et de poutre) ; liste : [CDC] |
 | `seanceSolliciteDoigts(s)` | une étape au moins avec `solliciteDoigts` (consolidation 24/11 : ou un principal hors étapes connu qui a `solliciteDoigts`), ou une version groupe avec au moins un objectif, ou (consolidation 18/11) `sansContenuConnu(s.solo)` ET `s.qualite ∉ {mobilite, antagonistes}` (prudence, gardée le 23/11 : elle ne dépend pas du marqueur `maximale`) | [CDC] |
 | `reposEntreEffortsS(f)` (adaptateur) | forme `essais` : `reposS` ; chrono `repetition_unique` : `reposSeriesS` ; chrono `intermittent` : `reposRepetitionsS` si `repetitions > 1`, sinon `reposSeriesS` ; chrono `depart_minute` : `creneauS − effortS` ; `echelle` et `liste` : non défini | — |
-| `zonesDouloureuses(ctx, jour)` | `profil.douleursEnCours` ∪ zones des `douleurs` ouvertes (`resolueLe` absent ou postérieur à `jour`) et déclarées avant ou le `jour` | [MOD] |
+| `zonesDouloureuses(ctx, jour)` | Zones des `douleurs` ouvertes (`resolueLe` absent ou postérieur à `jour`) et déclarées avant ou le `jour`. (consolidation 26/11, décision G2) Plus de `profil.douleursEnCours` : une seule source | [MOD] |
 | `itemsRouges(forme)` | nombre de valeurs ≤ 2 parmi sommeil, fatigue, courbatures, douleur, peau | [MOD] |
 | `nbDuresMax(n)` | `min(n, 3)` : 2 séances → 2, 3 → 3, 4 et plus → 3 | [SYN] (Lattice : chaque séance dure suit un jour de repos ; semaine à 4 séances : 3 dures) ; plafond de 3 au-delà : [CDC] |
 | `capPoutreAnciennete(a)` | `a < 1 → 0 ; 1 ≤ a < 4 → 1 ; 4 ≤ a < 7 → 2 ; a ≥ 7 → 3` | [SYN] (Bechtel : 1 séance courte entre 1 et 4 ans, jusqu'à 2 entre 4 et 6, 1 à 3 au-delà de 7 ; coachs Lattice : poutre après un an). Lecture 6 à 7 ans → 2 : [CDC] |
@@ -463,7 +470,7 @@ Ces cas servent de tests d'intégration (tâche E-07). Profil par défaut : bloc
 3. **Frontière de semaine** : séance maximale le dimanche 2026-11-29 et le lundi 2026-11-30. Attendu : `W-01` fort sur celle du 30. (consolidation 25/11, audit phase 3) Avec `seanceLieeId` = identifiant de celle du 29.
 4. **Quota poutre intensive** : poutre intensive le lundi, le mercredi et le vendredi. Attendu : `W-02` fort (3 > 2) ; `W-01` muet (écarts de 2 jours).
 5. **Prérequis** : profil avec `tractionsStrictesMax: null`, fiche `traction-lestee-force-lattice`. Attendu : `S-03` fort, message contenant « 10 tractions strictes (non renseigné) ». (consolidation 25/11, audit phase 3) L'alerte porte `nonRenseignes: ['tractionsStrictesMax']`. Variante : `tractionsStrictesMax: 5` → même code, message contenant « 10 tractions strictes (tu en fais 5) », **sans** `nonRenseignes` ; `cleAvertissement` identique dans les deux cas.
-6. **Douleur** : `douleursEnCours: ['doigts']`, fiche `puissance-bloc-limite`. Attendu : `S-04` fort.
+6. **Douleur** : `douleursEnCours: ['doigts']`, fiche `puissance-bloc-limite`. Attendu : `S-04` fort. (consolidation 26/11, décision G2) Le profil n'a plus de zones : douleur déclarée `{ date: '2026-11-20', zone: 'doigts', niveau: 'reduction', signes: [] }`, séance du 24. Attendu : `S-04` fort, et aussi `S-06` fort (douleur de moins de 14 jours et effort maximal).
 7. **Semaine allégée** : semaines de charge à 1 500, 1 600, 1 700 (moyenne 1 600, réduction 50 %, cible 800). Semaine allégée à 1 500 → `W-10` fort (≥ 1 440). À 1 000 → `W-10` information (> 960). À 950 → rien.
 8. **Allégée oubliée** : bloc de 4 semaines toutes `charge`. Attendu : `P-02` fort.
 9. **Hausse de charge** : semaine 1 à 1 500, semaine 2 à 1 700. Attendu : `W-09` information (+13 %). Semaine 2 à 1 640 : rien (+9 %).
@@ -496,7 +503,7 @@ Ces cas servent de tests d'intégration (tâche E-07). Profil par défaut : bloc
 
     Variantes :
     - (a) même séance avec `niveauDetail: 'grandes_lignes'` → les mêmes trois avertissements : le niveau affiché ne change rien.
-    - (b) `douleursEnCours: ['doigts']` → `verifierJour` sur la séance du 25 rend `S-04` fort, même cible, et rien d'autre ; `formeAffichage` donne `'arret'`.
+    - (b) `douleursEnCours: ['doigts']` → `verifierJour` sur la séance du 25 rend `S-04` fort, même cible, et rien d'autre ; `formeAffichage` donne `'arret'`. (consolidation 26/11, décision G2) Avec une douleur déclarée `{ date: '2026-11-25', zone: 'doigts', niveau: 'reduction', signes: [] }` (le profil n'a plus de zones) : `verifierJour` rend exactement `S-04` puis `S-06`, forts, de même cible (portée séance, version solo, `sujet` `'doigts-suspensions-max-lestees'`, sans `etapeIndex`), tous deux `'arret'`. S-06 vient du principal hors étapes, un effort maximal pendant une douleur de moins de 14 jours (S-06 est dans `verifierJour` depuis le 26/11, B.4). Ni `S-27` ni `S-03`, comme avant.
     - (c) parties effacées (« Recalculer les grandes lignes ») → `principauxHorsEtapes` absent, et plus aucun avertissement dans la semaine : ni `S-03`, ni `S-27`, ni `W-01`.
     - (d) (consolidation 25/11, audit phase 3) principal `fiche-inventee` au lieu de `doigts-suspensions-max-lestees` → sur la séance du 25, `S-01` fort seul : portée séance, version solo, `sujet` `'fiche-inventee'`, sans `etapeIndex`, message « Cet exercice n'existe pas dans ta bibliothèque (fiche-inventee). Choisis un autre exercice principal pour la partie qui le cite. » Ni `S-27` (fiche inconnue), ni `W-01` (une fiche inconnue n'a pas de marqueur). Même séance **sans étapes** (parties seules, `etapesDetaillees: false`) → `S-01` de portée étape, `etapeIndex: 0` (la partie « Effort principal » est la première qui a un principal), même message ; et `S-26` information, puisque la version n'a plus aucune fiche connue (comme au cas 14).
 

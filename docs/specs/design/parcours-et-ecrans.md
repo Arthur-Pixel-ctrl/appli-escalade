@@ -16,6 +16,8 @@ de l'expert entraînement ; le modèle de données et la navigation technique vi
 
 > **Consolidation du 26/11, cadrage de la phase 4** (tâches C-03, C-04, C-05, D-27 et D-28 de `docs/backlog-v2.md`, relues contre le code livré par D-22) : T-06 (contrôles du jour en une seule pile, forme du jour dans tous les états, texte du signal de douleur), T-07 (déplacer, sauter, annuler), T-09 (mini-bloc joué), T-11 (préciser la douleur), T-14 (douleurs déclarées), T-16 (place de « Stop », durée, rappel du bloc, « Voir la fiche »). Mention « (consolidation 26/11, cadrage phase 4) ».
 
+> **Consolidation du 26/11, décision G2** (`docs/decisions-phase-1.md`) : la question « Une douleur en ce moment ? » quitte le profil. Elle ne reste qu'au premier lancement, où chaque zone cochée devient une douleur déclarée du jour. Profil, sur téléphone et sur ordinateur, montre à la place les douleurs déclarées (déclarer, voir, marquer résolue). Les zones déjà cochées sont reprises une fois en douleurs déclarées (`docs/architecture-v2.md` § 4.4). T-05, T-06, T-14, O-12, § 5. Mention « (consolidation 26/11, décision G2) ». Tâches : G2-01, et C-04 pour la place de la section.
+
 Conventions : identifiant d'écran `T-xx` (téléphone) et `O-xx` (ordinateur). Pour chaque écran : **But**, **Contenu**,
 **Action principale** (une seule, en résine), **Autres actions**, **États**, **Adaptation**, **Accessibilité**.
 Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation ni emoji.
@@ -170,6 +172,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 - **Action principale** : « Continuer », puis « Enregistrer mon profil » à la dernière page.
 - **Règle prudente** : « Je ne sais pas » compte comme « non » pour les prérequis, et l'aide le dit.
 - **États** : champ obligatoire vide → message sous le champ, focus dessus ; hors ligne → enregistrement local, envoi plus tard.
+- (consolidation 26/11, décision G2) « Une douleur en ce moment ? » (zones, plusieurs possibles, rien de coché par défaut) n'existe plus qu'ici. À « Continuer », chaque zone cochée devient une douleur déclarée, datée du jour, sans signe d'alerte (niveau réduction). Elle apparaît ensuite dans Profil, d'où on la marque résolue. Aide sous la question : « Ne touche rien si tout va bien. Une zone cochée devient une douleur déclarée aujourd’hui : l’app te prévient quand un exercice la sollicite. Tu la marqueras comme résolue dans Profil. » Les mises en garde suivent, comme avant (on y lit les signes d'alerte). Si une douleur n'est pas enregistrée : « Ta douleur n’a pas été enregistrée. Réessaie. », le formulaire reste rempli. Pourquoi garder la question ici : un nouveau venu qui a mal doit être protégé dès sa première séance.
 
 ### T-06 Aujourd'hui (adapté, branché sur le plan)
 - **But** : savoir quoi faire aujourd'hui et le commencer en un geste.
@@ -204,6 +207,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   - **Signal de douleur** : le texte « Les exercices à risque sont retirés de ta séance. » est **faux** (le moteur ne retire rien, l'écran ne modifie pas le plan) ; D-22 l'a remplacé par « Ménage cette zone et arrête-toi dès que ça fait mal. », retenu : titre « Douleur déclarée : {zones}. », ce texte, et « Voir les mises en garde ». Avec C-04, les douleurs déclarées et encore ouvertes comptent aussi ; un **signe d'alerte** ouvert donne à la place « Signe d'alerte déclaré : {zones}. » et « Pas de séance dure avant d'avoir consulté un médecin ou un kiné qui connaît l'escalade. » (phrase de S-05).
   - **Contrôles du jour** (C-03) : une seule pile au-dessus de la fiche, sous le signal de douleur, avec la rubalise de la semaine : signaux d'arrêt, puis avertissements, puis informations ; jamais limitée, un arrêt jamais replié ; message du moteur tel quel (première phrase en gras). Les jours sans séance à faire (repos, séance faite, pas de plan), les signaux d'arrêt du jour (J-05) restent affichés.
   - **Forme du jour** : ligne présente dans tous les états (repos et pas de plan compris : le contrôle du sommeil demande trois matins de suite), juste avant « Cette semaine » ; « À renseigner » ou « 2 voyants au rouge ». Elle ouvre l'écran de la forme du jour (5 questions de 1 à 5, heures de sommeil facultatives, « Enregistrer »), à la place du contenu de l'onglet.
+- (consolidation 26/11, décision G2) **Signal de douleur** : il ne lit plus que les douleurs déclarées encore ouvertes, puisque le profil n'a plus de zones. Titres et textes inchangés (« Douleur déclarée : {zones}. » ou « Signe d'alerte déclaré : {zones}. »). Une douleur reprise d'un ancien profil y figure comme les autres. Si elle date de 14 jours ou plus, J-05 s'affiche aussi dans les contrôles du jour (signal d'arrêt « Ta douleur ({zone}) dure depuis {n} jours. Consulte un médecin ou un kiné qui connaît l'escalade. »), dès la mise à jour : voulu, par prudence.
 
 ### T-07 Programme (adapté)
 - **But** : voir le plan en cours sur le téléphone.
@@ -297,6 +301,7 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   depuis le 12 novembre » et « Marquer comme résolue » (fenêtre de confirmation « Douleur résolue ? » / « Les règles n'en
   tiendront plus compte à partir d'aujourd'hui. ») ; « Aucune douleur déclarée. » sinon ; « Déclarer une douleur » ouvre
   l'écran de T-11. Ni gravité, ni nom de lésion, ni niveau affichés. La même section apparaît dans le profil de l'ordinateur.
+- (consolidation 26/11, décision G2) La question « Une douleur en ce moment ? » disparaît du formulaire. La section « Douleurs déclarées » la remplace, juste après le formulaire (`id="section-douleurs"`), pour qu'il n'y ait qu'une façon de dire « j'ai mal ». Sous son titre : « Tant qu’elle n’est pas marquée comme résolue, une douleur déclarée compte dans les avertissements de ton plan et du jour. » Sous la ligne d'une douleur reprise d'un ancien profil : « Reprise de ton ancien profil, sans date : datée du jour où tu as créé ton profil, par prudence. »
 
 ### T-15 Mises en garde (style seulement)
 - Les deux listes passent en signal d'arrêt (rubalise brique, « Arrête la séance et consulte ») et en avertissement
@@ -629,6 +634,11 @@ au lieu de le pousser.
 - (consolidation 18/11) Section **Toi** : « Où tu t'entraînes » (choix multiples encre) : « Salle de bloc », « Salle avec
   des voies (corde et assureur) », « À la maison (poutre ou barre) » ; aide « Le générateur et l'assistant ne te
   proposent que des exercices faisables là. Rien de coché : salle de bloc. » (`Profil.lieux`).
+- (consolidation 26/11, décision G2) La section 3 « Douleurs en cours » (zones) devient **« Douleurs déclarées »** : la
+  même section que T-14 (liste des douleurs ouvertes avec leur date, « Marquer comme résolue », « Déclarer une douleur »,
+  mêmes aides), placée juste après le formulaire, avec l'entrée « Douleurs » du sommaire, après « Prérequis » (C-04). L'aide
+  « Une douleur déclarée écarte les exercices à risque. » est retirée : elle était inexacte (le moteur avertit, il ne
+  retire rien ; seul le générateur laisse de côté les fiches contre-indiquées).
 
 ### O-13 Nouveau cycle (consolidation 18/11, fenêtre)
 - **But** : poser le cadre du cycle et son niveau de détail, puis le remplir avec le générateur ou à la main.
@@ -742,6 +752,10 @@ son étape, dans la fiche de séance, avec son « Je garde ce choix ».
 | S-03 regroupés (consolidation 25/11, audit phase 3) | Dans 3 séances (mardi, jeudi et samedi) : « Tractions lestées, force max » demande : 10 tractions strictes (non renseigné) ; 18 ans ou plus. |
 | Réglage non confirmé à la source (consolidation 25/11, audit phase 3) | Étiquette : RÉGLAGE ESTIMÉ. Fiche : section « Réglage estimé » avec le texte de la fiche. |
 | Exercice personnel | Écris avec tes mots. Ne recopie pas le livre : note plutôt sa page. |
+| Douleur au premier lancement (consolidation 26/11, décision G2) | Une douleur en ce moment ? · Ne touche rien si tout va bien. Une zone cochée devient une douleur déclarée aujourd’hui : l’app te prévient quand un exercice la sollicite. Tu la marqueras comme résolue dans Profil. |
+| Douleur non enregistrée au premier lancement (consolidation 26/11, décision G2) | Ta douleur n’a pas été enregistrée. Réessaie. |
+| Douleurs déclarées, Profil (consolidation 26/11, décision G2) | Tant qu’elle n’est pas marquée comme résolue, une douleur déclarée compte dans les avertissements de ton plan et du jour. |
+| Douleur reprise d'un ancien profil (consolidation 26/11, décision G2) | Reprise de ton ancien profil, sans date : datée du jour où tu as créé ton profil, par prudence. |
 
 ---
 
