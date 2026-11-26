@@ -19,9 +19,17 @@ export interface LienPlan {
 
 export type Lancement =
   | { mode: 'solo'; seance: SeanceGuidee; durete: Durete; lien?: LienPlan }
-  | { mode: 'groupe'; seance: SeanceGroupe; durete: Durete; lien?: LienPlan }
+  | { mode: 'groupe'; seance: SeanceGroupe; durete: Durete; lien?: LienPlan; miniBloc?: MiniBlocLance }
   // Simple et grandes lignes : un chrono libre et des parties (SeanceEnBref). Toujours une séance du plan.
   | { mode: 'en_bref'; seance: SeancePlanifiee; niveau: 'simple' | 'grandes_lignes'; durete: Durete; lien: LienPlan }
+
+/** Le mini-bloc d'une version groupe : une petite séance guidée jouée avant ou après les blocs. */
+export interface MiniBlocLance {
+  moment: 'avant' | 'apres'
+  seance: SeanceGuidee
+  /** Le rappel de sécurité du bloc ne s'affiche ici que si les étapes du mini-bloc portent `bloc_limite`. */
+  rappelBloc: boolean
+}
 
 /** Ce que demande un bouton : la version d'une séance du plan, ou une séance libre. */
 export type DemandeLancement =
@@ -79,7 +87,17 @@ export function lancementDepuisPlan(
   }
   if (!planifiee.groupe) return undefined
   const lien = { seancePlanifieeId: planifiee.id, qualite: planifiee.qualite, marqueurs: marqueursVersionPlanifiee(planifiee.groupe, fiches) }
-  return { mode, seance: planifiee.groupe, durete: planifiee.groupe.durete, lien }
+  // Un mini-bloc vide n'existe pas : il n'y aurait rien à jouer.
+  const mini = planifiee.groupe.miniBloc
+  const miniBloc: MiniBlocLance | undefined = mini && mini.etapes.length > 0
+    ? {
+        moment: mini.moment,
+        seance: { nom: `${planifiee.groupe.nom} · ${mini.moment === 'avant' ? 'avant' : 'après'} le groupe`, etapes: mini.etapes },
+        // Mêmes règles que le lien, mais seulement sur les étapes du mini-bloc (sans les objectifs du groupe).
+        rappelBloc: marqueursVersionPlanifiee({ ...planifiee.groupe, objectifs: [] }, fiches).includes('bloc_limite'),
+      }
+    : undefined
+  return { mode, seance: planifiee.groupe, durete: planifiee.groupe.durete, lien, ...(miniBloc ? { miniBloc } : {}) }
 }
 
 /** Le rappel de sécurité du bloc s'affiche pour une version qui porte `bloc_limite` (instantané de la version lancée). */
@@ -109,13 +127,20 @@ export function brouillonSolo(
   }
 }
 
-/** Séance en groupe terminée : sans objectif, elle garde le mode « groupe » (les blocs sont notés comme d'habitude). */
+/**
+ * Séance en groupe terminée : sans objectif, elle garde le mode « groupe » (les blocs sont notés comme d'habitude).
+ * Avec un mini-bloc, ses étapes (jouées ou non : `a_faire` par défaut) vont dans le débrief.
+ */
 export function brouillonGroupe(
   l: Extract<Lancement, { mode: 'groupe' }>, blocs: BlocGrimpe[], dureeMin: number, salleId?: string,
+  statutsMiniBloc?: StatutEtape[],
 ): Brouillon {
+  const etapes = (l.miniBloc?.seance.etapes ?? []).map((e, i) => ({
+    titre: e.titre, statut: statutsMiniBloc?.[i] ?? ('a_faire' as const), ...(e.origine ? { refId: e.origine.refId } : {}),
+  }))
   return {
     mode: 'groupe', nom: l.seance.nom, durete: l.durete, dureeMin,
-    etapes: [], blocs, objectifs: bilanObjectifs(l.seance, blocs),
+    etapes, blocs, objectifs: bilanObjectifs(l.seance, blocs),
     ...champsDuLien(l.lien, salleId),
   }
 }

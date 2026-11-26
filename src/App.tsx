@@ -25,7 +25,8 @@ import { Confirmation } from './composants/Confirmation.tsx'
 import { Questions } from './ecrans/Questions.tsx'
 import { SeanceEnBref } from './ecrans/SeanceEnBref.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
-import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
+import { SeanceSolo, type StatutEtape } from './ecrans/SeanceSolo.tsx'
+import type { BlocGrimpe } from './moteur/types.ts'
 import { MiseEnPageBureau } from './miseEnPage/MiseEnPageBureau.tsx'
 import { MiseEnPageTelephone } from './miseEnPage/MiseEnPageTelephone.tsx'
 import { ongletPourRubrique, rubriquePourOnglet, type Onglet, type RubriqueBureau } from './miseEnPage/navigation.ts'
@@ -37,7 +38,10 @@ import { useEcranLarge } from './miseEnPage/useEcranLarge.ts'
 type Vue =
   | { nom: 'onglets' }
   | { nom: 'seance_solo'; lancement: Extract<Lancement, { mode: 'solo' }> }
-  | { nom: 'seance_groupe'; lancement: Extract<Lancement, { mode: 'groupe' }> }
+  // `miniAvant` : ce qu'a donné le mini-bloc joué avant le groupe (statuts de ses étapes, minutes).
+  | { nom: 'seance_groupe'; lancement: Extract<Lancement, { mode: 'groupe' }>; miniAvant?: { statuts: StatutEtape[]; minutes: number } }
+  // Le mini-bloc d'une séance en groupe. Après le groupe, on garde les blocs notés et les minutes du groupe.
+  | { nom: 'mini_bloc'; lancement: Extract<Lancement, { mode: 'groupe' }>; temps: 'avant' | 'apres'; blocs?: BlocGrimpe[]; minutesGroupe?: number }
   | { nom: 'seance_en_bref'; lancement: Extract<Lancement, { mode: 'en_bref' }>; fiches: Record<string, FicheVerif>; exercicesPerso: ExercicePerso[] }
   | { nom: 'questions'; brouillon: Brouillon; douleurInitiale?: boolean }
   | { nom: 'mises_en_garde'; puisDebrief?: string; premierLancement?: boolean }
@@ -130,7 +134,10 @@ export default function App() {
     }
     if (!lancement) return
     if (lancement.mode === 'en_bref') setVue({ nom: 'seance_en_bref', lancement, fiches, exercicesPerso })
-    else setVue(lancement.mode === 'solo' ? { nom: 'seance_solo', lancement } : { nom: 'seance_groupe', lancement })
+    else if (lancement.mode === 'solo') setVue({ nom: 'seance_solo', lancement })
+    // Un mini-bloc « avant » se joue d'abord ; « après », le groupe commence et le mini-bloc suit.
+    else if (lancement.miniBloc?.moment === 'avant') setVue({ nom: 'mini_bloc', lancement, temps: 'avant' })
+    else setVue({ nom: 'seance_groupe', lancement })
   }
   // Quitter une séance demande confirmation ; la séance reste affichée (donc intacte) derrière la fenêtre.
   const [confirmeQuitter, setConfirmeQuitter] = useState(false)
@@ -218,8 +225,36 @@ export default function App() {
     )
   }
 
+  if (vue.nom === 'mini_bloc') {
+    const { lancement, temps, blocs, minutesGroupe } = vue
+    const mini = lancement.miniBloc!
+    return (
+      <div className="app">
+        <SeanceSolo
+          seance={mini.seance}
+          rappelBloc={mini.rappelBloc}
+          libelleTerminer={temps === 'avant' ? 'Passer au groupe' : 'Terminer la séance'}
+          onQuitter={quitter}
+          onTerminer={(statuts, minutes, douleur) => {
+            if (temps === 'avant' && !douleur) {
+              setVue({ nom: 'seance_groupe', lancement, miniAvant: { statuts, minutes } })
+              return
+            }
+            // Après le groupe, ou « Stop » avant : on passe aux trois questions avec ce qui a été fait.
+            setVue({
+              nom: 'questions',
+              douleurInitiale: douleur,
+              brouillon: brouillonGroupe(lancement, blocs ?? [], minutes + (minutesGroupe ?? 0), profil.salleHabituelleId, statuts),
+            })
+          }}
+        />
+        {fenetreQuitter}
+      </div>
+    )
+  }
+
   if (vue.nom === 'seance_groupe') {
-    const { lancement } = vue
+    const { lancement, miniAvant } = vue
     return (
       <div className="app">
         <SeanceGroupe
@@ -227,13 +262,20 @@ export default function App() {
           salle={salle}
           rappelBloc={rappelBlocPour(lancement)}
           onQuitter={quitter}
-          onTerminer={(blocs, dureeMin, douleur) =>
+          onTerminer={(blocs, dureeMin, douleur) => {
+            // Mini-bloc après le groupe : il suit, sauf si « Stop » (étapes non jouées : à faire).
+            if (lancement.miniBloc?.moment === 'apres' && !douleur) {
+              setVue({ nom: 'mini_bloc', lancement, temps: 'apres', blocs, minutesGroupe: dureeMin })
+              return
+            }
             setVue({
               nom: 'questions',
               douleurInitiale: douleur,
-              brouillon: brouillonGroupe(lancement, blocs, dureeMin, profil.salleHabituelleId),
+              brouillon: brouillonGroupe(
+                lancement, blocs, dureeMin + (miniAvant?.minutes ?? 0), profil.salleHabituelleId, miniAvant?.statuts,
+              ),
             })
-          }
+          }}
         />
         {fenetreQuitter}
       </div>

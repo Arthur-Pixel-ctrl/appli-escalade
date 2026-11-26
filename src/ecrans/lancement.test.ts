@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { EXEMPLE_SEANCE_PLANIFIEE } from '../donnees/exemplesV2.ts'
+import { EXEMPLE_CYCLE, EXEMPLE_PHASES, EXEMPLE_SEANCE_PLANIFIEE } from '../donnees/exemplesV2.ts'
+import { seanceTypeParId } from '../donnees/seancesTypes.ts'
+import { seanceDepuisType } from '../regles/passerelles.ts'
 import type { BlocGrimpe } from '../moteur/types.ts'
 import { toutesLesFiches } from '../regles/index.ts'
 import {
@@ -92,5 +94,46 @@ describe('séance libre', () => {
     expect(brouillon).toMatchObject({ mode: 'groupe', objectifs: [] })
     expect(brouillon.blocs).toHaveLength(1)
     expect(brouillon).not.toHaveProperty('seancePlanifieeId')
+  })
+})
+
+describe('mini-bloc d\'une séance en groupe', () => {
+  const base = { id: 's1', cycleId: EXEMPLE_CYCLE.id, phaseId: EXEMPLE_PHASES[0].id, semaine: 1 as const, date: '2026-11-17', maintenant: '2026-11-24T08:00:00.000Z' }
+  const depuisType = (id: string) => seanceDepuisType(seanceTypeParId(id)!, undefined, base)
+  const groupe = (planifiee: typeof prevue) => {
+    const l = lancementDepuisPlan(planifiee, 'groupe', fiches)
+    if (l?.mode !== 'groupe') throw new Error('attendu : groupe')
+    return l
+  }
+
+  it('ST-DOI-02 : un mini-bloc avant, avec ses deux étapes et son nom', () => {
+    const l = groupe(depuisType('ST-DOI-02'))
+    expect(l.miniBloc?.moment).toBe('avant')
+    expect(l.miniBloc?.seance.etapes.map((e) => e.origine?.refId)).toEqual(['echauffement-doigts-poutre', 'doigts-reglette-minimale-lopez'])
+    expect(l.miniBloc?.seance.nom).toMatch(/ · avant le groupe$/)
+  })
+  it('ST-TRA-01 : un mini-bloc après le groupe', () => {
+    const l = groupe(depuisType('ST-TRA-01'))
+    expect(l.miniBloc?.moment).toBe('apres')
+    expect(l.miniBloc?.seance.nom).toMatch(/ · après le groupe$/)
+  })
+  it('sans mini-bloc, ou avec un mini-bloc vide : pas de miniBloc', () => {
+    expect(groupe(prevue).miniBloc).toBeUndefined()
+    const vide = { ...prevue, groupe: { ...prevue.groupe!, miniBloc: { moment: 'avant' as const, etapes: [] } } }
+    expect(groupe(vide)).not.toHaveProperty('miniBloc')
+  })
+  it('le brouillon garde les étapes du mini-bloc dans l\'ordre, avec leur refId et les statuts donnés', () => {
+    const l = groupe(depuisType('ST-DOI-02'))
+    const brouillon = brouillonGroupe(l, [], 75, 'salle-mroc', ['faite', 'passee'])
+    expect(brouillon.etapes).toEqual([
+      { titre: l.miniBloc!.seance.etapes[0].titre, statut: 'faite', refId: 'echauffement-doigts-poutre' },
+      { titre: l.miniBloc!.seance.etapes[1].titre, statut: 'passee', refId: 'doigts-reglette-minimale-lopez' },
+    ])
+    expect(brouillon.dureeMin).toBe(75)
+  })
+  it('sans statuts : les étapes restent à faire ; sans mini-bloc : aucune étape', () => {
+    const l = groupe(depuisType('ST-DOI-02'))
+    expect(brouillonGroupe(l, [], 60).etapes.map((e) => e.statut)).toEqual(['a_faire', 'a_faire'])
+    expect(brouillonGroupe(groupe(prevue), [], 60).etapes).toEqual([])
   })
 })

@@ -17,10 +17,12 @@ interface Props {
   onQuitter: () => void
   // Séance de bloc limite : le rappel de sécurité du bloc s'affiche en tête (absent = rien).
   rappelBloc?: boolean
+  // Texte du bouton de fin (par défaut « Terminer la séance ») : « Passer au groupe » pour un mini-bloc joué avant.
+  libelleTerminer?: string
 }
 
 // Séance guidée : la liste des étapes, celle en cours ouverte avec son action principale.
-export function SeanceSolo({ seance, onTerminer, onQuitter, rappelBloc }: Props) {
+export function SeanceSolo({ seance, onTerminer, onQuitter, rappelBloc, libelleTerminer = 'Terminer la séance' }: Props) {
   const [etat, setEtat] = useState(() => demarrerSeanceSolo(seance, Date.now()))
   const [chronoOuvert, setChronoOuvert] = useState(false)
   const [gardeOuverte, setGardeOuverte] = useState(false)
@@ -116,7 +118,7 @@ export function SeanceSolo({ seance, onTerminer, onQuitter, rappelBloc }: Props)
       <div className="deux-boutons bas">
         {enCours !== -1 && <button className="bouton-second" onClick={() => marquer('passee')}>Passer l’étape</button>}
         <button className={enCours === -1 ? 'bouton principal centre' : 'bouton-second'} onClick={() => terminer()}>
-          {enCours === -1 ? <strong>Terminer la séance</strong> : 'Terminer la séance'}
+          {enCours === -1 ? <strong>{libelleTerminer}</strong> : libelleTerminer}
         </button>
       </div>
     </main>
