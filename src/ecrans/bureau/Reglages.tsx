@@ -20,6 +20,7 @@ interface Props {
 const SOMMAIRE = [
   { id: 'section-toi', nom: 'Toi' },
   { id: 'titre-prerequis', nom: 'Prérequis' },
+  { id: 'section-douleurs', nom: 'Douleurs' },
   { id: 'section-regles', nom: 'Règles' },
   { id: 'section-assistant', nom: 'Assistant' },
   { id: 'section-donnees', nom: 'Données' },
