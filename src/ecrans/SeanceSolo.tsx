@@ -4,6 +4,7 @@ import {
 } from '../moteur/seanceSolo.ts'
 import type { EtapeSeance, SeanceGuidee } from '../moteur/types.ts'
 import { useRepos } from '../chrono/useRepos.ts'
+import { RappelSecuriteBloc } from '../composants/RappelSecuriteBloc.tsx'
 import { Chrono } from './Chrono.tsx'
 import { MisesEnGarde } from './MisesEnGarde.tsx'
 
@@ -14,10 +15,12 @@ interface Props {
   // douleur = true quand la séance se termine après « Stop, ça fait mal ».
   onTerminer: (statuts: StatutEtape[], dureeMin: number, douleur?: boolean) => void
   onQuitter: () => void
+  // Séance de bloc limite : le rappel de sécurité du bloc s'affiche en tête (absent = rien).
+  rappelBloc?: boolean
 }
 
 // Séance guidée : la liste des étapes, celle en cours ouverte avec son action principale.
-export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
+export function SeanceSolo({ seance, onTerminer, onQuitter, rappelBloc }: Props) {
   const [etat, setEtat] = useState(() => demarrerSeanceSolo(seance, Date.now()))
   const [chronoOuvert, setChronoOuvert] = useState(false)
   const [gardeOuverte, setGardeOuverte] = useState(false)
@@ -74,6 +77,8 @@ export function SeanceSolo({ seance, onTerminer, onQuitter }: Props) {
           ))}
         </div>
       </div>
+
+      {rappelBloc && <RappelSecuriteBloc />}
 
       <ol className="etapes">
         {seance.etapes.map((e, i) =>

@@ -2,7 +2,8 @@
 // Fonctions pures : l'écran lit la base, ici on prépare ce que la séance exécute et ce qu'on enregistre à la fin.
 import type { Brouillon } from '../donnees/base.ts'
 import type { Marqueur, Qualite } from '../donnees/bibliotheque/types.ts'
-import type { Durete, SeancePlanifiee } from '../donnees/modele.ts'
+import type { Cycle, Durete, SeancePlanifiee } from '../donnees/modele.ts'
+import { niveauAffiche } from '../donnees/niveaux.ts'
 import type { BlocGrimpe, SeanceGroupe, SeanceGuidee } from '../moteur/types.ts'
 import { bilanObjectifs } from '../moteur/seanceGroupe.ts'
 import { marqueursVersionPlanifiee, type FicheVerif } from '../regles/index.ts'
@@ -19,6 +20,8 @@ export interface LienPlan {
 export type Lancement =
   | { mode: 'solo'; seance: SeanceGuidee; durete: Durete; lien?: LienPlan }
   | { mode: 'groupe'; seance: SeanceGroupe; durete: Durete; lien?: LienPlan }
+  // Simple et grandes lignes : un chrono libre et des parties (SeanceEnBref). Toujours une séance du plan.
+  | { mode: 'en_bref'; seance: SeancePlanifiee; niveau: 'simple' | 'grandes_lignes'; durete: Durete; lien: LienPlan }
 
 /** Ce que demande un bouton : la version d'une séance du plan, ou une séance libre. */
 export type DemandeLancement =
@@ -59,18 +62,29 @@ export function lancementLibre(mode: 'solo' | 'groupe'): Lancement {
 
 // ——— Séances du plan ———
 
-/** Le mode demandé n'existe pas dans cette séance (pas d'étapes, ou pas de version groupe) : `undefined`. */
+/**
+ * Le mode demandé n'existe pas dans cette séance (pas de version groupe) : `undefined`.
+ * En solo, le niveau affiché décide de l'écran : détaillé → SeanceSolo ; simple et grandes lignes → SeanceEnBref.
+ * Le cycle sert à connaître le niveau par défaut ; sans lui, on retombe sur celui de la séance seule.
+ */
 export function lancementDepuisPlan(
-  planifiee: SeancePlanifiee, mode: 'solo' | 'groupe', fiches: Record<string, FicheVerif>,
+  planifiee: SeancePlanifiee, mode: 'solo' | 'groupe', fiches: Record<string, FicheVerif>, cycle?: Pick<Cycle, 'niveauDetail'>,
 ): Lancement | undefined {
   if (mode === 'solo') {
-    if (planifiee.solo.etapes.length === 0) return undefined
     const lien = { seancePlanifieeId: planifiee.id, qualite: planifiee.qualite, marqueurs: marqueursVersionPlanifiee(planifiee.solo, fiches) }
-    return { mode, seance: planifiee.solo, durete: planifiee.solo.durete, lien }
+    const niveau = niveauAffiche(planifiee, cycle)
+    // Détaillé : il y a des étapes par définition (niveauDisponible).
+    if (niveau === 'detaille') return { mode, seance: planifiee.solo, durete: planifiee.solo.durete, lien }
+    return { mode: 'en_bref', seance: planifiee, niveau, durete: planifiee.solo.durete, lien }
   }
   if (!planifiee.groupe) return undefined
   const lien = { seancePlanifieeId: planifiee.id, qualite: planifiee.qualite, marqueurs: marqueursVersionPlanifiee(planifiee.groupe, fiches) }
   return { mode, seance: planifiee.groupe, durete: planifiee.groupe.durete, lien }
+}
+
+/** Le rappel de sécurité du bloc s'affiche pour une version qui porte `bloc_limite` (instantané de la version lancée). */
+export function rappelBlocPour(l: Lancement): boolean {
+  return l.lien?.marqueurs.includes('bloc_limite') === true
 }
 
 /** Les champs du lien, seulement pour une séance du plan : une séance libre n'en porte aucun. */
@@ -102,6 +116,18 @@ export function brouillonGroupe(
   return {
     mode: 'groupe', nom: l.seance.nom, durete: l.durete, dureeMin,
     etapes: [], blocs, objectifs: bilanObjectifs(l.seance, blocs),
+    ...champsDuLien(l.lien, salleId),
+  }
+}
+
+/** Séance en bref terminée : une entrée par partie ; la durée vient du chrono libre. */
+export function brouillonEnBref(
+  l: Extract<Lancement, { mode: 'en_bref' }>,
+  etapes: { titre: string; statut: StatutEtape; refId?: string }[], dureeMin: number, salleId?: string,
+): Brouillon {
+  return {
+    mode: 'solo', nom: l.seance.solo.nom, durete: l.durete, dureeMin, etapes,
+    objectifs: [], blocs: [],
     ...champsDuLien(l.lien, salleId),
   }
 }

@@ -83,9 +83,9 @@ describe('boutons de lancement', () => {
     expect(sousTitreGroupe({ objectifs: [{}, {}] as never, dureeMin: 90 })).toBe('2 objectifs, 1 h 30')
     expect(sousTitreGroupe({ objectifs: [{}] as never })).toBe('1 objectif')
   })
-  it('le bouton solo est masqué sans étapes (jusqu’à D-27), le groupe sans version groupe', () => {
+  it('le bouton solo existe sans étapes ; le groupe seulement avec une version groupe', () => {
     const vide = seance('v', '2026-11-17', { solo: { ...EXEMPLE_SEANCE_PLANIFIEE.solo, etapes: [] }, groupe: null })
-    expect(peutLancerSolo(vide)).toBe(false)
+    expect(peutLancerSolo(vide)).toBe(true)
     expect(peutLancerGroupe(vide)).toBe(false)
     expect(peutLancerSolo(EXEMPLE_SEANCE_PLANIFIEE)).toBe(true)
     expect(peutLancerGroupe(EXEMPLE_SEANCE_PLANIFIEE)).toBe(true)

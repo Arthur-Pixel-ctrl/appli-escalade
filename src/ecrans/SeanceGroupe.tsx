@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRepos } from '../chrono/useRepos.ts'
+import { RappelSecuriteBloc } from '../composants/RappelSecuriteBloc.tsx'
 import { Confirmation } from '../composants/Confirmation.tsx'
 import { Avertissement } from '../composants/Avertissement.tsx'
 import { PastillePrise } from '../composants/PastillePrise.tsx'
@@ -17,11 +18,13 @@ interface Props {
   // douleur = true quand la séance se termine après « Stop, ça fait mal ».
   onTerminer: (blocs: BlocGrimpe[], dureeMin: number, douleur?: boolean) => void
   onQuitter: () => void
+  // Séance de bloc limite : le rappel de sécurité du bloc s'affiche avant l'objectif (absent = rien).
+  rappelBloc?: boolean
 }
 
 // Séance en groupe : un objectif à la fois, et la saisie d'un bloc en trois gestes
 // (couleur, essais, résultat). On peut noter au fil de l'eau ou tout à la fin.
-export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
+export function SeanceGroupe({ seance, salle, onTerminer, onQuitter, rappelBloc }: Props) {
   const [etat, setEtat] = useState(() => demarrerSeanceGroupe(Date.now()))
   const { blocs, position } = etat // position = objectif affiché
   const [couleur, setCouleur] = useState(seance.objectifs[0]?.couleurConseillee ?? salle.couleurs[0].nom)
@@ -67,6 +70,8 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
       </div>
 
       <button className="bouton arret centre stop-seance" onClick={() => setGardeOuverte(true)}>Stop, ça fait mal</button>
+
+      {rappelBloc && <RappelSecuriteBloc />}
 
       <div className="pile">
         {objectif ? (

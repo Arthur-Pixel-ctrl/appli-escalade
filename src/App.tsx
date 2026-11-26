@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { enregistrerProfil, enregistrerSeance, lireProfil, type Brouillon } from './donnees/base.ts'
 import type { Profil as TypeProfil } from './donnees/profil.ts'
+import type { ExercicePerso } from './donnees/modele.ts'
 import { salleParId } from './donnees/salles.ts'
 import { surMiseAJourDisponible } from './miseAJour.ts'
-import { lireExercicesPerso } from './donnees/plan.ts'
-import { toutesLesFiches } from './regles/index.ts'
+import { lireCycles, lireExercicesPerso } from './donnees/plan.ts'
+import { toutesLesFiches, type FicheVerif } from './regles/index.ts'
 import { Bienvenue } from './ecrans/Bienvenue.tsx'
 import { Compte } from './ecrans/Compte.tsx'
 import { Debrief } from './ecrans/Debrief.tsx'
 import {
-  brouillonGroupe, brouillonSolo, lancementDepuisPlan, lancementLibre, type DemandeLancement, type Lancement,
+  brouillonEnBref, brouillonGroupe, brouillonSolo, lancementDepuisPlan, lancementLibre, rappelBlocPour,
+  type DemandeLancement, type Lancement,
 } from './ecrans/lancement.ts'
 import { Chargement, Erreur } from './ecrans/Erreur.tsx'
 import { MisesEnGarde } from './ecrans/MisesEnGarde.tsx'
@@ -21,6 +23,7 @@ import { serveurSupabase } from './synchro/serveurSupabase.ts'
 import { synchroniser } from './synchro/synchro.ts'
 import { Confirmation } from './composants/Confirmation.tsx'
 import { Questions } from './ecrans/Questions.tsx'
+import { SeanceEnBref } from './ecrans/SeanceEnBref.tsx'
 import { SeanceGroupe } from './ecrans/SeanceGroupe.tsx'
 import { SeanceSolo } from './ecrans/SeanceSolo.tsx'
 import { MiseEnPageBureau } from './miseEnPage/MiseEnPageBureau.tsx'
@@ -35,6 +38,7 @@ type Vue =
   | { nom: 'onglets' }
   | { nom: 'seance_solo'; lancement: Extract<Lancement, { mode: 'solo' }> }
   | { nom: 'seance_groupe'; lancement: Extract<Lancement, { mode: 'groupe' }> }
+  | { nom: 'seance_en_bref'; lancement: Extract<Lancement, { mode: 'en_bref' }>; fiches: Record<string, FicheVerif>; exercicesPerso: ExercicePerso[] }
   | { nom: 'questions'; brouillon: Brouillon; douleurInitiale?: boolean }
   | { nom: 'mises_en_garde'; puisDebrief?: string; premierLancement?: boolean }
   | { nom: 'debrief'; seanceId: string }
@@ -113,14 +117,20 @@ export default function App() {
   // Si la lecture échoue, on lance quand même : mieux vaut une séance sans marqueurs qu'une séance bloquée.
   const lancer = async (demande: DemandeLancement) => {
     let lancement: Lancement | undefined
+    let exercicesPerso: ExercicePerso[] = []
+    let fiches: Record<string, FicheVerif> = {}
     if (demande.type === 'libre') {
       lancement = lancementLibre(demande.mode)
     } else {
-      const fiches = toutesLesFiches(await lireExercicesPerso().catch(() => []))
-      lancement = lancementDepuisPlan(demande.seance, demande.mode, fiches)
+      exercicesPerso = await lireExercicesPerso().catch(() => [])
+      fiches = toutesLesFiches(exercicesPerso)
+      // Le niveau affiché dépend du cycle (niveau par défaut) : on le relit. En cas d'échec, niveau de la séance seule.
+      const cycle = await lireCycles().then((l) => l.find((c) => c.id === demande.seance.cycleId)).catch(() => undefined)
+      lancement = lancementDepuisPlan(demande.seance, demande.mode, fiches, cycle)
     }
     if (!lancement) return
-    setVue(lancement.mode === 'solo' ? { nom: 'seance_solo', lancement } : { nom: 'seance_groupe', lancement })
+    if (lancement.mode === 'en_bref') setVue({ nom: 'seance_en_bref', lancement, fiches, exercicesPerso })
+    else setVue(lancement.mode === 'solo' ? { nom: 'seance_solo', lancement } : { nom: 'seance_groupe', lancement })
   }
   // Quitter une séance demande confirmation ; la séance reste affichée (donc intacte) derrière la fenêtre.
   const [confirmeQuitter, setConfirmeQuitter] = useState(false)
@@ -169,12 +179,37 @@ export default function App() {
       <div className="app">
         <SeanceSolo
           seance={lancement.seance}
+          rappelBloc={rappelBlocPour(lancement)}
           onQuitter={quitter}
           onTerminer={(statuts, dureeMin, douleur) =>
             setVue({
               nom: 'questions',
               douleurInitiale: douleur,
               brouillon: brouillonSolo(lancement, statuts, dureeMin, profil.salleHabituelleId),
+            })
+          }
+        />
+        {fenetreQuitter}
+      </div>
+    )
+  }
+
+  if (vue.nom === 'seance_en_bref') {
+    const { lancement, fiches, exercicesPerso } = vue
+    return (
+      <div className="app">
+        <SeanceEnBref
+          seance={lancement.seance}
+          niveau={lancement.niveau}
+          fiches={fiches}
+          exercicesPerso={exercicesPerso}
+          rappelBloc={rappelBlocPour(lancement)}
+          onQuitter={quitter}
+          onTerminer={(etapes, dureeMin, douleur) =>
+            setVue({
+              nom: 'questions',
+              douleurInitiale: douleur,
+              brouillon: brouillonEnBref(lancement, etapes, dureeMin, profil.salleHabituelleId),
             })
           }
         />
@@ -190,6 +225,7 @@ export default function App() {
         <SeanceGroupe
           seance={lancement.seance}
           salle={salle}
+          rappelBloc={rappelBlocPour(lancement)}
           onQuitter={quitter}
           onTerminer={(blocs, dureeMin, douleur) =>
             setVue({
