@@ -64,20 +64,27 @@ describe('migration de la base version 2 vers la version 3', () => {
   })
 
   it('garde le profil et lui ajoute les champs récents', async () => {
-    const { base, lireProfil } = await import('./base.ts')
+    const { base, lireProfil, jourLocal } = await import('./base.ts')
     const brut = await base.reglages.get('profil')
     expect(brut).toEqual({
       ...PROFIL_ANCIEN, aEnvoyer: 1,
       tractionsStrictes: null, tient15sSur25mm: null, majeur: null, grimpeEnTete: null,
       joursDisponibles: [], repereTraction: 'aucun', lieux: [],
     })
+    // La zone du champ est reprise en douleur déclarée à la lecture (décision G2) ; le champ n'est plus dans le profil.
     const profil = await lireProfil()
-    expect(profil).toMatchObject({ prenom: 'Arthur', niveauBloc: '7A', poidsCorpsKg: 72, douleursEnCours: ['coude'], tractionsStrictes: null })
+    expect(profil).toMatchObject({ prenom: 'Arthur', niveauBloc: '7A', poidsCorpsKg: 72, tractionsStrictes: null })
+    expect('douleursEnCours' in profil!).toBe(false)
+    const douleurs = await base.douleurs.toArray()
+    expect(douleurs).toHaveLength(1)
+    expect(douleurs[0]).toMatchObject({
+      id: 'reprise-profil-coude', date: jourLocal(new Date(PROFIL_ANCIEN.creeLe)), zone: 'coude', niveau: 'reduction', signes: [], aEnvoyer: 1,
+    })
   })
 
   it('crée les nouvelles tables, vides', async () => {
     const { base } = await import('./base.ts')
-    for (const nom of ['cycles', 'phases', 'seancesPlanifiees', 'objectifsSpecifiques', 'exercicesPerso', 'salles', 'formes', 'douleurs', 'resultatsTests', 'etatSynchro', 'appareil']) {
+    for (const nom of ['cycles', 'phases', 'seancesPlanifiees', 'objectifsSpecifiques', 'exercicesPerso', 'salles', 'formes', 'resultatsTests', 'etatSynchro', 'appareil']) {
       expect(base.tables.map((t) => t.name)).toContain(nom)
       expect(await base.table(nom).count()).toBe(0)
     }
@@ -90,10 +97,10 @@ describe('migration de la base version 2 vers la version 3', () => {
   })
 
   it('exporte puis réimporte, et accepte un fichier exporté avant la version 3', async () => {
-    const { base, exporterDonnees, importerDonnees } = await import('./base.ts')
+    const { base, exporterDonnees, importerDonnees, lireProfil } = await import('./base.ts')
     const fichier = await exporterDonnees()
     expect(JSON.parse(fichier).version).toBe(2)
-    expect(await importerDonnees(fichier)).toEqual({ seances: 3, autres: 1, ecartes: 0 })
+    expect(await importerDonnees(fichier)).toEqual({ seances: 3, autres: 2, ecartes: 0 })
 
     // Fichier ancien : séances et profil sans aucun des champs récents.
     const { versionFormat: _v, creeLe: _c, ...sansSuivi } = SEANCE_SOLO
@@ -105,5 +112,8 @@ describe('migration de la base version 2 vers la version 3', () => {
     const importee = await base.seancesRealisees.get('importee-1')
     expect(importee).toMatchObject({ nom: 'Doigts : suspensions', versionFormat: 1, creeLe: SEANCE_SOLO.modifieLe, aEnvoyer: 1 })
     expect(await base.seancesRealisees.count()).toBe(4)
+    // Le profil du fichier (plus ancien, avec ses zones) n'a pas remplacé celui de l'appareil : une seule douleur reprise.
+    await lireProfil()
+    expect(await base.douleurs.count()).toBe(1)
   })
 })

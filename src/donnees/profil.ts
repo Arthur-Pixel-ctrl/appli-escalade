@@ -5,6 +5,8 @@ export type JourSemaine = 'lundi' | 'mardi' | 'mercredi' | 'jeudi' | 'vendredi' 
 // Où le grimpeur s'entraîne : le générateur et l'assistant ne proposent que des exercices faisables là.
 export type LieuEntrainement = 'salle_bloc' | 'salle_voie' | 'maison'
 
+// (décision G2, 26/11) Plus de zones de douleur dans le profil : une douleur est un document daté (table `douleurs`, C-04).
+// Les zones d'un ancien profil sont reprises par `lireProfil` (base.ts).
 export interface Profil {
   prenom: string
   disciplinePrincipale: 'bloc' | 'voie'
@@ -15,7 +17,6 @@ export interface Profil {
   experiencePoutre: 'aucune' | 'occasionnelle' | 'reguliere'
   poidsCorpsKg: number | null // facultatif ; sert à exprimer les tests en % du poids du corps
   pointsFaibles: string
-  douleursEnCours: ZoneDouleur[] // vide = aucune douleur
   seancesParSemaine: number
   grimpeSouventEnGroupe: boolean
   salleHabituelleId: string
@@ -32,7 +33,7 @@ export interface Profil {
 export const PROFIL_VIDE: Profil = {
   prenom: '', disciplinePrincipale: 'bloc', niveauBloc: '6A', niveauVoie: '6a', objectif: '',
   anneesPratique: 2, experiencePoutre: 'aucune', poidsCorpsKg: null, pointsFaibles: '',
-  douleursEnCours: [], seancesParSemaine: 3, grimpeSouventEnGroupe: true, salleHabituelleId: 'salle-mroc',
+  seancesParSemaine: 3, grimpeSouventEnGroupe: true, salleHabituelleId: 'salle-mroc',
   tractionsStrictes: null, tient15sSur25mm: null, majeur: null, grimpeEnTete: null,
   joursDisponibles: [], repereTraction: 'aucun', lieux: [],
 }

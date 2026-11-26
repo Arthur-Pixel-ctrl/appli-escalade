@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { exporterDonnees, importerDonnees, jourLocal } from '../donnees/base.ts'
+import { estRepriseDuProfil, exporterDonnees, importerDonnees, jourLocal } from '../donnees/base.ts'
 import type { Profil as TypeProfil } from '../donnees/profil.ts'
 import { comptesDisponibles } from '../compte/client.ts'
 import { useSession } from '../compte/session.ts'
@@ -93,6 +93,9 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
         {douleurs?.map((d) => (
           <div key={d.id} className="pile">
             <p className="texte-2">{ZONES.find((z) => z.valeur === d.zone)?.nom ?? d.zone} · depuis le {dateLisible(d.date)}</p>
+            {estRepriseDuProfil(d) && (
+              <p className="texte-3">Reprise de ton ancien profil, sans date : datée du jour où tu as créé ton profil, par prudence.</p>
+            )}
             <button className="bouton-second" onClick={() => setAResoudre(d)}>Marquer comme résolue</button>
           </div>
         ))}

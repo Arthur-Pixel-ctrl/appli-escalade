@@ -25,7 +25,6 @@ const PROFIL_TOUT_REMPLI: Profil = {
   tient15sSur25mm: true,
   majeur: true,
   grimpeEnTete: true,
-  douleursEnCours: [],
   seancesParSemaine: 3,
   lieux: ['salle_bloc', 'salle_voie', 'maison'],
 }
