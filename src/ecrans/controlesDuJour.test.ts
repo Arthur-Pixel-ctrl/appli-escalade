@@ -49,7 +49,7 @@ describe('controlesDuJour', () => {
     expect(controlesDuJour(entrees({ douleurs: [douleur('2026-11-04', 'coude')] }), [])).toEqual([])
   })
 
-  it('ordre : arrêt (S-04), puis avertissement (J-04), puis information (J-01)', () => {
+  it('ordre : arrêt (S-04, S-06), puis avertissement (J-04), puis information (J-01)', () => {
     const protocole = protocoleParId('puissance-bloc-limite')!
     const seance: SeancePlanifiee = {
       ...EXEMPLE_SEANCE_PLANIFIEE, groupe: null,
@@ -61,13 +61,15 @@ describe('controlesDuJour', () => {
       marqueurs: ['maximale'],
     } as SeanceRealisee
     const e = entrees({
-      profil: { ...entrees().profil, douleursEnCours: ['coude'] },
+      // Douleur déclarée au coude, du jour (décision G2) : S-06 s'ajoute à S-04.
+      douleurs: [douleur(AUJOURDHUI, 'coude')],
       formes: [forme({ sommeil: 2, fatigue: 2 })],
     })
     const r = controlesDuJour(e, [realisee], duJour(seance))
-    const attendu = codes(r).filter((c) => ['S-04', 'J-04', 'J-01'].includes(c))
-    expect(attendu).toEqual(['S-04', 'J-04', 'J-01'])
+    const attendu = codes(r).filter((c) => ['S-04', 'S-06', 'J-04', 'J-01'].includes(c))
+    expect(attendu).toEqual(['S-04', 'S-06', 'J-04', 'J-01'])
     expect(r.find((c) => c.avertissement.code === 'S-04')?.forme).toBe('arret')
+    expect(r.find((c) => c.avertissement.code === 'S-06')?.forme).toBe('arret')
     expect(r.find((c) => c.avertissement.code === 'J-04')?.forme).toBe('avertissement')
   })
 })

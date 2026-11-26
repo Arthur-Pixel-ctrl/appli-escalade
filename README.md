@@ -98,6 +98,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | C-03 | Téléphone : forme du jour (cinq notes, sommeil facultatif) et contrôles du jour (J-01 à J-07, S-04 à S-06) dans une seule pile, signaux d'arrêt d'abord, aussi les jours sans séance | Fait |
 | C-04 | Douleurs déclarées et datées (Profil sur téléphone et ordinateur, après une séance) : zones, signes d'alerte (une seule liste), conduite de réduction, aucun diagnostic ; « Marquer comme résolue » avec confirmation ; S-04 à S-06 et J-05 dans Aujourd'hui | Fait |
 | D-28 | Téléphone : mini-bloc des séances de groupe joué avant ou après le groupe (chrono, « Stop, ça fait mal »), ses étapes enregistrées et montrées au débrief avec les blocs | Fait |
+| G2-01 | Décision G2 : la question du profil disparaît (téléphone et ordinateur) ; au premier écran, les zones cochées deviennent des douleurs datées du jour ; les zones déjà notées sont reprises une seule fois, avec une date prudente | Fait |
 
 ## Ouvrir l'app
 

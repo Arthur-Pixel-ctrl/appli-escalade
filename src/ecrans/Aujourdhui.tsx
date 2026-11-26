@@ -132,7 +132,7 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
     </div>
   )
   // Une douleur déclarée (profil ou table `douleurs`) : signal d'arrêt tout en haut, quel que soit l'état de l'écran.
-  const signal = calculerSignal(profil.douleursEnCours, douleursOuvertes(donnees.douleurs, aujourdhui))
+  const signal = calculerSignal(douleursOuvertes(donnees.douleurs, aujourdhui))
   const signalDouleur = signal && (
     <Avertissement
       niveau="arret"

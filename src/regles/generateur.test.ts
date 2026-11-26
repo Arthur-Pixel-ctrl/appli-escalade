@@ -99,7 +99,11 @@ describe('genererCycle : la banque est respectée', () => {
   ])
 
   it('aucune fiche hors génération, test ou contre-indiquée par une douleur (doigts)', () => {
-    const plan = genererCycle(entrees({ profil: { ...PROFIL, douleursEnCours: ['doigts'] }, accents: ['doigts', 'puissance', 'resistance'] }))
+    const douleurDoigts: DouleurDeclaree = {
+      id: 'd-doigts', versionFormat: 1, creeLe: '2026-11-24T08:00:00.000Z', modifieLe: '2026-11-24T08:00:00.000Z',
+      date: '2026-11-24', zone: 'doigts', niveau: 'reduction', signes: [],
+    }
+    const plan = genererCycle(entrees({ douleurs: [douleurDoigts], accents: ['doigts', 'puissance', 'resistance'] }))
     for (const id of fichesDesSeances(plan)) {
       expect(fiches[id].exclureDeLaGeneration).toBeUndefined()
       expect(fiches[id].estTest).not.toBe(true)

@@ -1,9 +1,9 @@
 import Dexie, { type Table } from 'dexie'
 import type {
-  Cycle, DouleurDeclaree, ExercicePerso, FormeDuJour, ObjectifSpecifique, PhaseCycle, ProfilEnregistre,
+  Cycle, DateISO, DouleurDeclaree, ExercicePerso, FormeDuJour, ObjectifSpecifique, PhaseCycle, ProfilEnregistre,
   Reglages, ResultatTest, SallePerso, SeancePlanifiee, SeanceRealisee,
 } from './modele.ts'
-import { completerProfil, type Profil } from './profil.ts'
+import { completerProfil, ZONES, type Profil, type ZoneDouleur } from './profil.ts'
 import { decider } from '../synchro/fusion.ts'
 import {
   ecrire, lireTous, lireUn, signalerDonneesChangees, signalerEcriture, TABLES_SYNCHRONISEES, type TableSynchronisee,
@@ -125,7 +125,76 @@ if (typeof document !== 'undefined') {
   })
 }
 
+// ——— Reprise des zones de l'ancien profil (décision G2) ———
+
+export const PREFIXE_DOULEUR_REPRISE = 'reprise-profil-'
+// Calculé depuis l'identifiant : rien de plus n'est stocké (R-8).
+export const estRepriseDuProfil = (d: { id: string }): boolean => d.id.startsWith(PREFIXE_DOULEUR_REPRISE)
+
+// Avant cette date, une date de création est le 1970 de repli d'un fichier sans date (`completerImporte`).
+const DATE_MINIMALE_FIABLE = Date.parse('2020-01-01T00:00:00.000Z')
+const dateLisible = (v: unknown): Date | null => {
+  if (typeof v !== 'string') return null
+  const t = Date.parse(v)
+  return Number.isNaN(t) || t < DATE_MINIMALE_FIABLE ? null : new Date(t)
+}
+
+/**
+ * Le jour où dater une douleur reprise d'un ancien profil.
+ * La zone a été cochée entre la création du profil et sa dernière modification, on ne sait pas quand.
+ * On prend la date la plus ancienne possible : la douleur ne paraît jamais plus récente qu'elle n'est,
+ * et J-05 (« consulte ») ne vient jamais trop tard.
+ */
+export function dateDeReprise(profil: { creeLe?: unknown; modifieLe?: unknown }, aujourdhui: DateISO): DateISO {
+  const lue = dateLisible(profil.creeLe) ?? dateLisible(profil.modifieLe)
+  let jour: DateISO
+  if (lue) jour = jourLocal(lue)
+  else {
+    // 14 jours avant aujourd'hui (même formule que `ajouterJours` de plan.ts, qui importe ce fichier).
+    const [a, m, j] = aujourdhui.split('-').map(Number)
+    jour = jourLocal(new Date(a, m - 1, j - 14))
+  }
+  // Une horloge fausse ne place jamais la douleur dans le futur.
+  return jour > aujourdhui ? aujourdhui : jour
+}
+
+/** Transforme les zones de l'ancien champ `douleursEnCours` en douleurs déclarées, une seule fois par zone. */
+async function reprendreZonesDuProfil(): Promise<void> {
+  const brut = (await avecReprise(() => base.reglages.get('profil'))) as (Record<string, unknown> & { supprimeLe?: string }) | undefined
+  // Cas courant : rien à reprendre, aucune transaction, aucune écriture.
+  if (!brut || brut.supprimeLe || !Array.isArray(brut.douleursEnCours) || brut.douleursEnCours.length === 0) return
+
+  let ecrit = false
+  await avecReprise(() => base.transaction('rw', [base.reglages, base.douleurs], async () => {
+    ecrit = false
+    // On relit : un autre appel a pu passer avant nous.
+    const profil = (await base.reglages.get('profil')) as (Record<string, unknown> & { supprimeLe?: string }) | undefined
+    if (!profil || profil.supprimeLe || !Array.isArray(profil.douleursEnCours)) return
+    const connues = ZONES.map((z) => z.valeur)
+    const zones = [...new Set(profil.douleursEnCours.filter((z): z is ZoneDouleur => connues.includes(z as ZoneDouleur)))]
+    const maintenant = new Date().toISOString()
+    const date = dateDeReprise(profil as { creeLe?: unknown; modifieLe?: unknown }, jourLocal())
+    for (const zone of zones) {
+      const id = PREFIXE_DOULEUR_REPRISE + zone
+      // `get` voit aussi les documents supprimés : une douleur résolue ou supprimée ne revient jamais.
+      if (await base.douleurs.get(id)) continue
+      await base.douleurs.put({
+        id, date, zone, niveau: 'reduction', signes: [], versionFormat: 1, creeLe: maintenant, modifieLe: maintenant, aEnvoyer: 1,
+      })
+    }
+    // Le champ part du profil dans la même transaction : déplacé, jamais perdu.
+    const { douleursEnCours: _ancien, ...reste } = profil
+    await base.reglages.put({ ...reste, modifieLe: maintenant, aEnvoyer: 1 } as unknown as Local<ProfilEnregistre>)
+    ecrit = true
+  }))
+  if (ecrit) { signalerEcriture(); signalerDonneesChangees() }
+}
+
 export async function lireProfil(): Promise<Profil | null> {
+  // Avant de lire : les zones de l'ancienne question « Une douleur en ce moment ? » deviennent des douleurs datées
+  // (décision G2). Tout profil passe par ici, d'où qu'il vienne : base de l'appareil, sauvegarde rechargée,
+  // profil reçu du serveur. Un échec remonte comme un échec de lecture plutôt que d'oublier une douleur sans le dire.
+  await reprendreZonesDuProfil()
   // Par `lireUn` : un profil supprimé (suppression douce) n'existe plus.
   const enregistre = await lireUn<Local<ProfilEnregistre>>('reglages', 'profil')
   // Un profil enregistré avant la v2 n'a pas les champs récents : on les complète.

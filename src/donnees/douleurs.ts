@@ -59,9 +59,9 @@ const nomZone = (z: ZoneDouleur) => ZONES.find((x) => x.valeur === z)?.nom.toLow
 
 /**
  * Le signal d'Aujourd'hui. Un signe d'alerte passe avant tout (même phrase que S-05) ;
- * sinon les zones du profil et des douleurs en réduction, dans l'ordre de `ZONES`, sans doublon.
+ * sinon les zones des douleurs en réduction, dans l'ordre de `ZONES`, sans doublon.
  */
-export function signalDouleur(zonesProfil: ZoneDouleur[], ouvertes: DouleurDeclaree[]): { titre: string; texte: string } | null {
+export function signalDouleur(ouvertes: DouleurDeclaree[]): { titre: string; texte: string } | null {
   const ordre = (zones: Set<ZoneDouleur>) => ZONES.filter((z) => zones.has(z.valeur)).map((z) => nomZone(z.valeur)).join(', ')
   const alertes = new Set(ouvertes.filter((d) => d.niveau === 'alerte').map((d) => d.zone))
   if (alertes.size > 0) {
@@ -70,7 +70,7 @@ export function signalDouleur(zonesProfil: ZoneDouleur[], ouvertes: DouleurDecla
       texte: 'Pas de séance dure avant d’avoir consulté un médecin ou un kiné qui connaît l’escalade.',
     }
   }
-  const zones = new Set<ZoneDouleur>([...zonesProfil, ...ouvertes.filter((d) => d.niveau === 'reduction').map((d) => d.zone)])
+  const zones = new Set<ZoneDouleur>(ouvertes.filter((d) => d.niveau === 'reduction').map((d) => d.zone))
   if (zones.size === 0) return null
   return { titre: `Douleur déclarée : ${ordre(zones)}.`, texte: 'Ménage cette zone et arrête-toi dès que ça fait mal.' }
 }

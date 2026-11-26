@@ -41,7 +41,8 @@ export function profilVersVerif(p: Profil): ProfilVerif {
     test15sSur25mm: p.tient15sSur25mm,
     adulte: p.majeur,
     grimpeEnTete: p.grimpeEnTete,
-    douleursEnCours: [...p.douleursEnCours],
+    // (décision G2) Le profil n'a plus de zones : toutes les douleurs viennent de `douleurs`. Champ retiré du moteur par G2-02.
+    douleursEnCours: [],
     seancesParSemaine: p.seancesParSemaine,
     // Prudence : sans lieu renseigné, on suppose une salle de bloc seulement (pas de corde, rien à la maison).
     lieux: p.lieux.length === 0 ? ['salle_bloc'] : [...p.lieux],

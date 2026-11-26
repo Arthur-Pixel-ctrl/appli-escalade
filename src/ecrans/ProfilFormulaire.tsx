@@ -1,12 +1,15 @@
 import { useRef, useState } from 'react'
-import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, depuisReponse3, versReponse3, type JourSemaine, type LieuEntrainement, type Profil, type Reponse3 } from '../donnees/profil.ts'
+import { COTATIONS_BLOC, COTATIONS_VOIE, ZONES, depuisReponse3, versReponse3, type JourSemaine, type LieuEntrainement, type Profil, type Reponse3, type ZoneDouleur } from '../donnees/profil.ts'
 import { SALLES } from '../donnees/salles.ts'
 
 interface Props {
   initial: Profil
   titre: string
   libelleValider: string
-  onValider: (p: Profil) => void
+  // Les zones cochées à « Une douleur en ce moment ? » (premier lancement seulement) : l'écran qui reçoit en fait des douleurs déclarées.
+  onValider: (p: Profil, zonesDouleur: ZoneDouleur[]) => void
+  // Premier lancement : ajoute la question des douleurs. Dans Profil, une douleur se déclare dans la section « Douleurs déclarées ».
+  premierLancement?: boolean
   // Ordinateur seulement : ajoute les jours disponibles, les lieux et le repère de traction. Le téléphone ne les montre pas.
   bureau?: boolean
   modifieLe?: string // date de modification du profil, affichée dans la fiche des prérequis (bureau)
@@ -44,14 +47,18 @@ function Choix<T extends string | number | boolean>({ legende, options, valeur, 
 }
 
 // Formulaire du profil, utilisé au premier lancement puis dans l'onglet Profil.
-export function ProfilFormulaire({ initial, titre, libelleValider, onValider, bureau = false, modifieLe }: Props) {
+// La question des douleurs n'existe qu'au premier lancement ; elle ne fait pas partie du profil (décision G2).
+export function ProfilFormulaire({ initial, titre, libelleValider, onValider, premierLancement = false, bureau = false, modifieLe }: Props) {
   const [p, setP] = useState<Profil>(initial)
   const [enregistre, setEnregistre] = useState(false)
   const [prenomManquant, setPrenomManquant] = useState(false)
   const champPrenom = useRef<HTMLInputElement>(null)
   const modifier = <C extends keyof Profil>(champ: C, valeur: Profil[C]) => { setP((avant) => ({ ...avant, [champ]: valeur })); setEnregistre(false) }
-  const basculerDouleur = (zone: Profil['douleursEnCours'][number]) =>
-    modifier('douleursEnCours', p.douleursEnCours.includes(zone) ? p.douleursEnCours.filter((z) => z !== zone) : [...p.douleursEnCours, zone])
+  const [zonesDouleur, setZonesDouleur] = useState<ZoneDouleur[]>([])
+  const basculerDouleur = (zone: ZoneDouleur) => {
+    setZonesDouleur((avant) => (avant.includes(zone) ? avant.filter((z) => z !== zone) : [...avant, zone]))
+    setEnregistre(false)
+  }
 
   const basculer = <V extends string>(liste: V[], valeur: V): V[] => (liste.includes(valeur) ? liste.filter((v) => v !== valeur) : [...liste, valeur])
 
@@ -60,7 +67,7 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider, bu
       e.preventDefault()
       // Sans prénom, on ne valide pas : message sous le champ et focus dessus.
       if (p.prenom.trim() === '') { setPrenomManquant(true); champPrenom.current?.focus(); return }
-      onValider(p); setEnregistre(true)
+      onValider(p, zonesDouleur); setEnregistre(true)
     }}>
       <h1 className="titre moyen" id="section-toi">{titre}</h1>
 
@@ -104,15 +111,17 @@ export function ProfilFormulaire({ initial, titre, libelleValider, onValider, bu
       <Choix legende="Tu grimpes souvent avec d’autres ?" colonnes="deux" valeur={p.grimpeSouventEnGroupe} onChange={(v) => modifier('grimpeSouventEnGroupe', v)}
         options={[{ valeur: true, nom: 'Oui' }, { valeur: false, nom: 'Non' }]} />
 
-      <fieldset className="question">
-        <legend>Une douleur en ce moment ?</legend>
-        <div className="choix trois">
-          {ZONES.map((z) => (
-            <button type="button" key={z.valeur} aria-pressed={p.douleursEnCours.includes(z.valeur)} onClick={() => basculerDouleur(z.valeur)}>{z.nom}</button>
-          ))}
-        </div>
-        <p className="texte-3">Ne touche rien si tout va bien. Une douleur déclarée écartera plus tard les exercices à risque.</p>
-      </fieldset>
+      {premierLancement && (
+        <fieldset className="question">
+          <legend>Une douleur en ce moment ?</legend>
+          <div className="choix trois">
+            {ZONES.map((z) => (
+              <button type="button" key={z.valeur} aria-pressed={zonesDouleur.includes(z.valeur)} onClick={() => basculerDouleur(z.valeur)}>{z.nom}</button>
+            ))}
+          </div>
+          <p className="texte-3">Ne touche rien si tout va bien. Une zone cochée devient une douleur déclarée aujourd’hui : l’app te prévient quand un exercice la sollicite. Tu la marqueras comme résolue dans Profil.</p>
+        </fieldset>
+      )}
 
       <label className="champ">Ta salle
         <select name="salle" value={p.salleHabituelleId} onChange={(e) => modifier('salleHabituelleId', e.target.value)}>

@@ -11,6 +11,7 @@ import { Icone } from '../../composants/Icone.tsx'
 import { BIBLIOTHEQUE } from '../../donnees/bibliotheque/index.ts'
 import { entreesDepuis, etatDe, nomQualite, type ContexteFiltre, type EntreeBibliotheque } from '../../donnees/bibliotheque/filtres.ts'
 import { jourLocal, lireProfil } from '../../donnees/base.ts'
+import { douleursOuvertes } from '../../donnees/douleurs.ts'
 import type { Cycle, DateISO, DouleurDeclaree, ExercicePerso, PhaseCycle, SallePerso, SeancePlanifiee } from '../../donnees/modele.ts'
 import { ajouterJours, debutSemaine, lireExercicesPerso, lireSallesPerso, salleEffective } from '../../donnees/plan.ts'
 import { PROFIL_VIDE } from '../../donnees/profil.ts'
@@ -66,8 +67,8 @@ async function lireContexte(): Promise<Contexte> {
   }))
   const verif = profilVersVerif(profil ?? PROFIL_VIDE)
   const aujourdhui = jourLocal()
-  // Mêmes zones que le moteur : celles du profil, plus les douleurs déclarées et pas encore résolues.
-  const zones = [...new Set<ZoneDouleur>([...verif.douleursEnCours, ...vues.filter((d) => d.resolueLe === undefined || d.resolueLe > aujourdhui).map((d) => d.zone)])]
+  // Mêmes zones que le moteur : les douleurs déclarées ouvertes aujourd'hui (décision G2).
+  const zones = [...new Set<ZoneDouleur>(douleursOuvertes(douleurs, aujourdhui).map((d) => d.zone))]
   return { persos, sallesPerso, filtre: { profil: verif, douleurs: vues, aujourdhui }, salleId: profil?.salleHabituelleId, zones }
 }
 

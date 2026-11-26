@@ -69,21 +69,21 @@ describe('marquerResolue', () => {
 
 describe('signalDouleur', () => {
   it('alerte au coude : titre et phrase de S-05', () => {
-    expect(signalDouleur([], [doc({ niveau: 'alerte', signes: [SIGNES_ARRET[2]] })])).toEqual({
+    expect(signalDouleur([doc({ niveau: 'alerte', signes: [SIGNES_ARRET[2]] })])).toEqual({
       titre: 'Signe d’alerte déclaré : coude.',
       texte: 'Pas de séance dure avant d’avoir consulté un médecin ou un kiné qui connaît l’escalade.',
     })
   })
 
-  it('profil doigts et réduction au coude : « doigts, coude » (ordre de ZONES)', () => {
-    expect(signalDouleur(['doigts'], [doc({})])).toEqual({
+  it('réductions au coude puis aux doigts : « doigts, coude » (ordre de ZONES)', () => {
+    expect(signalDouleur([doc({}), doc({ id: 'd2', zone: 'doigts', date: '2026-11-11' })])).toEqual({
       titre: 'Douleur déclarée : doigts, coude.',
       texte: 'Ménage cette zone et arrête-toi dès que ça fait mal.',
     })
   })
 
   it('rien : null', () => {
-    expect(signalDouleur([], [])).toBeNull()
+    expect(signalDouleur([])).toBeNull()
   })
 })
 

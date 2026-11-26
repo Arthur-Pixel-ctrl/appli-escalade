@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import { comptesDisponibles } from '../compte/client.ts'
 import { useEnLigne } from '../compte/useEnLigne.ts'
-import { importerDonnees, lireProfil } from '../donnees/base.ts'
-import { PROFIL_VIDE, type Profil } from '../donnees/profil.ts'
+import { importerDonnees, jourLocal, lireProfil } from '../donnees/base.ts'
+import { declarerDouleur } from '../donnees/douleurs.ts'
+import { PROFIL_VIDE, type Profil, type ZoneDouleur } from '../donnees/profil.ts'
 import { ProfilFormulaire } from './ProfilFormulaire.tsx'
 
 interface Props {
@@ -20,6 +21,25 @@ export function Bienvenue({ onValider, onProfilRetrouve, onCompte }: Props) {
   const [message, setMessage] = useState('')
   const [erreur, setErreur] = useState(false)
   const fichier = useRef<HTMLInputElement>(null)
+  // Zones déjà déclarées : un second « Continuer » après un échec du profil ne les déclare pas deux fois.
+  const dejaDeclarees = useRef<Set<ZoneDouleur>>(new Set())
+
+  // Chaque zone cochée devient une douleur déclarée du jour (sans signe d'alerte), puis le profil est enregistré.
+  const valider = async (p: Profil, zones: ZoneDouleur[]) => {
+    try {
+      for (const zone of zones) {
+        if (dejaDeclarees.current.has(zone)) continue
+        await declarerDouleur({ date: jourLocal(), zone, signes: [] })
+        dejaDeclarees.current.add(zone)
+      }
+    } catch {
+      setErreur(true)
+      setMessage('Ta douleur n’a pas été enregistrée. Réessaie.')
+      return
+    }
+    setMessage('')
+    onValider(p)
+  }
 
   // On recharge la sauvegarde AVANT de créer un profil : sinon le nouveau profil, plus récent, ferait ignorer celui du fichier.
   const recharger = async (f: File | undefined) => {
@@ -81,7 +101,7 @@ export function Bienvenue({ onValider, onProfilRetrouve, onCompte }: Props) {
         </p>
         {sauvegarde}
       </div>
-      <ProfilFormulaire initial={PROFIL_VIDE} titre="Parle-moi de ta grimpe" libelleValider="Continuer" onValider={onValider} />
+      <ProfilFormulaire premierLancement initial={PROFIL_VIDE} titre="Parle-moi de ta grimpe" libelleValider="Continuer" onValider={(p, zones) => { void valider(p, zones) }} />
     </main>
   )
 }
