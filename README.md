@@ -95,6 +95,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-22 | Téléphone : « Aujourd'hui » et « Programme » branchés sur le cycle validé en cours (jamais un brouillon), séance au niveau affiché, séance lancée depuis le plan reliée à son débrief, séance manquée non rattrapée, plus aucune séance d'exemple | Fait |
 | D-27 | Téléphone : séance en bref pour les niveaux Simple et Grandes lignes (chrono libre, repos, « Stop, ça fait mal » collé en haut, « Voir la fiche »), rappel de sécurité du bloc dans les trois écrans de séance | Fait |
 | C-05 | Téléphone : déplacer une séance (jours permis à partir d'aujourd'hui, jamais une séance manquée) ou la sauter (avec confirmation, annulable) ; avertissements autour de la séance affichés sans bloquer ; « dernière modification gagne » testée | Fait |
+| C-03 | Téléphone : forme du jour (cinq notes, sommeil facultatif) et contrôles du jour (J-01 à J-07, S-04 à S-06) dans une seule pile, signaux d'arrêt d'abord, aussi les jours sans séance | Fait |
 
 ## Ouvrir l'app
 
