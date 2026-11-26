@@ -1,9 +1,21 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { exporterDonnees, importerDonnees, jourLocal } from '../donnees/base.ts'
 import type { Profil as TypeProfil } from '../donnees/profil.ts'
 import { comptesDisponibles } from '../compte/client.ts'
 import { useSession } from '../compte/session.ts'
+import { Confirmation } from '../composants/Confirmation.tsx'
+import { lireDouleursOuvertes, marquerResolue } from '../donnees/douleurs.ts'
+import type { DouleurDeclaree } from '../donnees/modele.ts'
+import { ZONES } from '../donnees/profil.ts'
+import { DeclarerDouleur } from './DeclarerDouleur.tsx'
 import { ProfilFormulaire } from './ProfilFormulaire.tsx'
+
+const jourLong = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' })
+// « 2026-11-12 » → « 12 novembre » (jour local : new Date("2026-11-12") serait lu en heure universelle).
+const dateLisible = (jour: string) => {
+  const [a, m, j] = jour.split('-').map(Number)
+  return jourLong.format(new Date(a, m - 1, j))
+}
 
 interface Props {
   profil: TypeProfil
@@ -22,6 +34,26 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
   const { email, chargement } = useSession()
   const [message, setMessage] = useState('')
   const fichier = useRef<HTMLInputElement>(null)
+  // Douleurs déclarées encore ouvertes ; la liste se relit après chaque action.
+  const [douleurs, setDouleurs] = useState<DouleurDeclaree[] | null>(null)
+  const [erreurDouleurs, setErreurDouleurs] = useState('')
+  const [declaration, setDeclaration] = useState(false)
+  const [aResoudre, setAResoudre] = useState<DouleurDeclaree | null>(null)
+  const relireDouleurs = useCallback(() => {
+    lireDouleursOuvertes(jourLocal()).then((d) => { setDouleurs(d); setErreurDouleurs('') }).catch(() => setErreurDouleurs('Tes douleurs n’ont pas pu être lues. Réessaie.'))
+  }, [])
+  useEffect(relireDouleurs, [relireDouleurs])
+  const resoudre = async () => {
+    if (!aResoudre) return
+    try {
+      await marquerResolue(aResoudre.id, jourLocal())
+      setAResoudre(null)
+      relireDouleurs()
+    } catch {
+      setAResoudre(null)
+      setErreurDouleurs('La douleur n’a pas pu être marquée comme résolue. Réessaie.')
+    }
+  }
 
   const exporter = async () => {
     try {
@@ -48,9 +80,33 @@ export function Profil({ profil, onEnregistrer, onMisesEnGarde, onDonneesImporte
     }
   }
 
+  // Déclarer une douleur : l'écran prend la place du profil (une douleur peut arriver hors séance).
+  if (declaration) return <DeclarerDouleur date={jourLocal()} onFini={() => { setDeclaration(false); relireDouleurs() }} />
+
   return (
     <main className="ecran">
       <ProfilFormulaire initial={profil} titre="Profil" libelleValider="Enregistrer le profil" onValider={onEnregistrer} bureau={bureau} modifieLe={modifieLe} />
+      <section className="pile" id="section-douleurs" aria-labelledby="titre-douleurs">
+        <h2 id="titre-douleurs" className="sous-titre">Douleurs déclarées</h2>
+        <p className="texte-3">Tant qu’elle n’est pas marquée comme résolue, une douleur déclarée compte dans les avertissements de ton plan et du jour.</p>
+        {douleurs && douleurs.length === 0 && <p className="texte-2">Aucune douleur déclarée.</p>}
+        {douleurs?.map((d) => (
+          <div key={d.id} className="pile">
+            <p className="texte-2">{ZONES.find((z) => z.valeur === d.zone)?.nom ?? d.zone} · depuis le {dateLisible(d.date)}</p>
+            <button className="bouton-second" onClick={() => setAResoudre(d)}>Marquer comme résolue</button>
+          </div>
+        ))}
+        {erreurDouleurs && <p className="texte-3" role="alert">{erreurDouleurs}</p>}
+        <button className="bouton-second" onClick={() => setDeclaration(true)}>Déclarer une douleur</button>
+        <Confirmation
+          ouverte={aResoudre !== null}
+          titre="Douleur résolue ?"
+          texte="Les règles n’en tiendront plus compte à partir d’aujourd’hui."
+          libelleAction="Marquer comme résolue"
+          onAction={() => { void resoudre() }}
+          onRester={() => setAResoudre(null)}
+        />
+      </section>
       {sectionsEnPlus}
       <section className="pile" id="section-donnees">
         <h2 className="sous-titre">À savoir et données</h2>

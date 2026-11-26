@@ -96,6 +96,7 @@ Phase 2 (fondations) : la base de données est passée à la version 3, avec éc
 | D-27 | Téléphone : séance en bref pour les niveaux Simple et Grandes lignes (chrono libre, repos, « Stop, ça fait mal » collé en haut, « Voir la fiche »), rappel de sécurité du bloc dans les trois écrans de séance | Fait |
 | C-05 | Téléphone : déplacer une séance (jours permis à partir d'aujourd'hui, jamais une séance manquée) ou la sauter (avec confirmation, annulable) ; avertissements autour de la séance affichés sans bloquer ; « dernière modification gagne » testée | Fait |
 | C-03 | Téléphone : forme du jour (cinq notes, sommeil facultatif) et contrôles du jour (J-01 à J-07, S-04 à S-06) dans une seule pile, signaux d'arrêt d'abord, aussi les jours sans séance | Fait |
+| C-04 | Douleurs déclarées et datées (Profil sur téléphone et ordinateur, après une séance) : zones, signes d'alerte (une seule liste), conduite de réduction, aucun diagnostic ; « Marquer comme résolue » avec confirmation ; S-04 à S-06 et J-05 dans Aujourd'hui | Fait |
 
 ## Ouvrir l'app
 

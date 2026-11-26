@@ -7,7 +7,8 @@ import { jourLocal } from '../donnees/base.ts'
 import { chiffresBlocs } from '../donnees/debrief.ts'
 import { resumeForme } from '../donnees/formes.ts'
 import { dureeVersionSolo, niveauAffiche } from '../donnees/niveaux.ts'
-import { ZONES, type Profil } from '../donnees/profil.ts'
+import { douleursOuvertes, signalDouleur as calculerSignal } from '../donnees/douleurs.ts'
+import type { Profil } from '../donnees/profil.ts'
 import { lireEtat, surDonneesChangees, surEcriture } from '../donnees/stockage.ts'
 import { itemsRouges, toutesLesFiches } from '../regles/index.ts'
 import { etatSynchroCourt, surEtatSynchro, synchroEnCours } from '../synchro/automatique.ts'
@@ -130,15 +131,15 @@ export function Aujourdhui({ profil, onCompte, onLancer, onOuvrirSeance, onMises
       {mentionSynchro && <p className="mention" role="status" aria-live="polite">{mentionSynchro}</p>}
     </div>
   )
-  // Une douleur déclarée dans le profil : signal d'arrêt tout en haut, quel que soit l'état de l'écran.
-  const zones = profil.douleursEnCours.map((z) => ZONES.find((x) => x.valeur === z)?.nom.toLowerCase() ?? z)
-  const signalDouleur = zones.length > 0 && (
+  // Une douleur déclarée (profil ou table `douleurs`) : signal d'arrêt tout en haut, quel que soit l'état de l'écran.
+  const signal = calculerSignal(profil.douleursEnCours, douleursOuvertes(donnees.douleurs, aujourdhui))
+  const signalDouleur = signal && (
     <Avertissement
       niveau="arret"
-      titre={`Douleur déclarée : ${zones.join(', ')}.`}
+      titre={signal.titre}
       correction={{ libelle: 'Voir les mises en garde', action: onMisesEnGarde }}
     >
-      Ménage cette zone et arrête-toi dès que ça fait mal.
+      {signal.texte}
     </Avertissement>
   )
 
