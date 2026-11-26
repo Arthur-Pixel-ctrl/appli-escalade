@@ -743,3 +743,21 @@ body.glisse-en-cours, body.glisse-en-cours * { user-select: none; -webkit-user-s
 /* La bande S1 à S12 sur téléphone : deux rangées de 6, pour garder des cases de 48 px au moins. */
 .bande-telephone .bande-semaines { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--espace-1); }
 .bande-telephone .case-semaine { width: 100%; }
+
+/* D-27 · Séance en bref (téléphone) : chrono libre, parties cochables, rappels */
+.chrono-libre { display: flex; flex-direction: column; gap: var(--espace-3); }
+.temps-libre { margin: 0; font-family: var(--police-fixe); font-size: 72px; font-weight: 700; line-height: 1; text-align: center; font-variant-numeric: tabular-nums; }
+.chrono-libre .bouton-second, .repos-bref .bouton-second { min-height: 64px; }
+.parties-en-bref { display: flex; flex-direction: column; gap: var(--espace-4); margin: 0; padding: 0; list-style: none; }
+.partie-en-bref { display: flex; flex-direction: column; gap: var(--espace-2); padding-top: var(--espace-3); border-top: 1px solid var(--filet); }
+.partie-en-bref.traitee .sous-titre { color: var(--texte-3); }
+.partie-en-bref .deux-boutons .bouton-second { min-height: 64px; }
+.partie-en-bref .bouton-second[aria-pressed='true'] { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.partie-en-bref .bouton-texte { align-self: flex-start; }
+/* Fiche en encre : « À respecter » (séance dure ou maximale) */
+.fiche.encre { background: var(--texte); color: var(--fond); border-color: var(--texte); }
+.fiche.encre .vis { background: var(--texte); border-color: var(--fond); }
+.fiche.encre .vis::after { background: var(--fond); }
+.fiche.encre .liste-simple li { color: var(--fond); border-color: var(--texte-3); }
+.fiche.encre :focus-visible { outline-color: var(--focus-sur-sombre); }
+.fiche.rappel-bloc .liste-simple li { color: var(--texte); }

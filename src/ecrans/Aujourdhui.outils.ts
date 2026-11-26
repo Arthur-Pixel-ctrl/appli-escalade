@@ -119,11 +119,8 @@ export function sousTitreGroupe(g: Pick<VersionGroupe, 'objectifs' | 'dureeMin'>
   return g.dureeMin !== undefined ? `${objectifs}, ${formaterDuree(g.dureeMin)}` : objectifs
 }
 
-/**
- * Jusqu'à l'arrivée de SeanceEnBref (D-27), toute séance solo s'ouvre en SeanceSolo, donc seulement si elle a des étapes
- * (amendement 6 de D-22). Sans étapes, le bouton solo est masqué.
- */
-export const peutLancerSolo = (s: Pick<SeancePlanifiee, 'solo'>) => s.solo.etapes.length > 0
+/** Depuis D-27, toute séance solo s'ouvre : SeanceSolo en détaillé, SeanceEnBref en simple et en grandes lignes. */
+export const peutLancerSolo = (_s: Pick<SeancePlanifiee, 'solo'>) => true
 export const peutLancerGroupe = (s: Pick<SeancePlanifiee, 'groupe'>) => s.groupe !== null
 
 // ——— Avertissements de la semaine qui citent la séance du jour (amendement 4) ———
