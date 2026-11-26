@@ -14,6 +14,8 @@ de l'expert entraînement ; le modèle de données et la navigation technique vi
 
 > **Consolidation du 25/11, audit de fin de phase 3** (`docs/audits/audit-phase-3.md`, points M-3, M-8 et M-12) : une ligne « Ton profil ne dit pas encore : … » et les S-03 identiques regroupés dans les listes de la semaine (§ 4, O-02, O-03, O-05) ; l'étiquette « À VÉRIFIER » d'une étape devient « RÉGLAGE ESTIMÉ », « à vérifier » restant réservé aux fiches écartées (O-05, O-07, T-08) ; deux questions au lieu d'une pour les prises de l'exercice personnel (O-08) ; un avertissement d'une séance sans étapes nomme sa partie (O-05). Mention « (consolidation 25/11, audit phase 3) ». Tâches : vague 3.12 de `docs/backlog-v2.md`.
 
+> **Consolidation du 26/11, cadrage de la phase 4** (tâches C-03, C-04, C-05, D-27 et D-28 de `docs/backlog-v2.md`, relues contre le code livré par D-22) : T-06 (contrôles du jour en une seule pile, forme du jour dans tous les états, texte du signal de douleur), T-07 (déplacer, sauter, annuler), T-09 (mini-bloc joué), T-11 (préciser la douleur), T-14 (douleurs déclarées), T-16 (place de « Stop », durée, rappel du bloc, « Voir la fiche »). Mention « (consolidation 26/11, cadrage phase 4) ».
+
 Conventions : identifiant d'écran `T-xx` (téléphone) et `O-xx` (ordinateur). Pour chaque écran : **But**, **Contenu**,
 **Action principale** (une seule, en résine), **Autres actions**, **États**, **Adaptation**, **Accessibilité**.
 Tous les textes sont au tutoiement, en phrases courtes, sans point d'exclamation ni emoji.
@@ -198,6 +200,10 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   - *chargement* : silhouettes de la fiche et des boutons ;
   - *hors ligne* : tout fonctionne, bandeau hors ligne.
 - **Adaptation** : sur tablette, colonne de 560 px ; sur ordinateur, cet écran est remplacé par le tableau de bord.
+- (consolidation 26/11, cadrage phase 4)
+  - **Signal de douleur** : le texte « Les exercices à risque sont retirés de ta séance. » est **faux** (le moteur ne retire rien, l'écran ne modifie pas le plan) ; D-22 l'a remplacé par « Ménage cette zone et arrête-toi dès que ça fait mal. », retenu : titre « Douleur déclarée : {zones}. », ce texte, et « Voir les mises en garde ». Avec C-04, les douleurs déclarées et encore ouvertes comptent aussi ; un **signe d'alerte** ouvert donne à la place « Signe d'alerte déclaré : {zones}. » et « Pas de séance dure avant d'avoir consulté un médecin ou un kiné qui connaît l'escalade. » (phrase de S-05).
+  - **Contrôles du jour** (C-03) : une seule pile au-dessus de la fiche, sous le signal de douleur, avec la rubalise de la semaine : signaux d'arrêt, puis avertissements, puis informations ; jamais limitée, un arrêt jamais replié ; message du moteur tel quel (première phrase en gras). Les jours sans séance à faire (repos, séance faite, pas de plan), les signaux d'arrêt du jour (J-05) restent affichés.
+  - **Forme du jour** : ligne présente dans tous les états (repos et pas de plan compris : le contrôle du sommeil demande trois matins de suite), juste avant « Cette semaine » ; « À renseigner » ou « 2 voyants au rouge ». Elle ouvre l'écran de la forme du jour (5 questions de 1 à 5, heures de sommeil facultatives, « Enregistrer »), à la place du contenu de l'onglet.
 
 ### T-07 Programme (adapté)
 - **But** : voir le plan en cours sur le téléphone.
@@ -212,6 +218,12 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   confirmation) ; phrase en bas « Pour modifier le reste de ton plan, ouvre l'app sur un ordinateur. »
 - **États** : pas de plan → même état vide que T-06 ; plan pas encore arrivé (synchro) → « Ton plan arrive… »,
   puis contenu ; hors ligne → dernière version connue, avec sa date.
+- (consolidation 26/11, cadrage phase 4, C-05) « Déplacer » et « Sauter cette séance » pour une séance d'aujourd'hui ou à
+  venir (la séance du jour aussi), jamais pour une séance manquée (pas de rattrapage, A3-6) ni passée. « Déplacer » propose
+  les jours restants de la même semaine, à partir d'aujourd'hui ; un jour qui a déjà une séance reste possible (les
+  avertissements le disent). Une séance sautée dont le jour n'est pas passé affiche « Annuler ». Les avertissements de la
+  semaine qui concernent la séance (y compris le W-01 porté par sa voisine) s'affichent dans l'aperçu, avant et après un
+  déplacement. « Ce changement sera aussi visible sur ton ordinateur. » seulement si l'appareil est lié à un compte.
 
 ### T-08 Séance solo (adaptée)
 - **But** : dérouler les étapes, une à la fois.
@@ -230,6 +242,9 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   boutons « Pas encore » (second) et « Flashé » / « Enchaîné » (principal) côte à côte, 64 px ; « Annuler le dernier
   bloc » garde la ligne actuelle ; « Terminer la séance » discret en bas, puis confirmation si aucun bloc n'est noté.
 - **États** : salle sans couleurs définies → choix de couleurs générique (les 6 habituelles) et lien vers Profil.
+- (consolidation 26/11, cadrage phase 4, D-28) **Mini-bloc** : quand la version groupe en a un, il se joue comme une
+  séance guidée (T-08) avant le groupe (« Passer au groupe ») ou après ; ses étapes apparaissent dans le débrief. On peut
+  le passer. (D-27) Avant une séance de bloc limite, le rappel de sécurité du bloc s'affiche en tête, comme en solo.
 
 ### T-10 Chrono (adapté, voir `demo-chrono.png`)
 - **But** : suivre l'effort sans lire, à deux mètres.
@@ -249,6 +264,12 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
   une précision facultative (zone : doigts, coude, épaule…) si l'expert entraînement le demande.
 - **États** : échec d'enregistrement → message dans l'écran (plus de `window.alert`) : « La séance n'a pas pu être
   enregistrée. Tes réponses sont gardées : réessaie. » avec « Réessayer ».
+- (consolidation 26/11, cadrage phase 4, C-04) Après « Oui » à la douleur : bouton second « Préciser la douleur
+  (facultatif) », qui ouvre en place l'écran « Préciser la douleur » : zone (une, obligatoire), puis « As-tu un de ces
+  signes ? » avec les 8 signaux d'arrêt des mises en garde en cases à cocher, mot pour mot ; aucun champ de texte. Au moins
+  un signe → signal d'arrêt « Arrête la séance et consulte un médecin ou un kiné qui connaît l'escalade. » ; aucun →
+  avertissement « Allège pendant 1 à 2 semaines » avec la conduite des mises en garde. « Continuer » revient aux trois
+  questions, réponses gardées. Pas de champ de durée dans cet écran (T-16 : la durée vient du chrono).
 
 ### T-12 Débrief (adapté)
 - **Changements** : chiffres clés en `chiffre-cle` (le principal en résine) ; tableau des blocs avec pastilles de prise ;
@@ -272,6 +293,10 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 - **Action principale** : « Enregistrer le profil » (dans la section ouverte).
 - **États** : non connecté → section Compte : « Tu n'as pas de compte. Ton plan d'ordinateur ne peut pas arriver ici. »
   avec « Recevoir mon code de connexion » (consolidation 17/11) ; modification non enregistrée en quittant l'onglet → fenêtre de confirmation.
+- (consolidation 26/11, cadrage phase 4, C-04) Section « Douleurs déclarées » : les douleurs encore ouvertes, « Coude ·
+  depuis le 12 novembre » et « Marquer comme résolue » (fenêtre de confirmation « Douleur résolue ? » / « Les règles n'en
+  tiendront plus compte à partir d'aujourd'hui. ») ; « Aucune douleur déclarée. » sinon ; « Déclarer une douleur » ouvre
+  l'écran de T-11. Ni gravité, ni nom de lésion, ni niveau affichés. La même section apparaît dans le profil de l'ordinateur.
 
 ### T-15 Mises en garde (style seulement)
 - Les deux listes passent en signal d'arrêt (rubalise brique, « Arrête la séance et consulte ») et en avertissement
@@ -294,6 +319,17 @@ Rien n'est jamais effacé du téléphone pendant la reprise.
 - **États** : rien à résumer → « Séance {qualité}, {dureté} : grimpe à ton idée. » ; hors ligne → tout marche.
 - **Accessibilité** : le temps écoulé n'est pas annoncé chaque seconde ; chaque partie est une ligne avec deux boutons
   libellés (« Échauffement fait »).
+- (consolidation 26/11, cadrage phase 4, D-27)
+  - « Stop, ça fait mal » est collé **en haut** de l'écran, comme en T-08 et T-09 (et non dans les actions du bas comme
+    le chrono) : les trois écrans de séance le mettent au même endroit.
+  - Le signal d'arrêt d'une douleur déclarée reste en haut d'**Aujourd'hui** (on le lit avant de lancer), comme pour T-08.
+  - Durée enregistrée : le temps du chrono libre ; s'il n'a jamais été démarré, le temps depuis l'ouverture de l'écran
+    (même règle que T-08). Pas de champ de durée dans les trois questions.
+  - « Voir la fiche » déplie sous la partie la consigne de l'exercice principal (et ses éléments pour une liste) ; pas
+    d'écran nouveau.
+  - Le rappel de sécurité du bloc (fiche `technique-rappel-securite-bloc`, décision F2 point 11) n'était affiché nulle
+    part, même en détaillé : il s'affiche en tête de T-08, T-09 et T-16 pour une séance de bloc limite.
+  - « Démarrer » / « Pause » / « Reprendre » sont des boutons seconds : la seule action en résine est « Terminer la séance ».
 
 ---
 

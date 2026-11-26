@@ -23,6 +23,8 @@ Principe : **avertir, jamais bloquer** [PLAN], [MOD], CLAUDE.md.
 >
 > Cas 2, 3, 5 et 19 complétés, cas 20 ajouté (B.11). Tâches de code : AUD3-01 et AUD3-02 (`docs/backlog-v2.md`, vague 3.12).
 
+> **(consolidation 26/11, cadrage phase 4)** Deux trous trouvés en relisant C-03 et C-04 contre le code (B.4) : (1) `verifierJour` rendait S-04 et S-05 mais pas **S-06** (effort à risque pendant une douleur en réduction, signal d'arrêt) : le téléphone ne l'aurait jamais montré ; il entre dans `verifierJour`. (2) Un jour **sans séance à faire**, aucun contrôle du jour n'était calculé : **J-05** (« consulte ») restait caché un jour de repos ; nouveau point d'entrée `verifierJourSansSeance`. Aucune vérification ajoutée ni retirée, aucun message, niveau ni clé ne change. Tâche de code : C-03.
+
 Sources : mêmes codes que `regles-planification.md` (`[SYN]`, `[VER n]`, `[AUD x]`, `[PLAN]`, `[MOD]`, `[CDC]`).
 
 ---
@@ -304,8 +306,13 @@ verifierSemaine(lundi: Jour, plan: PlanVerif, ctx: ContexteVerif): Avertissement
 verifierPlan(plan: PlanVerif, ctx: ContexteVerif): Avertissement[]
   // toutes les séances, W-01 sur toute la frise, toutes les semaines, P-01 à P-14
 verifierJour(seanceDuJour: SeanceVerif, ctx: ContexteVerif, realisees: SeanceVerif[]): Avertissement[]
-  // J-01 à J-07, plus S-04 et S-05 sur la séance du jour
+  // J-01 à J-07, plus S-04, S-05 et S-06 sur la séance du jour (S-06 : consolidation 26/11)
+verifierJourSansSeance(ctx: ContexteVerif): Avertissement[]
+  // (consolidation 26/11) un jour sans séance à faire : verifierJour sur une séance neutre (légère, sans étapes,
+  // qualité technique) et sans séance réalisée ; seules J-05 et J-06 peuvent sortir
 ```
+
+(consolidation 26/11, cadrage phase 4) **Pourquoi.** S-06 est un signal d'arrêt (`formeAffichage`, C-01) qui ne vit que par les douleurs déclarées en réduction (C-04) : la séance du jour est le seul endroit du téléphone où le dire. J-05 et J-06 ne regardent pas la séance ; sans `verifierJourSansSeance`, une douleur qui dure depuis 14 jours ne serait jamais signalée un jour de repos, alors qu'un signal d'arrêt doit toujours être visible (CLAUDE.md). `realisees` : toutes les séances réalisées non supprimées, chacune par `realiseeVersVerif` (C-01) : J-04 et J-07 ne lisent que `realisee` et `date`.
 
 ---
 
@@ -406,7 +413,7 @@ Chaque vérification s'applique à **chaque version** présente (`solo`, puis `g
 
 ## B.8 Vérifications du jour (J)
 
-Appliquées sur la séance prévue aujourd'hui, au moment de l'ouvrir sur le téléphone.
+Appliquées sur la séance prévue aujourd'hui, au moment de l'ouvrir sur le téléphone. (consolidation 26/11, cadrage phase 4) « Séance prévue aujourd'hui » = une séance du jour encore à faire (statut `aujourdhui`) ; un jour de repos, après la séance du jour ou sans plan, l'écran appelle `verifierJourSansSeance` (B.4) : seules J-05 et J-06 peuvent sortir.
 
 | Code | Condition | Niveau | Message | Source |
 |---|---|---|---|---|

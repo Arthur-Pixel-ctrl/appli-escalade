@@ -402,7 +402,9 @@ export interface EtapeRealisee {
 /** Compatible avec les séances déjà enregistrées : tous les champs ajoutés en v2 sont facultatifs. */
 export interface SeanceRealisee extends Document {
   date: DateISO
-  mode: 'solo' | 'groupe' | 'libre'
+  mode: 'solo' | 'groupe' | 'libre' // (consolidation 26/11, cadrage phase 4) 'libre' = séance libre seul ; une séance libre
+                                    // en groupe garde 'groupe', sans seancePlanifieeId ni objectifs (D-22) : passerelles, bilans
+                                    // et débrief comptent 'libre' comme du solo
   nom: string
   durete: Durete
   dureeMin: number
@@ -461,7 +463,9 @@ export interface DouleurDeclaree extends Document {
   date: DateISO
   zone: ZoneDouleur
   niveau: 'alerte' | 'reduction' // alerte = au moins un signe d'arrêt coché (regles-planification.md, A.8)
-  signes: string[]               // signes d'alerte cochés, libellés de A.8
+  signes: string[]               // signes d'alerte cochés, libellés de A.8 ; (consolidation 26/11, cadrage phase 4) exactement
+                                 // ceux de SIGNES_ARRET (src/donnees/douleurs.ts, C-04) : les signes de A.8 dans les mots des
+                                 // mises en garde ; aucun autre texte n'est accepté. Ils ressortent tels quels dans S-05
   resolueLe?: DateISO
 }
 
