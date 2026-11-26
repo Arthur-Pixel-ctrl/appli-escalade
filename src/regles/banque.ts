@@ -42,7 +42,7 @@ function raisonDe(fiche: FicheVerif, profil: ProfilVerif, zones: readonly ZoneDo
   if (fiche.exclureDeLaGeneration !== undefined) return 'a_verifier'
   if (fiche.estTest === true) return 'test'
   if (manquesPrerequis(fiche.prerequis, profil).length > 0) return 'prerequis'
-  if (fiche.contreIndications.some((z) => zones.includes(z) || profil.douleursEnCours.includes(z))) return 'douleur'
+  if (fiche.contreIndications.some((z) => zones.includes(z))) return 'douleur'
   // S-07 : la grimpe en tête exige un grimpeur prêt (une donnée non renseignée compte comme « non prêt »).
   if (fiche.contexte?.grimpeEnTete === true && profil.grimpeEnTete !== true) return 'contexte'
   if (!lieuPermet(fiche.contexte?.terrain, profil.lieux)) return 'contexte'
@@ -57,7 +57,7 @@ export interface FicheIndisponible {
 /**
  * Range chaque fiche en disponible ou indisponible (avec sa raison). L'ordre d'entrée est conservé :
  * disponibles + indisponibles = toutes les fiches, sans doublon.
- * `zones` : les zones douloureuses du jour (`zonesDouloureuses`) ; celles du profil comptent toujours aussi.
+ * `zones` : les zones douloureuses du jour (`zonesDouloureuses`, douleurs déclarées).
  */
 export function trierFiches(
   fiches: FicheVerif[],
@@ -88,7 +88,7 @@ export function phraseRaison(
     case 'prerequis':
       return `Prérequis manquants : ${manquesPrerequis(fiche.prerequis, profil).join(' ; ')}.`
     case 'douleur': {
-      const touchees = fiche.contreIndications.filter((z) => zones.includes(z) || profil.douleursEnCours.includes(z))
+      const touchees = fiche.contreIndications.filter((z) => zones.includes(z))
       return `Déconseillé : douleur déclarée (${touchees.map((z) => NOMS_ZONES[z]).join(', ')}).`
     }
     case 'contexte':

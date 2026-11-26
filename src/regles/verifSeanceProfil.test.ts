@@ -34,7 +34,7 @@ describe('S-01 fiche inconnue', () => {
     expect(codes(verifier(['technique-pieds-silencieux']))).not.toContain('S-01')
   })
   it('la fiche inconnue est ignorée par les autres règles même avec une douleur', () => {
-    const a = verifier(['fiche-inventee'], { profil: profil({ douleursEnCours: ['doigts'] }) })
+    const a = verifier(['fiche-inventee'], { douleurs: [douleur({ zone: 'doigts' })] })
     expect(codes(a)).toEqual(['S-01'])
   })
 })
@@ -123,15 +123,15 @@ describe('manquesPrerequis', () => {
 })
 
 describe('S-04 douleur déclarée', () => {
-  it('douleur du profil et fiche qui la sollicite', () => {
-    const a = verifier(['puissance-bloc-limite'], { profil: profil({ douleursEnCours: ['doigts'] }) }).find((x) => x.code === 'S-04')
+  it('douleur déclarée et fiche qui la sollicite', () => {
+    const a = verifier(['puissance-bloc-limite'], { douleurs: [douleur({ zone: 'doigts' })] }).find((x) => x.code === 'S-04')
     expect(a?.niveau).toBe('fort')
     expect(a?.message).toMatch(
       /^Tu as signalé une douleur \(doigts\)\. « .* » la sollicite : remplace-la par un exercice qui ne fait pas mal, ou retire-la\.$/,
     )
   })
   it('fiche qui ne sollicite pas la zone : rien', () => {
-    expect(codes(verifier(['technique-pieds-silencieux'], { profil: profil({ douleursEnCours: ['doigts'] }) }))).not.toContain('S-04')
+    expect(codes(verifier(['technique-pieds-silencieux'], { douleurs: [douleur({ zone: 'doigts' })] }))).not.toContain('S-04')
   })
   it('douleur ouverte déclarée avant la séance', () => {
     const a = verifier(['antagonistes-legers'], { douleurs: [douleur({})] })
@@ -141,7 +141,7 @@ describe('S-04 douleur déclarée', () => {
     const fiches = contexteDeReference().fiches
     const ctx = contexteDeReference({
       fiches: { ...fiches, test: { ...fiches['technique-pieds-silencieux'], id: 'test', contreIndications: ['doigts', 'coude'] } },
-      profil: profil({ douleursEnCours: ['doigts', 'coude'] }),
+      douleurs: [douleur({ zone: 'doigts' }), douleur({ zone: 'coude' })],
     })
     const a = verifierSeanceProfil(seanceSolo('s1', JOUR, ['test'], { fiches: ctx.fiches }), ctx, 'utilisateur').filter((x) => x.code === 'S-04')
     expect(a).toHaveLength(1)
@@ -241,7 +241,7 @@ describe('version groupe et sources', () => {
   })
   it('chaque avertissement a une source en clair, sans crochets', () => {
     const a = verifier(['puissance-pan-gullich-stien', 'mental-ecole-de-vol', 'fiche-inventee'], {
-      profil: profil({ douleursEnCours: ['doigts'], grimpeEnTete: false }),
+      profil: profil({ grimpeEnTete: false }), douleurs: [douleur({ zone: 'doigts' })],
     })
     expect(a.length).toBeGreaterThan(3)
     for (const x of a) expect(x.source).not.toMatch(/[[\]]/)
@@ -262,7 +262,7 @@ describe('principaux hors étapes (consolidation 24/11)', () => {
   const P = 'doigts-suspensions-max-lestees'
   it('S-03 et S-04 : portée séance, sujet = fiche, sans etapeIndex', () => {
     const ctx = contexteDeReference({
-      profil: profil({ experiencePoutre: 'occasionnelle', douleursEnCours: ['doigts'] }),
+      profil: profil({ experiencePoutre: 'occasionnelle' }), douleurs: [douleur({ zone: 'doigts' })],
     })
     const a = verifierSeanceProfil(seanceAvec([P]), ctx, 'utilisateur')
     for (const code of ['S-03', 'S-04']) {

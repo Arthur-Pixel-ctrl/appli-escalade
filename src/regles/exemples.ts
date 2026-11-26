@@ -14,7 +14,6 @@ export const PROFIL_DE_REFERENCE: ProfilVerif = {
   test15sSur25mm: true,
   adulte: true,
   grimpeEnTete: false,
-  douleursEnCours: [],
   seancesParSemaine: 3,
   lieux: ['salle_bloc'],
 }

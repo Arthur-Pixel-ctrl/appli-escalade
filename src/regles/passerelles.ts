@@ -41,8 +41,6 @@ export function profilVersVerif(p: Profil): ProfilVerif {
     test15sSur25mm: p.tient15sSur25mm,
     adulte: p.majeur,
     grimpeEnTete: p.grimpeEnTete,
-    // (décision G2) Le profil n'a plus de zones : toutes les douleurs viennent de `douleurs`. Champ retiré du moteur par G2-02.
-    douleursEnCours: [],
     seancesParSemaine: p.seancesParSemaine,
     // Prudence : sans lieu renseigné, on suppose une salle de bloc seulement (pas de corde, rien à la maison).
     lieux: p.lieux.length === 0 ? ['salle_bloc'] : [...p.lieux],
@@ -535,8 +533,8 @@ export function etatPrerequis(
   douleurs: DouleurVerif[],
   aujourdhui: DateISO,
 ): { manques: string[]; contreIndications: ZoneDouleur[] } {
-  // zonesDouloureuses ne lit que le profil et les douleurs du contexte.
-  const zones = zonesDouloureuses({ profil, douleurs } as ContexteVerif, aujourdhui)
+  // zonesDouloureuses ne lit que les douleurs du contexte (décision G2).
+  const zones = zonesDouloureuses({ douleurs } as ContexteVerif, aujourdhui)
   return {
     manques: manquesPrerequis(fiche.prerequis, profil),
     contreIndications: fiche.contreIndications.filter((z) => zones.includes(z)),

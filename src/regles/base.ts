@@ -170,9 +170,9 @@ export function seanceSolliciteDoigts(s: SeanceVerif, fiches: Fiches): boolean {
   return sansContenuConnu(s.solo, fiches) && s.qualite !== 'mobilite' && s.qualite !== 'antagonistes'
 }
 
-/** Zones de douleur du profil, plus celles des douleurs déclarées avant le jour et pas encore résolues. */
+/** Zones des douleurs déclarées avant le jour et pas encore résolues ce jour-là. Une seule source (décision G2) : les douleurs déclarées. */
 export function zonesDouloureuses(ctx: ContexteVerif, jour: Jour): ZoneDouleur[] {
-  const zones = new Set<ZoneDouleur>(ctx.profil.douleursEnCours)
+  const zones = new Set<ZoneDouleur>()
   for (const d of ctx.douleurs) {
     const ouverte = d.resolueLe === undefined || d.resolueLe > jour
     if (ouverte && d.date <= jour) zones.add(d.zone)
