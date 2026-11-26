@@ -73,3 +73,10 @@ Une consolidation (concepteur Opus, effort élevé) fusionne les 56 tâches (F2-
 | F5 | Où se choisit le niveau | **À la création du programme, sur ordinateur** : un niveau par défaut pour tout le cycle, modifiable séance par séance (sur ordinateur aussi). Le téléphone affiche chaque séance à son niveau et garde le suivi (chrono, trois questions, débrief) |
 | F6 | Niveau de détail proposé à la création d'un cycle (question Q1 de `docs/specs/niveaux-de-detail.md`) | **Pas de niveau imposé : l'app pose la question à la création du cycle, et la proposition dépend de l'objectif.** À reporter dans `niveaux-de-detail.md` (Q1), N-01 (`NIVEAU_PAR_DEFAUT` remplacé par une fonction de proposition selon l'objectif) et D-25 / O-13 (la question du niveau vient après le choix de l'objectif) |
 | F7 | Séance « dure » écrite à la main sans exercice de la banque (question Q2) | **Non** : elle compte comme une séance dure ordinaire, pas comme un effort maximal. À reporter dans `niveaux-de-detail.md` (B.2, S-26, Q2) et `moteur-verification.md` (`marqueursVersion` sans `maximale` dans ce cas, S-26 reformulée en information, cas de test 14) |
+
+## G. Décisions du 26/11/2026 (phase 4)
+
+| # | Sujet | Décision d'Arthur |
+|---|---|---|
+| G1 | Fin de phase 3 | Essai réel sur ordinateur réussi (« tout semble bien marcher ») : phase 3 validée, passage à la phase 4 |
+| G2 | Douleurs (question posée par le cadrage de la phase 4, sous C-04) | **Remplacer par les douleurs datées** : la question du profil « Une douleur en ce moment ? » (zones sans date) est remplacée par les douleurs déclarées et datées de C-04, une seule source pour les règles (S-04 à S-06, J-03, J-05). Mise en œuvre à spécifier (premier écran, profil téléphone et ordinateur, reprise des zones déjà notées, moteur) |
