@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
 import { lireSeances, type SeanceRealisee } from '../donnees/base.ts'
+import type { SeancePlanifiee } from '../donnees/modele.ts'
+import { lireSeancePlanifiee } from '../donnees/plan.ts'
+import { surDonneesChangees } from '../donnees/stockage.ts'
+import { surEtatSynchro } from '../synchro/automatique.ts'
+import { nomDuJour } from './bureau/avertissementsPlan.ts'
+import { useCompteLie } from './donneesTelephone.ts'
 import { chargeSeance, chiffresBlocs, parCouleur, precedente, prochaineSeanceDurePossible, resume, seancesDeLaSemaine } from '../donnees/debrief.ts'
 import { PastillePrise } from '../composants/PastillePrise.tsx'
 import { Avertissement } from '../composants/Avertissement.tsx'
@@ -14,13 +20,35 @@ function duree(min: number) {
   return min >= 60 ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min} min`
 }
 
+// Où en est la séance : toujours gardée sur ce téléphone ; envoyée seulement si l'appareil est lié à un compte (`aEnvoyer`).
+function mentionEnvoi(s: SeanceRealisee, compteLie: boolean): string {
+  const base = 'Enregistrée sur ce téléphone'
+  if (!compteLie) return base
+  return (s as { aEnvoyer?: number }).aEnvoyer === 1 ? `${base} · envoi au retour du réseau` : `${base} · envoyée`
+}
+
 // Fin de séance, second temps : le débrief complet. Tout est calculé à partir des séances enregistrées.
 export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle: Salle; onFermer: () => void }) {
   const [toutes, setToutes] = useState<SeanceRealisee[] | null>(null)
   const [echec, setEchec] = useState(false)
   // Les repères s'ouvrent ici même : pas besoin de changer l'écran affiché par l'app.
   const [reperesOuverts, setReperesOuverts] = useState(false)
-  useEffect(() => { lireSeances().then(setToutes).catch(() => setEchec(true)) }, [seanceId])
+  const [prevue, setPrevue] = useState<SeancePlanifiee | undefined>(undefined)
+  const compteLie = useCompteLie()
+  // Relu quand l'envoi avance : la mention « envoyée » remplace « envoi au retour du réseau » sans quitter l'écran.
+  useEffect(() => {
+    const lire = () => { lireSeances().then(setToutes).catch(() => setEchec(true)) }
+    lire()
+    const arrets = [surEtatSynchro(lire), surDonneesChangees(lire)]
+    return () => arrets.forEach((arreter) => arreter())
+  }, [seanceId])
+  const idPrevue = toutes?.find((x) => x.id === seanceId)?.seancePlanifieeId
+  useEffect(() => {
+    if (idPrevue === undefined) return
+    let actif = true
+    lireSeancePlanifiee(idPrevue).then((p) => { if (actif) setPrevue(p) }).catch(() => {})
+    return () => { actif = false }
+  }, [idPrevue])
 
   if (reperesOuverts) return <MisesEnGarde libelleFermer="Retour au débrief" onFermer={() => setReperesOuverts(false)} />
 
@@ -70,6 +98,10 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
         <p className="surtitre">{dateLongue.format(new Date(s.creeLe))} · {s.mode === 'groupe' ? 'en groupe' : 'seul'} · {duree(s.dureeMin)}</p>
         <h1 className="titre">Débrief</h1>
         <p className="texte-2">{resume(s)}</p>
+        {s.seancePlanifieeId !== undefined && (
+          <p className="texte-2">Séance prévue : {prevue ? `${nomDuJour(prevue.date)}, ${prevue.solo.nom}` : 'séance du plan'} · faite</p>
+        )}
+        <p className="mention" role="status">{mentionEnvoi(s, compteLie)}</p>
       </div>
 
       {s.douleur && (
@@ -99,7 +131,7 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
         </section>
       )}
 
-      {s.mode === 'solo' && (
+      {s.mode !== 'groupe' && (
         <section className="pile">
           <h2 className="sous-titre">Étapes</h2>
           <div>

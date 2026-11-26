@@ -9,7 +9,7 @@ import {
   annulerDernierBloc, avancement, changerObjectif as changerObjectifMoteur, demarrerSeanceGroupe, noterBloc,
 } from '../moteur/seanceGroupe.ts'
 import { minutesEcoulees } from '../moteur/seanceSolo.ts'
-import type { BlocGrimpe, SeanceGroupe as Seance } from '../moteur/types.ts'
+import type { BlocGrimpe, ObjectifGroupe, SeanceGroupe as Seance } from '../moteur/types.ts'
 
 interface Props {
   seance: Seance
@@ -24,7 +24,7 @@ interface Props {
 export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
   const [etat, setEtat] = useState(() => demarrerSeanceGroupe(Date.now()))
   const { blocs, position } = etat // position = objectif affiché
-  const [couleur, setCouleur] = useState(seance.objectifs[0].couleurConseillee ?? salle.couleurs[0].nom)
+  const [couleur, setCouleur] = useState(seance.objectifs[0]?.couleurConseillee ?? salle.couleurs[0].nom)
   const [essais, setEssais] = useState(1)
   const [maintenant, setMaintenant] = useState(() => Date.now())
   const repos = useRepos(seance.reposConseilleS)
@@ -37,8 +37,9 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
   }, [])
   const minutes = minutesEcoulees(etat, maintenant)
 
-  const objectif = seance.objectifs[position]
-  const fait = avancement(objectif, position, blocs)
+  // Séance libre : aucun objectif, on note seulement les blocs grimpés.
+  const objectif: ObjectifGroupe | undefined = seance.objectifs[position]
+  const fait = objectif ? avancement(objectif, position, blocs) : 0
 
   const changerObjectif = (p: number) => {
     setEtat((avant) => changerObjectifMoteur(avant, p))
@@ -68,15 +69,24 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
       <button className="bouton arret centre stop-seance" onClick={() => setGardeOuverte(true)}>Stop, ça fait mal</button>
 
       <div className="pile">
-        <p className="surtitre">Objectif {position + 1} sur {seance.objectifs.length}</p>
-        <h1 className="titre moyen">{objectif.libelle}</h1>
-        {/* Borne de sécurité : on la rappelle sans jamais empêcher d'ajouter un essai. */}
-        {objectif.essaisMaxParBloc !== undefined && (
-          <p className="mention">{objectif.essaisMaxParBloc} {objectif.essaisMaxParBloc > 1 ? 'ESSAIS MAX' : 'ESSAI MAX'} PAR BLOC</p>
+        {objectif ? (
+          <>
+            <p className="surtitre">Objectif {position + 1} sur {seance.objectifs.length}</p>
+            <h1 className="titre moyen">{objectif.libelle}</h1>
+            {/* Borne de sécurité : on la rappelle sans jamais empêcher d'ajouter un essai. */}
+            {objectif.essaisMaxParBloc !== undefined && (
+              <p className="mention">{objectif.essaisMaxParBloc} {objectif.essaisMaxParBloc > 1 ? 'ESSAIS MAX' : 'ESSAI MAX'} PAR BLOC</p>
+            )}
+            <div className="jauge" role="img" aria-label={`${Math.min(fait, objectif.cible)} sur ${objectif.cible}`}>
+              {Array.from({ length: objectif.cible }, (_, i) => <span key={i} className={i < fait ? 'actif' : ''} />)}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="surtitre">Sans objectif</p>
+            <h1 className="titre moyen">{seance.nom}</h1>
+          </>
         )}
-        <div className="jauge" role="img" aria-label={`${Math.min(fait, objectif.cible)} sur ${objectif.cible}`}>
-          {Array.from({ length: objectif.cible }, (_, i) => <span key={i} className={i < fait ? 'actif' : ''} />)}
-        </div>
       </div>
 
       <section className="fiche pile-large" aria-labelledby="titre-noter">
@@ -100,7 +110,7 @@ export function SeanceGroupe({ seance, salle, onTerminer, onQuitter }: Props) {
           </div>
         </div>
 
-        {objectif.essaisMaxParBloc !== undefined && essais > objectif.essaisMaxParBloc && (
+        {objectif?.essaisMaxParBloc !== undefined && essais > objectif.essaisMaxParBloc && (
           <Avertissement niveau="avertissement" titre={`Plus de ${objectif.essaisMaxParBloc} essais`}>
             Au-delà, la fatigue des doigts augmente le risque de blessure. Passe au bloc suivant si tu peux.
           </Avertissement>

@@ -7,7 +7,7 @@ import type {
   Cycle, DateISO, ExercicePerso, PhaseCycle, SallePerso, SeancePlanifiee, SeanceRealisee,
 } from './modele.ts'
 import { salleParId, type Salle } from './salles.ts'
-import { ecrire, lireTous, supprimer } from './stockage.ts'
+import { ecrire, lireTous, lireUn, supprimer } from './stockage.ts'
 import type { EtapeSeance } from '../moteur/types.ts'
 
 // ——— Dates (fonctions pures, jours locaux) ———
@@ -96,7 +96,31 @@ export async function lirePlanDuCycle(cycleId: string): Promise<{ phases: PhaseC
   }
 }
 
-/** Les séances planifiées dont la date est comprise entre `debut` et `fin` (inclus), sans les supprimées. */
+/**
+ * Le plan à montrer sur le téléphone : le cycle validé qui couvre la date du jour, ses phases et ses séances.
+ * `null` s'il n'y en a pas (aucun cycle, brouillon seulement, cycle terminé, supprimé ou abandonné).
+ * Aujourd'hui et Programme ne lisent que le cycle validé en cours (amendement 7 de D-22) :
+ * une séance dont la phase n'est pas une phase non supprimée de ce cycle est orpheline et n'est jamais rendue.
+ */
+export async function lirePlanEnCours(
+  aujourdhui: DateISO,
+): Promise<{ cycle: Cycle; phases: PhaseCycle[]; seances: SeancePlanifiee[] } | null> {
+  const cycle = cycleEnCours(await lireCycles(), aujourdhui)
+  if (!cycle) return null
+  const { phases, seances } = await lirePlanDuCycle(cycle.id)
+  const idsPhases = new Set(phases.map((p) => p.id))
+  return { cycle, phases, seances: seances.filter((s) => idsPhases.has(s.phaseId)) }
+}
+
+/** Une séance planifiée par son identifiant, `undefined` si elle n'existe pas ou a été supprimée. */
+export async function lireSeancePlanifiee(id: string): Promise<SeancePlanifiee | undefined> {
+  return lireUn<SeancePlanifiee>('seancesPlanifiees', id)
+}
+
+/**
+ * Ne regarde ni le cycle ni son état : ne pas s'en servir pour afficher le plan (Aujourd'hui, Programme).
+ * Les séances planifiées dont la date est comprise entre `debut` et `fin` (inclus), sans les supprimées.
+ */
 export async function lireSeancesEntre(debut: DateISO, fin: DateISO): Promise<SeancePlanifiee[]> {
   const trouvees = await avecReprise(() => base.seancesPlanifiees.where('date').between(debut, fin, true, true).toArray())
   return trouvees.filter((s) => !s.supprimeLe)

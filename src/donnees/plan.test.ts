@@ -6,7 +6,7 @@ import type { Cycle, SallePerso, SeancePlanifiee, SeanceRealisee } from './model
 import {
   ajouterJours, cycleEnCours, cycleTermine, debutPhase, debutSemaine, dureeEtapes, enregistrerCycle,
   enregistrerExercicePerso, enregistrerPhase, enregistrerSallePerso, enregistrerSeancePlanifiee, finCycle,
-  lireCycles, lireExercicesPerso, lirePlanDuCycle, lireSallesPerso, lireSeancesEntre, salleEffective,
+  lireCycles, lireExercicesPerso, lirePlanDuCycle, lirePlanEnCours, lireSeancePlanifiee, lireSallesPerso, lireSeancesEntre, salleEffective,
   statutSeance, supprimerCycle,
 } from './plan.ts'
 import { ARKOSE, MROC } from './salles.ts'
@@ -178,5 +178,65 @@ describe('lecture et écriture dans la base', () => {
     } as never)
     expect((await lireSallesPerso()).map((s) => s.id)).toEqual(['sp'])
     expect((await lireExercicesPerso()).map((e) => e.id)).toEqual(['e1'])
+  })
+
+  describe('lirePlanEnCours (amendement 7 de D-22)', () => {
+    const AUJOURDHUI = '2026-11-17'
+    const autreCycle: Cycle = { ...cycle, id: 'autre-cycle', nom: 'Autre', etat: 'brouillon' }
+
+    it('un cycle brouillon qui couvre aujourd’hui, avec une séance aujourd’hui : rien', async () => {
+      await enregistrerCycle({ ...cycle, etat: 'brouillon' })
+      await enregistrerPhase(phase1)
+      await enregistrerSeancePlanifiee(seanceLe('s1', AUJOURDHUI))
+      expect(await lirePlanEnCours(AUJOURDHUI)).toBeNull()
+    })
+
+    it('un cycle validé et un brouillon le même jour : seule la séance du cycle validé', async () => {
+      await enregistrerCycle(cycle)
+      await enregistrerPhase(phase1)
+      await enregistrerSeancePlanifiee(seanceLe('valide', AUJOURDHUI))
+      await enregistrerCycle(autreCycle)
+      await enregistrerPhase({ ...phase1, id: 'phase-autre', cycleId: autreCycle.id })
+      await enregistrerSeancePlanifiee({ ...seanceLe('brouillon', AUJOURDHUI), cycleId: autreCycle.id, phaseId: 'phase-autre' })
+      const plan = await lirePlanEnCours(AUJOURDHUI)
+      expect(plan?.cycle.id).toBe(cycle.id)
+      expect(plan?.seances.map((s) => s.id)).toEqual(['valide'])
+    })
+
+    it('une séance dont la phase est supprimée, ou inconnue, est absente', async () => {
+      await enregistrerCycle(cycle)
+      await enregistrerPhase(phase1)
+      await enregistrerPhase(phase2)
+      await enregistrerSeancePlanifiee(seanceLe('bonne', AUJOURDHUI))
+      await enregistrerSeancePlanifiee({ ...seanceLe('phase-supprimee', '2026-12-15'), phaseId: phase2.id })
+      await enregistrerSeancePlanifiee({ ...seanceLe('orpheline', '2026-11-18'), phaseId: 'phase-qui-n-existe-pas' })
+      await base.phases.update(phase2.id, { supprimeLe: '2026-11-17T08:00:00.000Z' })
+      const plan = await lirePlanEnCours(AUJOURDHUI)
+      expect(plan?.phases.map((p) => p.id)).toEqual([phase1.id])
+      expect(plan?.seances.map((s) => s.id)).toEqual(['bonne'])
+    })
+
+    it('le cycle validé supprimé par supprimerCycle : rien', async () => {
+      await enregistrerCycle(cycle)
+      await enregistrerPhase(phase1)
+      await enregistrerSeancePlanifiee(seanceLe('s1', AUJOURDHUI))
+      await supprimerCycle(cycle.id)
+      expect(await lirePlanEnCours(AUJOURDHUI)).toBeNull()
+    })
+
+    it('aucun cycle, ou un cycle qui ne couvre pas la date : rien', async () => {
+      expect(await lirePlanEnCours(AUJOURDHUI)).toBeNull()
+      await enregistrerCycle(cycle)
+      expect(await lirePlanEnCours('2026-11-15')).toBeNull()
+      expect(await lirePlanEnCours('2027-02-08')).toBeNull()
+    })
+  })
+
+  it('lireSeancePlanifiee relit une séance, pas une séance supprimée', async () => {
+    await enregistrerSeancePlanifiee(seanceLe('s1', '2026-11-17'))
+    expect((await lireSeancePlanifiee('s1'))?.id).toBe('s1')
+    expect(await lireSeancePlanifiee('inconnue')).toBeUndefined()
+    await base.seancesPlanifiees.update('s1', { supprimeLe: 'x' })
+    expect(await lireSeancePlanifiee('s1')).toBeUndefined()
   })
 })
