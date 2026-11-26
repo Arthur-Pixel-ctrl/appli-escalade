@@ -119,6 +119,12 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
               <div><b>{s.dureeMin}</b><span>minutes</span></div></>}
         <div><b>{s.effortPercu}/10</b><span>effort</span></div>
       </div>
+      {/* Groupe avec mini-bloc (D-28) : ses étapes comptent aussi, sur une ligne à part. */}
+      {s.mode === 'groupe' && s.etapes.length > 0 && (
+        <div className="chiffres-cles chiffres">
+          <div><b className="accent">{etapesFaites}/{s.etapes.length}</b><span>étapes faites</span></div>
+        </div>
+      )}
 
       {s.objectifs.length > 0 && (
         <section className="pile">
@@ -131,7 +137,7 @@ export function Debrief({ seanceId, salle, onFermer }: { seanceId: string; salle
         </section>
       )}
 
-      {s.mode !== 'groupe' && (
+      {(s.mode !== 'groupe' || s.etapes.length > 0) && (
         <section className="pile">
           <h2 className="sous-titre">Étapes</h2>
           <div>
