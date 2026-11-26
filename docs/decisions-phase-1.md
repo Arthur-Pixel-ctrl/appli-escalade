@@ -80,3 +80,4 @@ Une consolidation (concepteur Opus, effort élevé) fusionne les 56 tâches (F2-
 |---|---|---|
 | G1 | Fin de phase 3 | Essai réel sur ordinateur réussi (« tout semble bien marcher ») : phase 3 validée, passage à la phase 4 |
 | G2 | Douleurs (question posée par le cadrage de la phase 4, sous C-04) | **Remplacer par les douleurs datées** : la question du profil « Une douleur en ce moment ? » (zones sans date) est remplacée par les douleurs déclarées et datées de C-04, une seule source pour les règles (S-04 à S-06, J-03, J-05). Mise en œuvre à spécifier (premier écran, profil téléphone et ordinateur, reprise des zones déjà notées, moteur) |
+| G3 | Modèle des tâches mécaniques et des tests | **Sonnet au lieu de Haiku** : à trois reprises (23/11, 25/11, 26/11), un agent Haiku a créé un rappel automatique malgré une interdiction écrite. Sonnet et Opus ne l'ont jamais fait. Reporté dans `CLAUDE.md` |
