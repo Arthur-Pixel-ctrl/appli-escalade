@@ -3,6 +3,7 @@
 // Les dates de début, la fin d'un cycle, le statut d'une séance se calculent ici à chaque lecture ;
 // aucune de ces valeurs n'est enregistrée dans la base.
 import { avecReprise, base, jourLocal } from './base.ts'
+import { lundiDe } from './debrief.ts'
 import type {
   Cycle, DateISO, ExercicePerso, PhaseCycle, SallePerso, SeancePlanifiee, SeanceRealisee,
 } from './modele.ts'
@@ -68,6 +69,17 @@ export function statutSeance(s: SeancePlanifiee, realisees: SeanceRealisee[], au
   if (s.sauteeLe) return 'sautee'
   if (s.date < aujourdhui) return 'manquee'
   return s.date === aujourdhui ? 'aujourdhui' : 'a_venir'
+}
+
+/**
+ * Les jours où on peut déplacer une séance depuis le téléphone : ceux de sa semaine (du lundi au dimanche)
+ * qui ne sont pas passés, sauf son jour actuel. Une séance manquée ou sautée n'en a aucun : pas de rattrapage (A3-6).
+ * Un jour qui a déjà une séance reste possible : les avertissements le diront, rien n'est bloqué.
+ */
+export function joursPossibles(s: SeancePlanifiee, aujourdhui: DateISO): DateISO[] {
+  if (s.date < aujourdhui || s.sauteeLe) return []
+  const lundi = lundiDe(s.date)
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => ajouterJours(lundi, i)).filter((jour) => jour >= aujourdhui && jour !== s.date)
 }
 
 /** Durée d'une version solo : somme des durées de ses étapes (en minutes). */
@@ -167,4 +179,36 @@ export async function supprimerCycle(id: string): Promise<void> {
   }
   for (const s of seances) await supprimer('seancesPlanifiees', s.id)
   await supprimer('cycles', id)
+}
+
+// Petits ajustements du téléphone (B11, architecture § 2.5) : le document entier est réécrit ;
+// si l'ordinateur modifie la même séance sans réseau, la modification la plus récente gagne.
+
+async function lireOuErreur(id: string): Promise<SeancePlanifiee> {
+  const s = await lireSeancePlanifiee(id)
+  if (!s) throw new Error('Séance introuvable.')
+  return s
+}
+
+/** Déplace une séance à un autre jour de sa semaine. `aujourdhui` vient de l'appelant : pas d'horloge cachée. */
+export async function deplacerSeance(id: string, nouvelleDate: DateISO, aujourdhui: DateISO): Promise<void> {
+  const s = await lireOuErreur(id)
+  if (!joursPossibles(s, aujourdhui).includes(nouvelleDate)) {
+    throw new Error('Ce jour n’est pas possible : même semaine, pas avant aujourd’hui.')
+  }
+  // `semaine` et `phaseId` ne changent pas : le jour reste dans la même semaine.
+  await ecrire('seancesPlanifiees', { ...s, date: nouvelleDate })
+}
+
+/** Saute une séance : on garde l'instant du choix, le statut « sautée » se calcule (§ 3.5). */
+export async function sauterSeance(id: string): Promise<void> {
+  const s = await lireOuErreur(id)
+  await ecrire('seancesPlanifiees', { ...s, sauteeLe: new Date().toISOString() })
+}
+
+/** Annule le saut : le champ disparaît du document. */
+export async function annulerSaut(id: string): Promise<void> {
+  const s = await lireOuErreur(id)
+  const { sauteeLe: _sauteeLe, ...reste } = s
+  await ecrire('seancesPlanifiees', reste)
 }

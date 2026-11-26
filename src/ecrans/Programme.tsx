@@ -1,23 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEnLigne } from '../compte/useEnLigne.ts'
 import { BandeSemaines } from '../composants/BandeSemaines.tsx'
 import { Avertissement } from '../composants/Avertissement.tsx'
+import { Confirmation } from '../composants/Confirmation.tsx'
 import { jourLocal } from '../donnees/base.ts'
 import { dureeVersionSolo, niveauAffiche } from '../donnees/niveaux.ts'
 import type { Profil } from '../donnees/profil.ts'
 import type { SeancePlanifiee } from '../donnees/modele.ts'
-import type { StatutSeance } from '../donnees/plan.ts'
+import { annulerSaut, deplacerSeance, joursPossibles, sauterSeance, type StatutSeance } from '../donnees/plan.ts'
 import { toutesLesFiches } from '../regles/index.ts'
-import { nomDuJour } from './bureau/avertissementsPlan.ts'
+import { nomDuJour, scinderMessage } from './bureau/avertissementsPlan.ts'
 import { semaineDuJour } from './bureau/Plan.outils.ts'
 import { casesDeLaBande, contenuDeLaSeance, ETIQUETTES_STATUT } from './bureau/TableauDeBord.outils.ts'
 import {
   dateDuPlanConnu, formaterDuree, libelleDurete, majuscule, peutLancerGroupe, peutLancerSolo, sousTitreGroupe, sousTitreSolo,
 } from './Aujourdhui.outils.ts'
-import { useDonneesTelephone, useSynchroEnCours } from './donneesTelephone.ts'
+import { useCompteLie, useDonneesTelephone, useSynchroEnCours } from './donneesTelephone.ts'
 import { BoutonMode, Chargement, ContenuFiche, SansPlan } from './ElementsTelephone.tsx'
 import type { DemandeLancement } from './lancement.ts'
-import { joursDeLaSemaineOuverte, mentionSemaine } from './Programme.outils.ts'
+import { avertissementsAutourDe, joursDeLaSemaineOuverte, mentionSemaine } from './Programme.outils.ts'
 
 const dateCourte = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' })
 const jourDuMois = (date: string) => String(Number(date.slice(8, 10)))
@@ -40,12 +41,28 @@ export function Programme({ profil, onLancer, onOuvrirSeance }: Props) {
   const [maintenant] = useState(() => new Date())
   const aujourdhui = jourLocal(maintenant)
   const enLigne = useEnLigne()
+  const compteLie = useCompteLie()
   const synchroTourne = useSynchroEnCours()
   const { donnees, echec } = useDonneesTelephone(aujourdhui)
   const plan = donnees?.plan ?? null
   const position = useMemo(() => (plan ? semaineDuJour(plan.cycle, aujourdhui) : null), [plan, aujourdhui])
   const [choisie, setChoisie] = useState<number | null>(null)
   const [ouverteId, setOuverteId] = useState<string | null>(null)
+  // Ce qui a été fait dans l'aperçu (« Séance déplacée… ») ou ce qui a échoué : propre à la séance ouverte.
+  const [retour, setRetour] = useState<{ type: 'ok' | 'echec'; texte: string } | null>(null)
+  const ouvrir = (id: string | null) => { setOuverteId(id); setRetour(null) }
+
+  // Ce que le moteur dit de la semaine de la séance ouverte, avant comme après un déplacement : on avertit, on ne bloque rien.
+  const avertissements = useMemo(() => {
+    const cible = plan?.seances.find((x) => x.id === ouverteId)
+    if (!donnees || !plan || !cible) return []
+    return avertissementsAutourDe({
+      cycle: plan.cycle, phases: plan.phases, seances: plan.seances, objectifs: donnees.objectifs, profil,
+      ...(donnees.reglages ? { reglages: { reglesSecurite: donnees.reglages.reglesSecurite } } : {}),
+      exercicesPerso: donnees.exercicesPerso, douleurs: donnees.douleurs, formes: donnees.formes, realisees: donnees.realisees,
+      aujourdhui, maintenant: maintenant.toISOString(),
+    }, cible)
+  }, [donnees, plan, ouverteId, profil, aujourdhui, maintenant])
 
   if (!donnees) {
     if (!echec) return <Chargement titre="Chargement de ton plan…" />
@@ -83,7 +100,7 @@ export function Programme({ profil, onLancer, onOuvrirSeance }: Props) {
     return (
       <main className="ecran" aria-labelledby="titre-programme">
         <div className="pile">
-          <button className="bouton-discret retour" onClick={() => setOuverteId(null)}>← Retour à la semaine</button>
+          <button className="bouton-discret retour" onClick={() => ouvrir(null)}>← Retour à la semaine</button>
           <p className="mention">{majuscule(nomDuJour(seance.date))} {jourDuMois(seance.date)} · {ETIQUETTES_STATUT[statut]}</p>
           <h1 className="titre moyen" id="titre-programme">{seance.solo.nom}</h1>
         </div>
@@ -104,9 +121,25 @@ export function Programme({ profil, onLancer, onOuvrirSeance }: Props) {
             </ul>
           </section>
         )}
-        {(statut === 'aujourdhui' || statut === 'a_venir') ? <LancerCetteSeance seance={seance} habituel={habituel} niveau={niveau} onLancer={onLancer} /> : (
+        {(statut === 'aujourdhui' || statut === 'a_venir') && avertissements.length > 0 && (
           <div className="pile">
-            {PHRASES_STATUT[statut] && <p className="texte-2">{PHRASES_STATUT[statut]}</p>}
+            {avertissements.map(({ avertissement: a, forme, garde }) => {
+              const { titre, suite } = scinderMessage(a.message)
+              return <Avertissement key={`${a.code}|${a.message}`} niveau={forme} titre={titre} replie={garde}>{suite || undefined}</Avertissement>
+            })}
+          </div>
+        )}
+        {(statut === 'aujourdhui' || statut === 'a_venir') ? (
+          <>
+            <LancerCetteSeance seance={seance} habituel={habituel} niveau={niveau} onLancer={onLancer} />
+            <Ajustements seance={seance} sautee={false} aujourdhui={aujourdhui} compteLie={compteLie} retour={retour} onRetour={setRetour} />
+          </>
+        ) : (
+          <div className="pile">
+            {PHRASES_STATUT[statut] && !(statut === 'sautee' && retour) && <p className="texte-2">{PHRASES_STATUT[statut]}</p>}
+            {statut === 'sautee' && seance.date >= aujourdhui && (
+              <Ajustements seance={seance} sautee aujourdhui={aujourdhui} compteLie={compteLie} retour={retour} onRetour={setRetour} />
+            )}
             {statut === 'faite' && realisee && (
               <button className="bouton-second" onClick={() => onOuvrirSeance(realisee.id)}>Revoir le débrief</button>
             )}
@@ -148,7 +181,7 @@ export function Programme({ profil, onLancer, onOuvrirSeance }: Props) {
               ) : (
                 <div className="pile">
                   {j.lignes.map(({ seance, statut }) => (
-                    <button key={seance.id} className="bouton" onClick={() => setOuverteId(seance.id)}>
+                    <button key={seance.id} className="bouton" onClick={() => ouvrir(seance.id)}>
                       <strong>{seance.solo.nom}</strong>
                       <span>{libelleDurete(seance.solo.durete)} · {ETIQUETTES_STATUT[statut]}</span>
                     </button>
@@ -187,6 +220,75 @@ function LancerCetteSeance({ seance, habituel, niveau, onLancer }: {
           onClick={() => onLancer({ type: 'plan', seance, mode })}
         />
       ))}
+    </div>
+  )
+}
+
+// Déplacer ou sauter (B11) : les seuls changements permis sur téléphone. Les données se relisent seules après l'écriture.
+function Ajustements({ seance, sautee, aujourdhui, compteLie, retour, onRetour }: {
+  seance: SeancePlanifiee
+  sautee: boolean
+  aujourdhui: string
+  compteLie: boolean
+  retour: { type: 'ok' | 'echec'; texte: string } | null
+  onRetour: (r: { type: 'ok' | 'echec'; texte: string } | null) => void
+}) {
+  const [choixDuJour, setChoixDuJour] = useState(false)
+  const [confirmerSaut, setConfirmerSaut] = useState(false)
+  const zoneRetour = useRef<HTMLParagraphElement>(null)
+  const jours = joursPossibles(seance, aujourdhui)
+
+  // Après une action, le focus va sur le message : le bouton touché a disparu, on ne veut pas perdre le clavier.
+  useEffect(() => { if (retour) zoneRetour.current?.focus() }, [retour])
+
+  async function agir(action: () => Promise<void>, texteOk: string) {
+    try {
+      await action()
+      onRetour({ type: 'ok', texte: texteOk })
+    } catch {
+      onRetour({ type: 'echec', texte: 'Le changement n’a pas été enregistré. Réessaie.' })
+    }
+    setChoixDuJour(false)
+  }
+
+  return (
+    <div className="pile">
+      {retour?.type === 'echec' && <Avertissement niveau="avertissement" titre={retour.texte} />}
+      {retour?.type === 'ok' && (
+        <p className="texte-2" role="status" tabIndex={-1} ref={zoneRetour}>
+          {retour.texte}{compteLie ? ' Ce changement sera aussi visible sur ton ordinateur.' : ''}
+        </p>
+      )}
+      {sautee ? (
+        <button className="bouton-second" aria-label="Annuler le saut de cette séance" onClick={() => void agir(() => annulerSaut(seance.id), 'Saut annulé.')}>Annuler</button>
+      ) : choixDuJour ? (
+        <div className="pile" role="group" aria-label="Déplacer cette séance au…">
+          {jours.map((jour) => (
+            <button
+              key={jour}
+              className="bouton-second"
+              onClick={() => void agir(() => deplacerSeance(seance.id, jour, aujourdhui), `Séance déplacée à ${nomDuJour(jour)} ${jourDuMois(jour)}.`)}
+            >
+              {nomDuJour(jour)} {jourDuMois(jour)}
+            </button>
+          ))}
+          <button className="bouton-discret" onClick={() => setChoixDuJour(false)}>Annuler</button>
+        </div>
+      ) : (
+        <div className="deux-boutons egaux">
+          {jours.length > 0 && <button className="bouton-second" onClick={() => { onRetour(null); setChoixDuJour(true) }}>Déplacer</button>}
+          <button className="bouton-second" onClick={() => setConfirmerSaut(true)}>Sauter cette séance</button>
+        </div>
+      )}
+      <Confirmation
+        ouverte={confirmerSaut}
+        titre="Sauter cette séance ?"
+        texte="Elle ne sera pas rattrapée : on continue le plan. Tu pourras annuler jusqu’à la fin de son jour."
+        libelleAction="Sauter la séance"
+        libelleRester="Garder la séance"
+        onAction={() => { setConfirmerSaut(false); void agir(() => sauterSeance(seance.id), 'Séance sautée.') }}
+        onRester={() => setConfirmerSaut(false)}
+      />
     </div>
   )
 }

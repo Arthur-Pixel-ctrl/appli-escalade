@@ -1,10 +1,12 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { serveurMemoire } from '../synchro/serveurMemoire.ts'
+import { synchroniser } from '../synchro/synchro.ts'
 import { base } from './base.ts'
 import { EXEMPLE_CYCLE, EXEMPLE_PHASES, EXEMPLE_SEANCE_PLANIFIEE } from './exemplesV2.ts'
 import type { Cycle, SallePerso, SeancePlanifiee, SeanceRealisee } from './modele.ts'
 import {
-  ajouterJours, cycleEnCours, cycleTermine, debutPhase, debutSemaine, dureeEtapes, enregistrerCycle,
+  ajouterJours, annulerSaut, cycleEnCours, deplacerSeance, joursPossibles, sauterSeance, cycleTermine, debutPhase, debutSemaine, dureeEtapes, enregistrerCycle,
   enregistrerExercicePerso, enregistrerPhase, enregistrerSallePerso, enregistrerSeancePlanifiee, finCycle,
   lireCycles, lireExercicesPerso, lirePlanDuCycle, lirePlanEnCours, lireSeancePlanifiee, lireSallesPerso, lireSeancesEntre, salleEffective,
   statutSeance, supprimerCycle,
@@ -238,5 +240,113 @@ describe('lecture et écriture dans la base', () => {
     expect(await lireSeancePlanifiee('inconnue')).toBeUndefined()
     await base.seancesPlanifiees.update('s1', { supprimeLe: 'x' })
     expect(await lireSeancePlanifiee('s1')).toBeUndefined()
+  })
+})
+
+describe('petits ajustements du téléphone (B11)', () => {
+  beforeEach(async () => {
+    for (const t of base.tables) await t.clear()
+  })
+
+  describe('joursPossibles', () => {
+    it('les jours restants de la semaine, sauf le jour de la séance', () => {
+      expect(joursPossibles(seance, '2026-11-16')).toEqual(['2026-11-16', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'])
+      expect(joursPossibles(seance, '2026-11-17')).toEqual(['2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'])
+    })
+    it('jamais un jour passé', () => {
+      expect(joursPossibles({ ...seance, date: '2026-11-21' }, '2026-11-21')).toEqual(['2026-11-22'])
+      expect(joursPossibles({ ...seance, date: '2026-11-22' }, '2026-11-21')).toEqual(['2026-11-21'])
+      expect(joursPossibles({ ...seance, date: '2026-11-22' }, '2026-11-22')).toEqual([])
+    })
+    it('une séance manquée ou sautée n’a aucun jour : pas de rattrapage', () => {
+      expect(joursPossibles(seance, '2026-11-18')).toEqual([])
+      expect(joursPossibles({ ...seance, date: '2026-11-19', sauteeLe: '2026-11-17T08:00:00.000Z' }, '2026-11-18')).toEqual([])
+    })
+    it('un jour qui a déjà une séance reste possible', () => {
+      expect(joursPossibles(seance, '2026-11-16')).toContain('2026-11-19') // même s'il en porte déjà une
+    })
+  })
+
+  describe('deplacerSeance', () => {
+    it('change la date seulement, et marque le document à envoyer', async () => {
+      await enregistrerSeancePlanifiee(seance)
+      const avant = (await base.seancesPlanifiees.get(seance.id))!
+      await new Promise((r) => setTimeout(r, 5))
+      await deplacerSeance(seance.id, '2026-11-19', '2026-11-16')
+      const apres = (await base.seancesPlanifiees.get(seance.id))!
+      expect(apres.date).toBe('2026-11-19')
+      expect(apres.semaine).toBe(avant.semaine)
+      expect(apres.phaseId).toBe(avant.phaseId)
+      expect(apres.solo).toEqual(avant.solo)
+      expect(apres.groupe).toEqual(avant.groupe)
+      expect(apres.modifieLe > avant.modifieLe).toBe(true)
+      expect(apres.aEnvoyer).toBe(1)
+    })
+    it('refuse un jour passé ou d’une autre semaine : rien n’est écrit', async () => {
+      await enregistrerSeancePlanifiee(seance)
+      const avant = await base.seancesPlanifiees.get(seance.id)
+      await expect(deplacerSeance(seance.id, '2026-11-15', '2026-11-16')).rejects.toThrow('Ce jour n’est pas possible')
+      await expect(deplacerSeance(seance.id, '2026-11-23', '2026-11-16')).rejects.toThrow('Ce jour n’est pas possible')
+      expect(await base.seancesPlanifiees.get(seance.id)).toEqual(avant)
+    })
+    it('refuse une séance manquée', async () => {
+      await enregistrerSeancePlanifiee(seance)
+      await expect(deplacerSeance(seance.id, '2026-11-20', '2026-11-18')).rejects.toThrow('Ce jour n’est pas possible')
+    })
+    it('refuse un identifiant inconnu', async () => {
+      await expect(deplacerSeance('inconnue', '2026-11-19', '2026-11-16')).rejects.toThrow('Séance introuvable.')
+    })
+  })
+
+  describe('sauterSeance et annulerSaut', () => {
+    it('sautée puis annulée : le statut se calcule, le champ disparaît', async () => {
+      await enregistrerSeancePlanifiee(seance)
+      await sauterSeance(seance.id)
+      const sautee = (await lireSeancePlanifiee(seance.id))!
+      expect(sautee.sauteeLe).toBeTruthy()
+      expect(statutSeance(sautee, [], '2026-11-16')).toBe('sautee')
+      await annulerSaut(seance.id)
+      const relue = (await base.seancesPlanifiees.get(seance.id))!
+      expect('sauteeLe' in relue).toBe(false)
+      expect(statutSeance(relue, [], '2026-11-16')).toBe('a_venir')
+    })
+    it('refuse un identifiant inconnu', async () => {
+      await expect(sauterSeance('inconnue')).rejects.toThrow('Séance introuvable.')
+      await expect(annulerSaut('inconnue')).rejects.toThrow('Séance introuvable.')
+    })
+  })
+
+  describe('conflit avec l’ordinateur : la dernière modification gagne', () => {
+    const MOI = 'utilisateur-1'
+    const ligneOrdinateur = (modifieLe: string, date: string) => ({
+      user_id: MOI, type: 'seancesPlanifiees' as const, id: seance.id, modifie_le: modifieLe, supprime_le: null,
+      contenu: { ...seance, date, modifieLe },
+    })
+
+    it('une version plus récente de l’ordinateur l’emporte, en entier', async () => {
+      const serveur = serveurMemoire()
+      await enregistrerSeancePlanifiee(seance)
+      await deplacerSeance(seance.id, '2026-11-19', '2026-11-16')
+      const local = (await base.seancesPlanifiees.get(seance.id))!
+      const apres = new Date(Date.parse(local.modifieLe) + 60_000).toISOString()
+      await serveur.envoyer([ligneOrdinateur(apres, '2026-11-20')])
+      await synchroniser(serveur, MOI)
+      const final = (await base.seancesPlanifiees.get(seance.id))!
+      expect(final.date).toBe('2026-11-20')
+      expect(final.modifieLe).toBe(apres)
+      expect(final.aEnvoyer).toBe(0)
+    })
+
+    it('une version plus ancienne de l’ordinateur n’efface pas le déplacement, qui part au serveur', async () => {
+      const serveur = serveurMemoire()
+      await enregistrerSeancePlanifiee(seance)
+      await deplacerSeance(seance.id, '2026-11-19', '2026-11-16')
+      const local = (await base.seancesPlanifiees.get(seance.id))!
+      const avant = new Date(Date.parse(local.modifieLe) - 60_000).toISOString()
+      await serveur.envoyer([ligneOrdinateur(avant, '2026-11-20')])
+      await synchroniser(serveur, MOI)
+      expect((await base.seancesPlanifiees.get(seance.id))!.date).toBe('2026-11-19')
+      expect(serveur.lignes.get(`seancesPlanifiees/${seance.id}`)?.contenu.date).toBe('2026-11-19')
+    })
   })
 })
