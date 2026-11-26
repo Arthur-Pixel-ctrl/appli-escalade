@@ -393,6 +393,7 @@ Aucun avertissement fort ne disparaît : les seuls contrôles qui ne tournent pa
   - action principale « Terminer la séance » → Trois questions → Débrief, comme aujourd'hui. La séance réalisée : `mode: 'solo'`, `dureeMin` = temps écoulé (modifiable dans les trois questions s'il le faut), `etapes` = une entrée par partie (`titre`, `statut`, `refId` = exercice principal), `marqueurs` = ceux de la version planifiée (C-01).
 - **T-08 Séance solo** (détaillé) : inchangée.
 - Le téléphone ne change pas le niveau (B11) ; « Déplacer » et « Sauter » marchent à tous les niveaux.
+- (consolidation 26/11, cadrage phase 4, D-27) Trois précisions, après relecture contre le code : (1) la durée n'est **pas** modifiable dans les trois questions (T-11 inchangé) : c'est le temps du chrono libre, ou, s'il n'a jamais été démarré, le temps depuis l'ouverture de l'écran (même règle qu'en détaillé ; sinon un oubli de « Démarrer » enregistrerait 0 min et fausserait la charge) ; (2) « comme en détaillé » pour le rappel de sécurité du bloc était faux : rien ne l'affichait, ni en détaillé ni en groupe ; D-27 l'affiche en tête des trois écrans de séance (T-08, T-09, T-16) pour une séance de bloc limite ; (3) « Stop, ça fait mal » est collé en haut, comme en T-08 et T-09.
 
 ---
 
