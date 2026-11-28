@@ -1,0 +1,60 @@
+// Audit phase 4 : une douleur déclarée et la version groupe d'une séance (objectifs « à ta limite »…).
+// S-04 et S-06 ne lisent que les étapes (solo, mini-bloc), pas la fiche de référence des objectifs de groupe.
+// Pour chaque séance type qui a une version groupe et chaque zone : y a-t-il un objectif de groupe dont la fiche
+// sollicite la zone (ou porte un marqueur à risque) sans qu'aucun signal d'arrêt S-04/S-06 ne sorte sur Aujourd'hui ?
+// Lancer : node /home/claude/audits/phase-4/groupe-douleur.mjs
+const S = '/home/claude/wt/AUDIT-4/src/'
+const { controlesDuJour } = await import(S + 'ecrans/controlesDuJour.ts')
+const R = await import(S + 'regles/index.ts')
+const { SEANCES_TYPES } = await import(S + 'donnees/seancesTypes.ts')
+const { EXEMPLE_CYCLE, EXEMPLE_PHASES } = await import(S + 'donnees/exemplesV2.ts')
+const { PROFIL_VIDE, ZONES } = await import(S + 'donnees/profil.ts')
+const { protocoleParId } = await import(S + 'donnees/bibliotheque/index.ts')
+
+const AUJ = '2026-11-17'
+const profil = { ...PROFIL_VIDE, anneesPratique: 6, experiencePoutre: 'reguliere', tractionsStrictes: 15, tient15sSur25mm: true, majeur: true, grimpeEnTete: true, niveauBloc: '7A' }
+const RISQUE = ['maximale', 'arque', 'pan_gullich', 'trou', 'pan']
+const trous = []
+let cas = 0
+for (const st of SEANCES_TYPES) {
+  const s = R.seanceDepuisType(st, undefined, { id: 's-' + st.id, cycleId: EXEMPLE_CYCLE.id, phaseId: EXEMPLE_PHASES[0].id, semaine: 1, date: AUJ, maintenant: '2026-11-16T08:00:00.000Z' })
+  if (!s.groupe) continue
+  for (const { valeur: zone } of ZONES) {
+    // Douleur déclarée il y a 3 jours, en réduction : S-04 (zone) et S-06 (marqueur à risque) peuvent sortir.
+    const d = { id: 'd', versionFormat: 1, creeLe: 'x', modifieLe: 'x', date: '2026-11-14', zone, niveau: 'reduction', signes: [] }
+    const r = controlesDuJour({ profil, exercicesPerso: [], douleurs: [d], formes: [], objectifs: [], aujourdhui: AUJ, maintenant: '2026-11-17T08:00:00.000Z' }, [], { seance: s, cycle: EXEMPLE_CYCLE })
+    const arrets = r.filter((c) => c.forme === 'arret').map((c) => c.avertissement.message)
+    for (const o of s.groupe.objectifs) {
+      if (!o.ficheReference) continue
+      const f = protocoleParId(o.ficheReference)
+      if (!f) continue
+      const sollicite = (f.contreIndications ?? []).includes(zone)
+      const risque = (f.marqueurs ?? []).some((m) => RISQUE.includes(m))
+      if (!sollicite && !risque) continue
+      cas++
+      const cite = arrets.some((m) => m.includes(`« ${f.nom} »`))
+      if (!cite) trous.push(`${st.id} · zone ${zone} · objectif « ${o.libelle} » (fiche ${f.id}${sollicite ? ', sollicite la zone' : ''}${risque ? ', marqueur à risque' : ''}) → arrêts affichés : ${arrets.length ? arrets.map((m) => m.slice(0, 60) + '…').join(' | ') : 'AUCUN'}`)
+    }
+  }
+}
+console.log(`Cas (séance type × zone × objectif de groupe concerné) : ${cas}`)
+console.log(`Objectif de groupe à risque jamais nommé par un signal d'arrêt : ${trous.length}`)
+const sansAucun = trous.filter((t) => t.endsWith('AUCUN'))
+console.log(`… dont aucun signal d'arrêt S-04/S-06 du tout pour la séance : ${sansAucun.length}`)
+console.log('\nExemples sans aucun signal :')
+console.log(sansAucun.slice(0, 12).join('\n'))
+console.log('\nExemples (premiers 8 de la liste complète) :')
+console.log(trous.slice(0, 8).join('\n'))
+
+// Contre-épreuve : même séance, mais la version solo ne contient plus la fiche de l'objectif de groupe
+// (séance écrite à la main : solo technique légère sans exercice, groupe « 3 blocs à ta limite »).
+const { objectifGroupeParId } = await import(S + 'donnees/objectifsGroupe.ts')
+const st = SEANCES_TYPES.find((x) => x.groupe?.objectifIds.includes('OG-01'))
+const base = R.seanceDepuisType(st, undefined, { id: 's-main', cycleId: EXEMPLE_CYCLE.id, phaseId: EXEMPLE_PHASES[0].id, semaine: 1, date: AUJ, maintenant: '2026-11-16T08:00:00.000Z' })
+const main = { ...base, solo: { nom: 'Technique', durete: 'legere', etapes: [] }, groupe: { ...base.groupe, miniBloc: undefined } }
+for (const zone of ['coude', 'dos']) {
+  const d = { id: 'd', versionFormat: 1, creeLe: 'x', modifieLe: 'x', date: '2026-11-14', zone, niveau: 'reduction', signes: [] }
+  const r = controlesDuJour({ profil, exercicesPerso: [], douleurs: [d], formes: [], objectifs: [], aujourdhui: AUJ, maintenant: '2026-11-17T08:00:00.000Z' }, [], { seance: main, cycle: EXEMPLE_CYCLE })
+  console.log(`\nContre-épreuve ${st.id}, groupe seul (${main.groupe.objectifs.map((o) => o.libelle + ' → ' + o.ficheReference).join(' ; ')}), douleur ${zone} 3 j : ${r.map((c) => c.avertissement.code + '/' + c.forme).join(', ') || 'aucun contrôle'}`)
+}
+void objectifGroupeParId

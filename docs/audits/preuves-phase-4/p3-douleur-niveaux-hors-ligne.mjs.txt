@@ -1,0 +1,256 @@
+// Parcours 3 (téléphone, 390 × 844), semaines 2 et 3 : séance manquée, W-01 après un déplacement, parcours douleur
+// (réduction puis signe d'alerte, S-06 et S-05 sur Aujourd'hui, résolution), séances simple et grandes lignes avec le
+// rappel de sécurité du bloc, séance faite hors ligne (service worker, base locale), puis retour du réseau.
+// Lancer : node /home/claude/audits/phase-4/p3-douleur-niveaux-hors-ligne.mjs (après p2-semaine.mjs)
+import { ouvrir, etapes, texte, lireTable, ecrireDoc, URL_APP, DOSSIER, TELEPHONE, petitsBoutons } from './lib.mjs'
+
+const { navigateur, contexte, page: p, erreurs } = await ouvrir({ etat: DOSSIER + 'etat-p2.json', viewport: TELEPHONE })
+const { etape, bilan } = etapes(p, 'p3')
+const capture = (nom) => p.screenshot({ path: `${DOSSIER}p3-${nom}.png`, fullPage: true })
+const contient = (t, a) => t.toLowerCase().includes(a.toLowerCase())
+const exiger = (t, liste) => { for (const a of liste) if (!contient(t, a)) throw new Error('absent : ' + a) }
+const aller = async (jour, heure = '09:00:00') => { await p.clock.setFixedTime(new Date(`${jour}T${heure}`)); await p.goto(URL_APP); await p.getByRole('navigation').waitFor(); await p.waitForTimeout(900) }
+const onglet = async (nom) => { await p.getByRole('navigation').getByRole('button', { name: nom }).first().click(); await p.waitForTimeout(600) }
+const petits = []
+const noterPetits = async (ecran) => { const l = await petitsBoutons(p); if (l.length) petits.push({ ecran, l }) }
+const troisQuestions = async (effort, douleur = 'Non, rien') => {
+  await p.getByRole('group', { name: 'La séance était dure comment ?' }).getByRole('button', { name: String(effort), exact: true }).click()
+  await p.getByRole('group', { name: 'État de la peau' }).getByRole('button', { name: 'Bonne' }).click()
+  if (douleur) await p.getByRole('button', { name: douleur }).click()
+  await p.getByRole('button', { name: /Enregistrer et voir le débrief/ }).click()
+}
+const SIGNES = ['Claquement ou « pop » dans un doigt', 'Douleur aiguë et soudaine à la base d’un doigt', 'Gonflement ou bleu', 'Tendon qui fait saillie',
+  'Doigt impossible à plier ou à tendre complètement', 'Genou qui gonfle ou se bloque', 'Épaule instable', 'Engourdissements']
+
+// ——— Mercredi 16 : la séance de mardi 15 est manquée ———
+await aller('2026-12-16')
+await etape('Aujourd’hui : « Séance de mardi pas faite. » sans proposer de la rattraper', async () => {
+  const t = await texte(p)
+  exiger(t, ['Séance de mardi pas faite.', 'Elle n’est pas rattrapée : on continue le plan.'])
+  if (/La faire aujourd|Rattraper/i.test(t)) throw new Error('rattrapage proposé')
+  await capture('1-manquee')
+})
+await etape('Programme : la séance manquée n’a ni « Déplacer », ni « Sauter », ni « Faire cette séance maintenant »', async () => {
+  await onglet('Programme')
+  await p.getByRole('button', { name: /Suspensions max/ }).first().click()
+  const t = await texte(p)
+  console.log('      ', t.slice(0, 160), '…', t.slice(-160))
+  exiger(t, ['Manquée', 'Séance manquée. Elle n’est pas rattrapée : on continue le plan.'])
+  for (const b of ['Déplacer', 'Sauter cette séance', 'Faire cette séance maintenant']) if (await p.getByRole('button', { name: b }).count()) throw new Error('bouton présent : ' + b)
+})
+await etape('Programme, semaine 3 : jeudi 24 déplacé au mercredi 23 → W-01 dans l’aperçu (sans bloquer), puis remis au jeudi', async () => {
+  await p.getByRole('button', { name: '← Retour à la semaine' }).click()
+  await p.getByRole('button', { name: 'Semaine suivante' }).click()
+  await p.getByRole('button', { name: /Bloc limite \+ tractions lestées/ }).first().click()
+  await p.getByRole('button', { name: 'Déplacer' }).click()
+  console.log('      jours :', (await p.getByRole('group', { name: /Déplacer cette séance/ }).getByRole('button').allInnerTexts()).join(' | '))
+  await p.getByRole('button', { name: 'mercredi 23' }).click()
+  await p.getByText('Séance déplacée à mercredi 23.').waitFor()
+  await p.waitForTimeout(500)
+  const t = await texte(p)
+  console.log('      après le déplacement :', t.slice(t.indexOf('VERSION EN GROUPE'), t.indexOf('VERSION EN GROUPE') + 420))
+  if (!/48 h|deux séances|moins de 48/i.test(t)) throw new Error('W-01 absent après le déplacement')
+  console.log('      boutons désactivés :', await p.locator('main button:disabled').count())
+  await capture('2-w01')
+  // L'aperçu de mardi 22 voit aussi le W-01 porté par sa voisine (seanceLieeId).
+  await p.getByRole('button', { name: '← Retour à la semaine' }).click()
+  await p.getByRole('button', { name: /Suspensions max/ }).first().click()
+  const t2 = await texte(p)
+  console.log('      aperçu de mardi 22 :', /48 h/i.test(t2) ? 'W-01 visible' : 'W-01 absent')
+  await p.getByRole('button', { name: '← Retour à la semaine' }).click()
+  await p.getByRole('button', { name: /Bloc limite \+ tractions lestées/ }).first().click()
+  await p.getByRole('button', { name: 'Déplacer' }).click()
+  await p.getByRole('button', { name: 'jeudi 24' }).click()
+  await p.getByText('Séance déplacée à jeudi 24.').waitFor()
+})
+
+// ——— Douleur en réduction déclarée depuis Profil ———
+await etape('Profil : « Déclarer une douleur » : focus sur le titre, aucun champ texte, 8 cases = signes des mises en garde, zone obligatoire', async () => {
+  await onglet('Profil')
+  await p.getByRole('button', { name: 'Déclarer une douleur' }).click()
+  await p.getByRole('heading', { name: 'Préciser la douleur' }).waitFor()
+  console.log('      focus :', await p.evaluate(() => document.activeElement?.textContent))
+  const champs = await p.locator('main textarea, main input:not([type="checkbox"]), main [contenteditable="true"]').count()
+  const cases = await p.locator('main label.case').allInnerTexts()
+  console.log('      champs de texte :', champs, '; cases :', cases.length)
+  if (champs !== 0) throw new Error('champ de texte présent')
+  if (JSON.stringify(cases.map((c) => c.trim())) !== JSON.stringify(SIGNES)) throw new Error('cases ≠ signes : ' + JSON.stringify(cases))
+  if (!(await p.getByRole('button', { name: 'Enregistrer la douleur' }).isDisabled())) throw new Error('enregistrable sans zone')
+  exiger(await texte(p), ['Choisis la zone pour enregistrer.', 'Coche seulement ce que tu as remarqué.'])
+  await noterPetits('Préciser la douleur'); await capture('3-declarer')
+})
+await etape('Dos, aucun signe → « Allège pendant 1 à 2 semaines » et la conduite ; Profil « Dos · depuis le 16 décembre »', async () => {
+  await p.getByRole('button', { name: 'Dos', exact: true }).click()
+  await p.getByRole('button', { name: 'Enregistrer la douleur' }).click()
+  await p.getByText('Allège pendant 1 à 2 semaines').waitFor()
+  exiger(await texte(p), ['Retire les arqués, le pan Güllich, les trous et les efforts maximaux.'])
+  await p.getByRole('button', { name: 'Continuer' }).click()
+  await p.getByText('Dos · depuis le 16 décembre').waitFor()
+  exiger(await texte(p), ['Marquer comme résolue'])
+})
+await etape('Aujourd’hui : signal d’arrêt « Douleur déclarée : dos. » avec « Voir les mises en garde »', async () => {
+  await onglet('Aujourd’hui')
+  await p.getByText('Douleur déclarée : dos.').waitFor()
+  exiger(await texte(p), ['Ménage cette zone et arrête-toi dès que ça fait mal.', 'Voir les mises en garde'])
+  console.log('      rôle :', await p.getByText('Douleur déclarée : dos.').evaluate((e) => e.closest('[role]')?.getAttribute('role')))
+})
+
+// ——— Jeudi 17 : ST-TRA-02 (effort maximal) avec la douleur au dos de la veille ———
+await aller('2026-12-17')
+await etape('Aujourd’hui : S-06 en signal d’arrêt, « Pourquoi ? » et « Voir les mises en garde », rien de désactivé', async () => {
+  const t = await texte(p)
+  console.log('      ', t.slice(0, 700))
+  exiger(t, ['Tu as une douleur en cours.'])
+  console.log('      boutons désactivés :', await p.locator('main button:disabled').count(), '; « Pourquoi ? » :', await p.getByRole('button', { name: /Pourquoi/ }).count())
+  await capture('4-s06')
+})
+await etape('Seul (détaillé) : rappel de sécurité du bloc en tête, « Stop » en haut ; Stop → mises en garde → Terminer et enregistrer', async () => {
+  await p.getByRole('button', { name: /Je grimpe seul/ }).click()
+  await p.getByRole('button', { name: 'Stop, ça fait mal' }).waitFor()
+  const t = await texte(p)
+  if (!/rappel de sécurité du bloc/i.test(t)) throw new Error('pas de rappel en détaillé')
+  await capture('5-solo-rappel'); await noterPetits('Séance solo')
+  await p.getByRole('button', { name: 'Stop, ça fait mal' }).click()
+  await p.getByRole('heading', { name: 'Tu as bien fait d’arrêter' }).waitFor()
+  await p.getByRole('button', { name: 'Terminer et enregistrer' }).click()
+  await p.getByRole('heading', { name: 'Trois questions' }).waitFor()
+  console.log('      douleur pré-cochée :', await p.getByRole('button', { name: 'Oui' }).getAttribute('aria-pressed'))
+})
+await etape('Trois questions → « Préciser la douleur » : Doigts + « Gonflement ou bleu » → arrêt et consultation ; réponses gardées', async () => {
+  await p.getByRole('group', { name: 'La séance était dure comment ?' }).getByRole('button', { name: '6', exact: true }).click()
+  await p.getByRole('button', { name: 'Préciser la douleur (facultatif)' }).click()
+  await p.getByRole('button', { name: 'Doigts', exact: true }).click()
+  await p.getByLabel('Gonflement ou bleu').check()
+  await p.getByRole('button', { name: 'Enregistrer la douleur' }).click()
+  await p.getByText('Arrête la séance et consulte un médecin ou un kiné qui connaît l’escalade.').waitFor()
+  const t = await texte(p)
+  if (/grave|entorse|poulie|tendinite|rupture|lésion/i.test(t)) throw new Error('nom de lésion ou gravité : ' + t)
+  await capture('6-alerte')
+  await p.getByRole('button', { name: 'Continuer' }).click()
+  await p.getByRole('heading', { name: 'Trois questions' }).waitFor()
+  console.log('      effort gardé :', await p.getByRole('group', { name: 'La séance était dure comment ?' }).getByRole('button', { name: '6', exact: true }).getAttribute('aria-pressed'))
+  await p.getByRole('group', { name: 'État de la peau' }).getByRole('button', { name: 'Bonne' }).click()
+  await p.getByRole('button', { name: /Enregistrer et voir le débrief/ }).click()
+  await p.getByRole('button', { name: 'Voir le débrief' }).click()
+  await p.getByText('Douleur signalée').first().waitFor()
+  const d = (await lireTable(p, 'douleurs')).map((x) => ({ zone: x.zone, niveau: x.niveau, signes: x.signes, date: x.date }))
+  console.log('      base douleurs :', JSON.stringify(d))
+  await p.getByRole('button', { name: 'Terminer' }).click()
+})
+await etape('Aujourd’hui : « Signe d’alerte déclaré : doigts. » et la phrase de S-05', async () => {
+  await p.getByText('Signe d’alerte déclaré : doigts.').waitFor()
+  exiger(await texte(p), ['Pas de séance dure avant d’avoir consulté un médecin ou un kiné qui connaît l’escalade.'])
+  await capture('7-signal-alerte')
+})
+await etape('Profil : deux douleurs, « Marquer comme résolue » (confirmation) → « Aucune douleur déclarée. » ; plus de signal', async () => {
+  await onglet('Profil')
+  exiger(await texte(p), ['Dos · depuis le 16 décembre', 'Doigts · depuis le 17 décembre'])
+  for (let i = 0; i < 2; i++) {
+    await p.getByRole('button', { name: 'Marquer comme résolue' }).first().click()
+    const d = p.getByRole('dialog')
+    if (i === 0) console.log('      fenêtre :', (await d.innerText()).replace(/\n+/g, ' / '))
+    await d.getByRole('button', { name: 'Marquer comme résolue' }).click()
+    await p.waitForTimeout(400)
+  }
+  await p.getByText('Aucune douleur déclarée.').waitFor()
+  await onglet('Aujourd’hui')
+  await p.getByText('Cette semaine').waitFor().catch(() => {})
+  const t = await texte(p)
+  if (/Douleur déclarée|Signe d’alerte|Tu as une douleur/.test(t)) throw new Error('signal encore là')
+})
+
+// ——— Niveaux : l'ordinateur met mardi 22 en simple et jeudi 24 en grandes lignes (écriture préparée) ———
+await etape('préparation : niveaux simple (mardi 22) et grandes lignes (jeudi 24)', async () => {
+  const seances = await lireTable(p, 'seancesPlanifiees')
+  const mardi = seances.find((s) => s.date === '2026-12-22')
+  const jeudi = seances.find((s) => s.date === '2026-12-24')
+  const maintenant = new Date('2026-12-17T10:00:00Z').toISOString()
+  await ecrireDoc(p, 'seancesPlanifiees', { ...mardi, niveauDetail: 'simple', modifieLe: maintenant, aEnvoyer: 1 })
+  await ecrireDoc(p, 'seancesPlanifiees', { ...jeudi, niveauDetail: 'grandes_lignes', modifieLe: maintenant, aEnvoyer: 1 })
+})
+await aller('2026-12-22')
+await etape('Mardi 22, simple : Aujourd’hui « Recommandation, chrono libre » ; séance en bref avec Stop en haut, rappel du bloc, « À respecter »', async () => {
+  const t = await texte(p)
+  exiger(t, ['Recommandation, chrono libre'])
+  await capture('8-simple-aujourdhui')
+  await p.getByRole('button', { name: /Je grimpe seul/ }).click()
+  await p.getByRole('button', { name: 'Stop, ça fait mal' }).waitFor()
+  const t2 = await texte(p)
+  console.log('      ', t2.slice(0, 900))
+  if (!/rappel de sécurité du bloc/i.test(t2)) throw new Error('pas de rappel en simple')
+  exiger(t2, ['À respecter', 'Échauffe-toi 20 à 30 min, de plus en plus dur, avant tout effort maximal.', 'Entre deux efforts maximaux : 3 à 5 min de repos.', 'Arrête l’effort maximal quand deux essais de suite sont nettement moins bons que le meilleur.', 'Lancer un repos', 'Démarrer'])
+  const stop = await p.getByRole('button', { name: 'Stop, ça fait mal' }).boundingBox()
+  console.log('      Stop : y =', Math.round(stop.y), '; Démarrer en résine ?', await p.getByRole('button', { name: 'Démarrer' }).evaluate((e) => e.className))
+  await capture('9-simple-seance'); await noterPetits('Séance en bref (simple)')
+  await p.getByRole('button', { name: 'Démarrer' }).click()
+  await p.getByRole('button', { name: 'Terminer la séance' }).click()
+  await troisQuestions(8)
+  await p.getByRole('heading', { name: 'Débrief' }).waitFor()
+  const r = (await lireTable(p, 'seancesRealisees')).find((x) => x.creeLe.startsWith('2026-12-22'))
+  console.log('      réalisée :', JSON.stringify({ mode: r.mode, etapes: r.etapes, marqueurs: r.marqueurs, dureeMin: r.dureeMin, seancePlanifieeId: !!r.seancePlanifieeId }))
+  await p.getByRole('button', { name: 'Terminer' }).click()
+})
+
+// ——— Hors ligne : jeudi 24, grandes lignes ———
+await aller('2026-12-24', '08:00:00')
+await etape('service worker actif et qui contrôle la page', async () => {
+  await p.evaluate(() => navigator.serviceWorker.ready)
+  await p.reload(); await p.getByRole('navigation').waitFor()
+  console.log('      contrôlée par le service worker :', await p.evaluate(() => !!navigator.serviceWorker.controller))
+})
+await contexte.setOffline(true)
+await etape('hors ligne : rechargement, Aujourd’hui lit le plan dans la base locale (« Plan à jour au … »)', async () => {
+  await p.reload(); await p.getByRole('navigation').waitFor(); await p.waitForTimeout(900)
+  const t = await texte(p)
+  console.log('      ', t.slice(0, 300))
+  exiger(t, ['Bloc limite + tractions lestées', 'Plan à jour au', 'Grandes lignes, chrono libre'])
+  await capture('10-hors-ligne')
+})
+await etape('hors ligne, grandes lignes : parties « Fait » / « Passé » (64 px), « Voir la fiche », rappel du bloc ; séance enregistrée', async () => {
+  await p.getByRole('button', { name: /Je grimpe seul/ }).click()
+  await p.getByRole('button', { name: 'Stop, ça fait mal' }).waitFor()
+  const t = await texte(p)
+  if (!/rappel de sécurité du bloc/i.test(t)) throw new Error('pas de rappel en grandes lignes')
+  const fait = p.getByRole('button', { name: /fait$/ })
+  const n = await fait.count()
+  const h = Math.round((await fait.first().boundingBox()).height)
+  console.log('      parties :', n, '; hauteur « Fait » :', h, 'px ; libellé :', await fait.first().getAttribute('aria-label'))
+  await fait.first().click()
+  await p.getByRole('button', { name: /passé$/ }).nth(1).click()
+  await p.getByRole('button', { name: 'Voir la fiche' }).first().click()
+  console.log('      fiche dépliée :', (await p.locator('[id^="fiche-partie-"]').first().innerText()).slice(0, 120).replace(/\n/g, ' / '))
+  await capture('11-grandes-lignes'); await noterPetits('Séance en bref (grandes lignes)')
+  await p.getByRole('button', { name: 'Terminer la séance' }).click()
+  await troisQuestions(7)
+  await p.getByRole('heading', { name: 'Débrief' }).waitFor()
+  const r = (await lireTable(p, 'seancesRealisees')).find((x) => x.creeLe.startsWith('2026-12-24'))
+  console.log('      réalisée hors ligne :', JSON.stringify({ etapes: r.etapes.map((e) => e.titre + ':' + e.statut), aEnvoyer: r.aEnvoyer }))
+  await p.getByRole('button', { name: 'Terminer' }).click()
+})
+await etape('hors ligne : nouveau rechargement, « Séance faite » ; puis retour du réseau', async () => {
+  await p.reload(); await p.getByRole('navigation').waitFor(); await p.waitForTimeout(900)
+  exiger(await texte(p), ['Séance faite'])
+  await contexte.setOffline(false)
+  await p.reload(); await p.getByRole('navigation').waitFor(); await p.waitForTimeout(900)
+  exiger(await texte(p), ['Séance faite'])
+  const enAttente = (await lireTable(p, 'seancesRealisees')).filter((r) => r.aEnvoyer === 1).length
+  console.log('      séances réalisées « à envoyer » (aucun compte, donc jamais envoyées) :', enAttente)
+})
+
+// Focus visible : tabulation sur Aujourd'hui
+await etape('focus visible au clavier sur Aujourd’hui (10 tabulations)', async () => {
+  const styles = []
+  await p.locator('body').click({ position: { x: 5, y: 5 } })
+  for (let i = 0; i < 10; i++) {
+    await p.keyboard.press('Tab')
+    styles.push(await p.evaluate(() => { const e = document.activeElement; if (e === document.body) return '(hors de la page):-'; const s = getComputedStyle(e); return `${(e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 18)}:${s.outlineStyle !== 'none' && s.outlineWidth !== '0px' ? 'contour ' + s.outlineWidth : s.boxShadow !== 'none' ? 'ombre' : 'RIEN'}` }))
+  }
+  console.log('      ', styles.join(' | '))
+  if (styles.some((s) => s.endsWith('RIEN'))) throw new Error('focus sans repère')
+})
+
+console.log('boutons de moins de 48 px :', petits.length ? JSON.stringify(petits) : 'aucun')
+await contexte.storageState({ path: DOSSIER + 'etat-p3.json', indexedDB: true })
+console.log('erreurs de page :', erreurs.length ? erreurs : 'aucune')
+console.log('bilan :', bilan.ok, 'ok,', bilan.echecs.length, 'échec(s)', bilan.echecs)
+await navigateur.close()

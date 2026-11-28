@@ -1,0 +1,6 @@
+Conflit (ordinateur après le téléphone) : téléphone → 2026-11-17, « Doigts (modifiée sur ordinateur) » ; ordinateur → 2026-11-17, « Doigts (modifiée sur ordinateur) » ; serveur → 2026-11-17, « Doigts (modifiée sur ordinateur) »
+Conflit (téléphone après l’ordinateur) : téléphone → 2026-11-19, « Doigts et bloc limite » ; ordinateur → 2026-11-19, « Doigts et bloc limite » ; serveur → 2026-11-19, « Doigts et bloc limite »
+Sautée sur le téléphone → statut sur l'ordinateur après synchro : sautee
+Reprise sur deux appareils : téléphone ["reprise-profil-coude"], ordinateur ["reprise-profil-coude"], serveur ["douleurs/reprise-profil-coude"]
+Appareil resté ancien, ouvert après la résolution : sur le téléphone, reprise-profil-coude resolueLe = (aucun : rouverte) ; douleurs ouvertes le 27 : ["coude"] ; niveauBloc du profil = "6A" (changé en 7A sur le téléphone)
+Témoin (synchro avant la lecture du profil) : reprise-profil-coude resolueLe = 2026-11-26

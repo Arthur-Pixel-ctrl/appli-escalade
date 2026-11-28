@@ -1,0 +1,21 @@
+// Parcours 4, complément : texte de la vue Semaine de l'ordinateur après import de la sauvegarde du téléphone.
+// Lancer : node /home/claude/audits/phase-4/p4-semaine-ordinateur.mjs (serveur sur 4193)
+import { ouvrir, texte, URL_APP, DOSSIER, BUREAU } from './lib.mjs'
+const { navigateur, page: p, erreurs } = await ouvrir({ etat: DOSSIER + 'etat-p1.json', viewport: BUREAU })
+await p.clock.setFixedTime(new Date('2026-12-13T19:00:00')); await p.goto(URL_APP); await p.waitForTimeout(1200)
+await p.getByRole('navigation').getByRole('button', { name: 'Profil' }).first().click()
+await p.getByLabel('Fichier de sauvegarde').setInputFiles(DOSSIER + 'sauvegarde-telephone.json')
+await p.getByText(/Sauvegarde rechargée/).first().waitFor()
+await p.getByRole('navigation').getByRole('button', { name: 'Plan' }).first().click(); await p.waitForTimeout(800)
+await p.getByRole('button', { name: 'Semaine', exact: true }).click(); await p.waitForTimeout(800)
+const t = await texte(p)
+const i = t.indexOf('Semaine 1 · 7 déc.')
+console.log(t.slice(i, i + 1600)); const k = t.indexOf("SAM / 12 déc."); console.log("\n… samedi :", t.slice(k, k + 400)); console.log("statuts dans la semaine :", (t.match(/Faite|Sautée|Manquée|faite|sautée/g) || []).join(", ") || "aucun")
+for (const j of ['jeu', 'ven', 'sam']) {
+  const r = p.locator('main').getByText(new RegExp('^' + j, 'i')).first()
+  void r
+}
+await p.locator('main').getByText('sam.', { exact: false }).first().scrollIntoViewIfNeeded().catch(() => {})
+await p.screenshot({ path: DOSSIER + 'p4-2-semaine-bas.png' })
+console.log('erreurs :', erreurs.length ? erreurs : 'aucune')
+await navigateur.close()

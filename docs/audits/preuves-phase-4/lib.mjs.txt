@@ -1,0 +1,82 @@
+// Outils communs aux parcours Playwright de l'audit de phase 4.
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs'
+
+export const URL_APP = 'http://localhost:4193/'
+export const DOSSIER = '/home/claude/audits/phase-4/'
+export const BUREAU = { width: 1280, height: 800 }
+export const TELEPHONE = { width: 390, height: 844 }
+
+export async function ouvrir({ etat, viewport = BUREAU } = {}) {
+  const navigateur = await chromium.launch()
+  const contexte = await navigateur.newContext({ viewport, acceptDownloads: true, ...(etat ? { storageState: etat } : {}) })
+  const page = await contexte.newPage()
+  page.setDefaultTimeout(8000)
+  const erreurs = []
+  page.on('pageerror', (e) => erreurs.push(String(e)))
+  page.on('console', (m) => { if (m.type() === 'error') erreurs.push(m.text()) })
+  return { navigateur, contexte, page, erreurs }
+}
+
+/** Une étape nommée : « ok » ou « ÉCHEC » et une capture. Le parcours continue. */
+export function etapes(page, prefixe) {
+  let n = 0
+  const bilan = { ok: 0, echecs: [] }
+  const etape = async (nom, f) => {
+    n++
+    try { await f(); bilan.ok++; console.log('ok   ', nom) } catch (e) {
+      bilan.echecs.push(nom)
+      console.log('ÉCHEC', nom, '—', String(e).split('\n')[0])
+      await page.screenshot({ path: `${DOSSIER}${prefixe}-echec-${n}.png`, fullPage: true }).catch(() => {})
+    }
+  }
+  return { etape, bilan }
+}
+
+/** Boutons et liens visibles de moins de 48 px de haut (hors éléments masqués). */
+export async function petitsBoutons(page) {
+  return page.evaluate(() => [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], summary')]
+    .filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden' })
+    .map((el) => {
+      // Une case à cocher compte par son étiquette (toute la ligne est cliquable).
+      const cible = el.matches('input[type="checkbox"]') ? (el.closest('label') ?? el) : el
+      const r = cible.getBoundingClientRect()
+      return { texte: (cible.innerText || cible.getAttribute('aria-label') || '').trim().slice(0, 40), h: Math.round(r.height) }
+    })
+    .filter((b) => b.h < 48))
+}
+
+/** Texte de la zone principale. */
+export const texte = async (page) => (await page.locator('main').first().innerText()).replace(/\n+/g, ' / ')
+
+/** Lit une table de la base IndexedDB de l'app (lecture seule). */
+export async function lireTable(page, table) {
+  return page.evaluate((t) => new Promise((ok, ko) => {
+    const req = indexedDB.open('appli-escalade')
+    req.onerror = () => ko(req.error)
+    req.onsuccess = () => {
+      const db = req.result
+      const tx = db.transaction(t, 'readonly')
+      const r = tx.objectStore(t).getAll()
+      r.onsuccess = () => { ok(r.result); db.close() }
+      r.onerror = () => ko(r.error)
+    }
+  }), table)
+}
+
+/**
+ * Prépare des données de test comme le ferait l'ordinateur (écriture directe d'un document de séance planifiée).
+ * Sert seulement à placer une séance existante au bon jour ou au bon niveau pour l'essai.
+ */
+export async function ecrireDoc(page, table, doc) {
+  return page.evaluate(({ t, d }) => new Promise((ok, ko) => {
+    const req = indexedDB.open('appli-escalade')
+    req.onerror = () => ko(req.error)
+    req.onsuccess = () => {
+      const db = req.result
+      const tx = db.transaction(t, 'readwrite')
+      tx.objectStore(t).put(d)
+      tx.oncomplete = () => { ok(true); db.close() }
+      tx.onerror = () => ko(tx.error)
+    }
+  }), { t: table, d: doc })
+}

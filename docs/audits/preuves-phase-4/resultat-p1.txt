@@ -1,0 +1,15 @@
+ok    premier lancement : profil confirmé, aucune douleur
+      début proposé : 2026-12-07
+ok    plan proposé (« Proposer un plan »), niveau détaillé par défaut
+      cycles : [{"nom":"Hiver","debut":"2026-12-07","etat":"valide","niveau":"detaille"}]
+ok    valider le cycle
+       []
+ok    boutons de moins de 48 px (ordinateur, Plan)
+   2026-12-08 Suspensions max (réglette minimale) + bloc limite [dure] st=ST-DOI-02 groupe=Suspensions max (réglette minimale) + bloc limite miniBloc avant echauffement-doigts-poutre,doigts-suspensions-max-lestees obj puissance-bloc-limite solo=echauffement-general,echauffement-doigts-poutre,doigts-suspensions-max-lestees,puissance-bloc-limite,antagonistes-lattice
+   2026-12-10 Bloc limite + tractions lestées [dure] st=ST-TRA-02 groupe=Bloc limite + tractions lestées miniBloc apres traction-lestee-force-lattice obj puissance-bloc-limite solo=echauffement-general,puissance-bloc-limite,traction-lestee-force-lattice,antagonistes-lattice
+   2026-12-12 1 min / 1 min et continuité [legere] st=ST-END-02 groupe=1 min / 1 min et continuité obj endurance-1-on-1-off,endurance-continuite-fin-de-seance solo=echauffement-general,technique-tout-en-drapeau,endurance-1-on-1-off,endurance-continuite-fin-de-seance,antagonistes-legers
+   2026-12-15 Suspensions max (réglette minimale) + bloc limite [dure] st=ST-DOI-02 groupe=Suspensions max (réglette minimale) + bloc limite miniBloc avant echauffement-doigts-poutre,doigts-suspensions-max-lestees obj puissance-bloc-limite solo=echauffement-general,echauffement-doigts-poutre,doigts-suspensions-max-lestees,puissance-bloc-limite,antagonistes-lattice
+   2026-12-17 Bloc limite + tractions lestées [dure] st=ST-TRA-02 groupe=Bloc limite + tractions lestées miniBloc apres traction-lestee-force-lattice obj puissance-bloc-limite solo=echauffement-general,puissance-bloc-limite,traction-lestee-force-lattice,antagonistes-lattice
+   2026-12-19 1 min / 1 min et continuité [legere] st=ST-END-02 groupe=1 min / 1 min et continuité obj endurance-1-on-1-off,endurance-continuite-fin-de-seance solo=echauffement-general,technique-tout-en-drapeau,endurance-1-on-1-off,endurance-continuite-fin-de-seance,antagonistes-legers
+erreurs de page : aucune
+bilan : 4 ok, 0 échec(s) []

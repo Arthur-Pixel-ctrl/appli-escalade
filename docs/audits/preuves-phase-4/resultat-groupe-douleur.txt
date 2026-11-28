@@ -1,0 +1,13 @@
+Cas (séance type × zone × objectif de groupe concerné) : 82
+Objectif de groupe à risque jamais nommé par un signal d'arrêt : 0
+… dont aucun signal d'arrêt S-04/S-06 du tout pour la séance : 0
+
+Exemples sans aucun signal :
+
+
+Exemples (premiers 8 de la liste complète) :
+
+
+Contre-épreuve ST-DOI-01, groupe seul (3 blocs à ta limite, 4 essais max chacun → puissance-bloc-limite), douleur coude 3 j : aucun contrôle
+
+Contre-épreuve ST-DOI-01, groupe seul (3 blocs à ta limite, 4 essais max chacun → puissance-bloc-limite), douleur dos 3 j : aucun contrôle

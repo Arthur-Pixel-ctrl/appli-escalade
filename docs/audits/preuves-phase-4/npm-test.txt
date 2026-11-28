@@ -1,0 +1,18 @@
+
+> appli-escalade@0.0.0 test
+> vitest run --passWithNoTests
+
+
+ RUN  v5.1.0 /home/claude/wt/AUDIT-4
+
+
+ Test Files  69 passed (69)
+      Tests  1281 passed (1281)
+   Start at  12:10:14
+   Duration  15.06s (import 50%, tests 32%, transform 16%, worker 3%)
+
+     Import  170 modules were evaluated 354 times · 4.35s total, 50% of tracked time
+             ~2.26s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+
+exit 0

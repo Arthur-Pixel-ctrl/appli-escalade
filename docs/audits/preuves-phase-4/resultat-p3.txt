@@ -1,0 +1,45 @@
+ok    Aujourd’hui : « Séance de mardi pas faite. » sans proposer de la rattraper
+       ← Retour à la semaine / MARDI 15 · MANQUÉE / Suspensions max (réglette minimale) + bloc limite / SÉANCE DURE / 1 h 50 / 1 / Échauffement complet / 35 min / 2 /  … Antagonistes, 3 séries / 20 min / VERSION EN GROUPE / 3 blocs à ta limite, 4 essais max chacun / Séance manquée. Elle n’est pas rattrapée : on continue le plan.
+ok    Programme : la séance manquée n’a ni « Déplacer », ni « Sauter », ni « Faire cette séance maintenant »
+      jours : lundi 21 | mardi 22 | mercredi 23 | vendredi 25 | samedi 26 | dimanche 27 | Annuler
+      après le déplacement : VERSION EN GROUPE / 3 blocs à ta limite, 4 essais max chacun / « Bloc limite + tractions lestées » (mercredi 23) arrive moins de 48 h après « Suspensions max (réglette minimale) + bloc limite » (mardi 22) : deux séances maximales. / Décale-la d'un jour ou fais sa version légère. / Faire cette séance maintenant / En groupe : 1 objectif / La faire seul / Seul : séance guidée, chrono intégré / Séance déplacée à mercredi
+      boutons désactivés : 0
+      aperçu de mardi 22 : W-01 visible
+ok    Programme, semaine 3 : jeudi 24 déplacé au mercredi 23 → W-01 dans l’aperçu (sans bloquer), puis remis au jeudi
+      focus : Préciser la douleur
+      champs de texte : 0 ; cases : 8
+ok    Profil : « Déclarer une douleur » : focus sur le titre, aucun champ texte, 8 cases = signes des mises en garde, zone obligatoire
+ok    Dos, aucun signe → « Allège pendant 1 à 2 semaines » et la conduite ; Profil « Dos · depuis le 16 décembre »
+      rôle : alert
+ok    Aujourd’hui : signal d’arrêt « Douleur déclarée : dos. » avec « Voir les mises en garde »
+       Douleur déclarée : dos. / Ménage cette zone et arrête-toi dès que ça fait mal. / Voir les mises en garde / Tu as une douleur en cours. / Pendant 1 à 2 semaines, retire « Bloc limite » : pas d'arqué, de pan, de trous ni d'effort maximal. Garde de la grimpe facile qui ne fait pas mal. / Pourquoi ? / Voir les mises en garde / Tu as une douleur en cours. / Pendant 1 à 2 semaines, retire « Tractions lestées, force max » : pas d'arqué, de pan, de trous ni d'effort maximal. Garde de la grimpe facile qui ne fait pas mal. / Pourquoi ? / Voir les mises en garde / JEUDI 17 DÉCEMBRE / PHASE 1 · DOIGTS · SEMAINE 2 SUR 4 / Bloc limite + tractions lestées / Séance de mardi pas faite. Elle n’est pas rattrap
+      boutons désactivés : 0 ; « Pourquoi ? » : 2
+ok    Aujourd’hui : S-06 en signal d’arrêt, « Pourquoi ? » et « Voir les mises en garde », rien de désactivé
+      douleur pré-cochée : true
+ok    Seul (détaillé) : rappel de sécurité du bloc en tête, « Stop » en haut ; Stop → mises en garde → Terminer et enregistrer
+      effort gardé : true
+      base douleurs : [{"zone":"doigts","niveau":"alerte","signes":["Gonflement ou bleu"],"date":"2026-12-17"},{"zone":"dos","niveau":"reduction","signes":[],"date":"2026-12-16"}]
+ok    Trois questions → « Préciser la douleur » : Doigts + « Gonflement ou bleu » → arrêt et consultation ; réponses gardées
+ok    Aujourd’hui : « Signe d’alerte déclaré : doigts. » et la phrase de S-05
+      fenêtre : Douleur résolue ? / Les règles n’en tiendront plus compte à partir d’aujourd’hui. / Rester / Marquer comme résolue
+ok    Profil : deux douleurs, « Marquer comme résolue » (confirmation) → « Aucune douleur déclarée. » ; plus de signal
+ok    préparation : niveaux simple (mardi 22) et grandes lignes (jeudi 24)
+       Stop, ça fait mal / Quitter / Suspensions max (réglette minimale) + bloc limite / FORCE DES DOIGTS · DURE · 1 H 50 / RAPPEL DE SÉCURITÉ DU BLOC / Zone de chute dégagée : ni sac, ni bouteille, ni personne ; pas de tapis écartés / Ne grimpe pas au-dessus ni en dessous de quelqu’un / Désescalade plutôt que saut, dès que tu peux / Si tu tombes : regarde en bas, expire, retombe sur les deux pieds, jambes fléchies, puis roule en arrière, bras rentrés / Jamais de réception bras tendus ni en torsion sur un pied planté / Renonce à un passage dont la chute est délicate / Arrête quand tu es fatigué : la plupart des blessures arrivent fatigué / Parade : apprise au préalable, mains au-dessus de la taille, on accompagne sans bloquer / 0:00 / Démarrer / Suspensions max sur réglette minimale, puis bloc à ta limite : 4 essais max par bloc. / À RESPECTER / Échauffe-toi 20 à 30 min, de plus en plus dur, av
+      Stop : y = 20 ; Démarrer en résine ? bouton-second
+      réalisée : {"mode":"solo","etapes":[{"titre":"Suspensions max (réglette minimale) + bloc limite","statut":"faite"}],"marqueurs":["poutre","maximale","poutre_intensive","bloc_limite"],"dureeMin":0,"seancePlanifieeId":true}
+ok    Mardi 22, simple : Aujourd’hui « Recommandation, chrono libre » ; séance en bref avec Stop en haut, rappel du bloc, « À respecter »
+      contrôlée par le service worker : true
+ok    service worker actif et qui contrôle la page
+       Ta dernière séance maximale date de 47 h. / Attends encore 1 h, ou fais la version légère. / Pourquoi ? / JEUDI 24 DÉCEMBRE / PHASE 1 · DOIGTS · SEMAINE 3 SUR 4 / PLAN À JOUR AU 17 DÉCEMBRE / Bloc limite + tractions lestées / Séance de samedi pas faite. Elle n’est pas rattrapée : on continue le plan
+ok    hors ligne : rechargement, Aujourd’hui lit le plan dans la base locale (« Plan à jour au … »)
+      parties : 3 ; hauteur « Fait » : 64 px ; libellé : Échauffement fait
+      fiche dépliée : Monte en intensité petit à petit. Tu dois finir chaud, pas fatigué. /  / 5 min de cardio léger / 5 à 7 min de mobilité dynamiq
+      réalisée hors ligne : {"etapes":["Échauffement:faite","Effort principal:passee","Antagonistes:a_faire"],"aEnvoyer":1}
+ok    hors ligne, grandes lignes : parties « Fait » / « Passé » (64 px), « Voir la fiche », rappel du bloc ; séance enregistrée
+      séances réalisées « à envoyer » (aucun compte, donc jamais envoyées) : 6
+ok    hors ligne : nouveau rechargement, « Séance faite » ; puis retour du réseau
+       Revoir le débrief:contour 3px | Forme du jourÀ ren:contour 3px | Aujourd’hui:contour 3px | Programme:contour 3px | Bilans:contour 3px | Profil:contour 3px | (hors de la page):- | Revoir le débrief:contour 3px | Forme du jourÀ ren:contour 3px | Aujourd’hui:contour 3px
+ok    focus visible au clavier sur Aujourd’hui (10 tabulations)
+boutons de moins de 48 px : aucun
+erreurs de page : aucune
+bilan : 18 ok, 0 échec(s) []

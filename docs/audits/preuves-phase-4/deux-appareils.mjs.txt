@@ -1,0 +1,140 @@
+// Audit phase 4 : deux appareils (téléphone, ordinateur) et un serveur en mémoire, avec le vrai code de
+// synchronisation (`synchroniser`) et la règle « dernière modification gagne ».
+// Un seul IndexedDB en mémoire : on passe d'un appareil à l'autre en sauvant puis rechargeant toutes ses tables.
+// Lancer : node /home/claude/audits/phase-4/deux-appareils.mjs
+import '/home/claude/wt/AUDIT-4/node_modules/fake-indexeddb/auto/index.mjs'
+const S = '/home/claude/wt/AUDIT-4/src/'
+const { base, lireProfil, enregistrerProfil } = await import(S + 'donnees/base.ts')
+const { serveurMemoire } = await import(S + 'synchro/serveurMemoire.ts')
+const { synchroniser } = await import(S + 'synchro/synchro.ts')
+const { deplacerSeance, sauterSeance, enregistrerSeancePlanifiee, enregistrerCycle, enregistrerPhase, statutSeance } = await import(S + 'donnees/plan.ts')
+const { marquerResolue, lireDouleursOuvertes } = await import(S + 'donnees/douleurs.ts')
+const { EXEMPLE_CYCLE, EXEMPLE_PHASES, EXEMPLE_SEANCE_PLANIFIEE } = await import(S + 'donnees/exemplesV2.ts')
+const { PROFIL_VIDE } = await import(S + 'donnees/profil.ts')
+const { ecrire } = await import(S + 'donnees/stockage.ts')
+
+const MOI = 'utilisateur-1'
+const pause = () => new Promise((r) => setTimeout(r, 8))
+const sortie = []
+const dire = (t) => { sortie.push(t); console.log(t) }
+
+async function sauver() {
+  const etat = {}
+  for (const t of base.tables) etat[t.name] = structuredClone(await t.toArray())
+  return etat
+}
+async function charger(etat) {
+  for (const t of base.tables) { await t.clear(); if (etat?.[t.name]?.length) await t.bulkPut(etat[t.name]) }
+}
+async function vider() { for (const t of base.tables) await t.clear() }
+const appareils = { telephone: null, ordinateur: null }
+let courant = null
+async function sur(nom) {
+  if (courant) appareils[courant] = await sauver()
+  await charger(appareils[nom])
+  courant = nom
+}
+
+// ——— 1. Séance déplacée sur le téléphone, modifiée sur l'ordinateur ———
+for (const ordre of ['ordinateur après le téléphone', 'téléphone après l’ordinateur']) {
+  await vider(); appareils.telephone = null; appareils.ordinateur = null; courant = null
+  const serveur = serveurMemoire()
+  const s = { ...EXEMPLE_SEANCE_PLANIFIEE }
+  await sur('ordinateur')
+  await enregistrerCycle(EXEMPLE_CYCLE); for (const p of EXEMPLE_PHASES) await enregistrerPhase(p)
+  await enregistrerSeancePlanifiee(s)
+  await synchroniser(serveur, MOI)
+  await sur('telephone'); await synchroniser(serveur, MOI)
+  // Les deux appareils ont la séance du mardi 17. Hors ligne, chacun la change.
+  const telephone = async () => { await sur('telephone'); await deplacerSeance(s.id, '2026-11-19', '2026-11-16') }
+  const ordinateur = async () => {
+    await sur('ordinateur')
+    const local = await base.seancesPlanifiees.get(s.id)
+    await ecrire('seancesPlanifiees', { ...local, solo: { ...local.solo, nom: 'Doigts (modifiée sur ordinateur)' } })
+  }
+  if (ordre === 'ordinateur après le téléphone') { await telephone(); await pause(); await ordinateur() } else { await ordinateur(); await pause(); await telephone() }
+  // Retour du réseau : chacun synchronise, puis encore une fois pour recevoir l'autre.
+  await sur('telephone'); await synchroniser(serveur, MOI)
+  await sur('ordinateur'); await synchroniser(serveur, MOI)
+  await sur('telephone'); await synchroniser(serveur, MOI)
+  const t = await base.seancesPlanifiees.get(s.id)
+  await sur('ordinateur')
+  const o = await base.seancesPlanifiees.get(s.id)
+  const srv = serveur.lignes.get(`seancesPlanifiees/${s.id}`).contenu
+  dire(`Conflit (${ordre}) : téléphone → ${t.date}, « ${t.solo.nom} » ; ordinateur → ${o.date}, « ${o.solo.nom} » ; serveur → ${srv.date}, « ${srv.solo.nom} »`)
+}
+
+// ——— 2. Séance sautée sur le téléphone, visible sur l'ordinateur après synchronisation ———
+{
+  await vider(); appareils.telephone = null; appareils.ordinateur = null; courant = null
+  const serveur = serveurMemoire()
+  await sur('ordinateur')
+  await enregistrerCycle(EXEMPLE_CYCLE); for (const p of EXEMPLE_PHASES) await enregistrerPhase(p)
+  await enregistrerSeancePlanifiee(EXEMPLE_SEANCE_PLANIFIEE)
+  await synchroniser(serveur, MOI)
+  await sur('telephone'); await synchroniser(serveur, MOI)
+  await sauterSeance(EXEMPLE_SEANCE_PLANIFIEE.id)
+  await synchroniser(serveur, MOI)
+  await sur('ordinateur'); await synchroniser(serveur, MOI)
+  const o = await base.seancesPlanifiees.get(EXEMPLE_SEANCE_PLANIFIEE.id)
+  dire(`Sautée sur le téléphone → statut sur l'ordinateur après synchro : ${statutSeance(o, [], '2026-11-17')}`)
+}
+
+// ——— 3. Reprise des zones de l'ancien profil sur deux appareils ———
+const ancien = (extra = {}) => ({ ...PROFIL_VIDE, id: 'profil', versionFormat: 1, creeLe: '2026-10-01T10:00:00.000Z', modifieLe: '2026-11-05T09:00:00.000Z', aEnvoyer: 0, douleursEnCours: ['coude'], ...extra })
+{
+  await vider(); appareils.telephone = null; appareils.ordinateur = null; courant = null
+  const serveur = serveurMemoire()
+  // Avant la mise à jour : le même ancien profil sur les deux appareils et sur le serveur.
+  await serveur.envoyer([{ user_id: MOI, type: 'reglages', id: 'profil', modifie_le: ancien().modifieLe, supprime_le: null, contenu: { ...ancien(), aEnvoyer: undefined } }])
+  await sur('telephone'); await base.reglages.put(ancien()); await synchroniser(serveur, MOI)
+  await sur('ordinateur'); await base.reglages.put(ancien()); await synchroniser(serveur, MOI)
+  // Mise à jour : chacun ouvre l'app (lireProfil fait la reprise), puis synchronise.
+  await sur('telephone'); await lireProfil(); await synchroniser(serveur, MOI)
+  await pause()
+  await sur('ordinateur'); await lireProfil(); await synchroniser(serveur, MOI)
+  await sur('telephone'); await synchroniser(serveur, MOI); await lireProfil()
+  const tel = (await base.douleurs.toArray()).map((d) => d.id)
+  await sur('ordinateur')
+  const ord = (await base.douleurs.toArray()).map((d) => d.id)
+  const srv = [...serveur.lignes.keys()].filter((k) => k.startsWith('douleurs/'))
+  dire(`Reprise sur deux appareils : téléphone ${JSON.stringify(tel)}, ordinateur ${JSON.stringify(ord)}, serveur ${JSON.stringify(srv)}`)
+}
+
+// ——— 4. Appareil resté ancien : il fait sa reprise APRÈS que l'autre a résolu la douleur et changé le profil ———
+{
+  await vider(); appareils.telephone = null; appareils.ordinateur = null; courant = null
+  const serveur = serveurMemoire()
+  await serveur.envoyer([{ user_id: MOI, type: 'reglages', id: 'profil', modifie_le: ancien().modifieLe, supprime_le: null, contenu: { ...ancien(), aEnvoyer: undefined } }])
+  await sur('telephone'); await base.reglages.put(ancien()); await synchroniser(serveur, MOI)
+  await sur('ordinateur'); await base.reglages.put(ancien()); await synchroniser(serveur, MOI)
+  // Le téléphone est mis à jour, fait sa reprise, puis la douleur est marquée résolue et le profil changé (niveau 7A).
+  await sur('telephone')
+  await lireProfil(); await synchroniser(serveur, MOI)
+  await pause(); await marquerResolue('reprise-profil-coude', '2026-11-26')
+  await pause(); const p = await lireProfil(); await enregistrerProfil({ ...p, niveauBloc: '7A' })
+  await synchroniser(serveur, MOI)
+  // L'ordinateur s'ouvre plus tard, pour la première fois depuis la mise à jour : App lit le profil avant la synchro.
+  await pause()
+  await sur('ordinateur'); await lireProfil(); await synchroniser(serveur, MOI)
+  await sur('telephone'); await synchroniser(serveur, MOI)
+  const d = await base.douleurs.get('reprise-profil-coude')
+  const pr = await lireProfil()
+  const ouvertes = (await lireDouleursOuvertes('2026-11-27')).map((x) => x.zone)
+  dire(`Appareil resté ancien, ouvert après la résolution : sur le téléphone, reprise-profil-coude resolueLe = ${d.resolueLe ?? '(aucun : rouverte)'} ; douleurs ouvertes le 27 : ${JSON.stringify(ouvertes)} ; niveauBloc du profil = ${JSON.stringify(pr.niveauBloc)} (changé en 7A sur le téléphone)`)
+}
+
+// ——— 5. Même cas, mais l'ordinateur synchronise AVANT de lire le profil ———
+{
+  await vider(); appareils.telephone = null; appareils.ordinateur = null; courant = null
+  const serveur = serveurMemoire()
+  await serveur.envoyer([{ user_id: MOI, type: 'reglages', id: 'profil', modifie_le: ancien().modifieLe, supprime_le: null, contenu: { ...ancien(), aEnvoyer: undefined } }])
+  await sur('telephone'); await base.reglages.put(ancien()); await synchroniser(serveur, MOI)
+  await sur('ordinateur'); await base.reglages.put(ancien()); await synchroniser(serveur, MOI)
+  await sur('telephone'); await lireProfil(); await synchroniser(serveur, MOI)
+  await pause(); await marquerResolue('reprise-profil-coude', '2026-11-26'); await synchroniser(serveur, MOI)
+  await pause(); await sur('ordinateur'); await synchroniser(serveur, MOI); await lireProfil(); await synchroniser(serveur, MOI)
+  await sur('telephone'); await synchroniser(serveur, MOI)
+  const d = await base.douleurs.get('reprise-profil-coude')
+  dire(`Témoin (synchro avant la lecture du profil) : reprise-profil-coude resolueLe = ${d.resolueLe ?? '(aucun)'}`)
+}

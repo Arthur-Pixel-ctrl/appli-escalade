@@ -1,0 +1,85 @@
+// Parcours 4, compléments :
+// D. Ordinateur : une douleur déclarée dans Profil apparaît dans les avertissements du plan (S-04, S-06), puis disparaît
+//    une fois marquée résolue (critère 9 de C-04).
+// E. Téléphone : séance libre en solo après la fin du cycle (régression), sans rappel du bloc, sans lien au plan.
+// Lancer : node /home/claude/audits/phase-4/p4-complements.mjs (serveur sur 4193 ; après p1 et p2)
+import { ouvrir, etapes, texte, lireTable, URL_APP, DOSSIER, TELEPHONE, BUREAU, petitsBoutons } from './lib.mjs'
+
+const exiger = (t, liste) => { for (const a of liste) if (!t.toLowerCase().includes(a.toLowerCase())) throw new Error('absent : ' + a) }
+const resultat = []
+
+{
+  const { navigateur, page: p, erreurs } = await ouvrir({ etat: DOSSIER + 'etat-p1.json', viewport: BUREAU })
+  const { etape, bilan } = etapes(p, 'p4D')
+  const nav = async (n) => { await p.getByRole('navigation').getByRole('button', { name: n }).first().click(); await p.waitForTimeout(700) }
+  await p.clock.setFixedTime(new Date('2026-12-14T09:00:00')); await p.goto(URL_APP); await p.waitForTimeout(1200)
+  const signaux = async () => {
+    await nav('Plan')
+    await p.getByRole('button', { name: 'Semaine', exact: true }).click(); await p.waitForTimeout(800)
+    // La vue Semaine garde la semaine choisie dans le Plan (semaine 1) : on passe à celle du 14 décembre.
+    if (!(await texte(p)).includes('Semaine 2 · 14 déc.')) { await p.getByRole('button', { name: 'Semaine suivante' }).click(); await p.waitForTimeout(800) }
+    const t = await texte(p)
+    return { s04: (t.match(/Tu as signalé une douleur \(doigts\)/g) || []).length, s06: (t.match(/Tu as une douleur en cours/g) || []).length, debut: t.slice(t.indexOf('Semaine 2'), t.indexOf('Semaine 2') + 500) }
+  }
+  await etape('ordinateur : avant toute douleur, ni S-04 ni S-06 dans la semaine du 14', async () => {
+    const s = await signaux(); console.log('      ', JSON.stringify({ s04: s.s04, s06: s.s06 }))
+    if (s.s04 || s.s06) throw new Error('signal déjà présent')
+  })
+  await etape('ordinateur : Profil → « Déclarer une douleur » (doigts, aucun signe) → S-04 et S-06 dans la vue Semaine', async () => {
+    await nav('Profil')
+    await p.getByRole('button', { name: 'Déclarer une douleur' }).click()
+    await p.getByRole('button', { name: 'Doigts', exact: true }).click()
+    await p.getByRole('button', { name: 'Enregistrer la douleur' }).click()
+    await p.getByRole('button', { name: 'Continuer' }).click()
+    await p.getByText('Doigts · depuis le 14 décembre').waitFor()
+    const s = await signaux(); console.log('      ', JSON.stringify({ s04: s.s04, s06: s.s06 }), '…', s.debut.slice(0, 400))
+    resultat.push(`Ordinateur, douleur aux doigts déclarée : S-04 affiché ${s.s04} fois, S-06 ${s.s06} fois dans la vue Semaine`)
+    if (!s.s04 || !s.s06) throw new Error('S-04 ou S-06 absent')
+    await p.screenshot({ path: DOSSIER + 'p4-5-ordinateur-douleur.png' })
+  })
+  await etape('ordinateur : « Marquer comme résolue » → plus de S-04 ni de S-06', async () => {
+    await nav('Profil')
+    await p.getByRole('button', { name: 'Marquer comme résolue' }).first().click()
+    await p.getByRole('dialog').getByRole('button', { name: 'Marquer comme résolue' }).click()
+    await p.getByText('Aucune douleur déclarée.').waitFor()
+    const s = await signaux(); console.log('      ', JSON.stringify({ s04: s.s04, s06: s.s06 }))
+    resultat.push(`Ordinateur, même douleur résolue : S-04 ${s.s04}, S-06 ${s.s06}`)
+    if (s.s04 || s.s06) throw new Error('signal resté')
+  })
+  console.log('      boutons < 48 px :', JSON.stringify(await petitsBoutons(p)))
+  console.log('bilan D :', bilan.ok, 'ok,', bilan.echecs.length, 'échec(s)', JSON.stringify(bilan.echecs), '; erreurs :', erreurs.length ? erreurs.slice(0, 3) : 'aucune')
+  await navigateur.close()
+}
+
+{
+  const { navigateur, page: p, erreurs } = await ouvrir({ etat: DOSSIER + 'etat-p2.json', viewport: TELEPHONE })
+  const { etape, bilan } = etapes(p, 'p4E')
+  await p.clock.setFixedTime(new Date('2027-03-15T18:00:00')); await p.goto(URL_APP); await p.waitForTimeout(1200)
+  await etape('téléphone, après la fin du cycle : Aujourd’hui sans plan, séance libre en solo', async () => {
+    const t = await texte(p)
+    console.log('      ', t.slice(0, 260))
+    exiger(t, ['Pas encore de plan'])
+    await p.getByRole('button', { name: /Séance libre, seul/ }).click()
+    await p.getByRole('button', { name: 'Stop, ça fait mal' }).waitFor()
+    const t2 = await texte(p)
+    console.log('      ', t2.slice(0, 200))
+    if (/sécurité du bloc/i.test(t2)) throw new Error('rappel de sécurité sur une séance libre')
+    await p.getByRole('button', { name: /Terminer la séance/ }).first().click()
+    const conf = p.getByRole('dialog').getByRole('button', { name: /Terminer/ })
+    if (await conf.count()) await conf.first().click()
+    await p.getByRole('group', { name: 'La séance était dure comment ?' }).getByRole('button', { name: '5', exact: true }).click()
+    await p.getByRole('group', { name: 'État de la peau' }).getByRole('button', { name: 'Bonne' }).click()
+    await p.getByRole('button', { name: 'Non, rien' }).click()
+    await p.getByRole('button', { name: /Enregistrer et voir le débrief/ }).click()
+    await p.getByRole('heading', { name: 'Débrief' }).waitFor()
+    const t3 = await texte(p)
+    if (t3.includes('Séance prévue')) throw new Error('séance libre rattachée au plan')
+    const r = (await lireTable(p, 'seancesRealisees')).find((s) => s.date === '2027-03-15')
+    console.log('      réalisée :', JSON.stringify({ mode: r?.mode, seancePlanifieeId: r?.seancePlanifieeId ?? null, marqueurs: r?.marqueurs ?? null }))
+    resultat.push(`Téléphone, séance libre solo après le cycle : mode ${r?.mode}, sans seancePlanifieeId : ${!r?.seancePlanifieeId}`)
+    if (r?.mode !== 'libre') throw new Error('mode inattendu')
+  })
+  console.log('bilan E :', bilan.ok, 'ok,', bilan.echecs.length, 'échec(s)', JSON.stringify(bilan.echecs), '; erreurs :', erreurs.length ? erreurs.slice(0, 3) : 'aucune')
+  await navigateur.close()
+}
+console.log('\n' + resultat.join('\n'))

@@ -1,0 +1,42 @@
+      message : Sauvegarde rechargée : 3 séances et 42 autres éléments.
+      base, semaine 1 : 2026-12-11 Bloc limite + tractions lestées | 2026-12-12 1 min / 1 min et continuité (sautée) | 2026-12-08 Suspensions max (réglette minimale) + bloc limite
+      séances réalisées : 3
+ok    ordinateur : Profil → « Recharger une sauvegarde » avec le fichier du téléphone
+       HIVER / Semaine 1 sur 12 / PHASE 1 · DOIGTS · SEMAINE 1 SUR 4 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10 / 11 / 12 / Ouvrir la semaine en cours / CETTE SEMAINE / mardi 8 déc. / Suspensions max (réglette minimale) + bloc limite / Faite / vendredi 11 déc. / Bloc limite + tractions lestées / Faite / samedi 12 déc. / 1 min / 1 min et continuité / Sautée / AVERTISSEMENTS OUVERTS / Aucun avertissement cette semaine. / PROCHAINE SÉANCE / Suspensions max (réglette minimale) + bloc limite / MARDI 15 DÉC. · DURE · 1 H 50 / NIVEAU : DÉTAILLÉ / Échauffement complet 35 min / Échauffement des doigts 8 min / Suspensions max lestées (López) 7 min / Bloc limite 40 min / Antagonistes, 3 séries 20 min / Les séan
+ok    ordinateur : Tableau de bord, semaine passée (faite, sautée)
+       HIVER / Phase 1 · Doigts · semaine 1 sur 4 / Les séances se lancent depuis ton téléphone. / 12 semaines / Phase / Semaine / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 10 / 11 / 12 / Bibliothèque / Recherche / Qualité / Toutes / Force des doigts / Traction et gainage / Puissance / Résistance / Endurance / Technique / Mental / Antagonistes / Mobilité / Échauffement / Durée / Toutes / 10 min max / 20 min max / 40 min max / Plus de 40 min / Seulement ceux qui me conviennent / 87 protocoles · 87 te conviennent / ⠿ / FORCE DES DOIGTS · 7 MIN / Échelles 3-6-9 / Voir la fiche / Ajouter à… / ⠿ / FORCE DES DOIGTS · 6 MIN / Plan le plus simple / Voir la fiche / Ajouter à… / ⠿ / FORCE DES DOIGTS · 32 MIN / Suspensions 7:13 / Voir la fiche / Ajouter à… / ⠿ / FORCE DES DOIGTS · 10 MIN / Suspensions légères pieds au sol / Voir la fiche / Ajouter à… / ⠿ / FORCE DES DOIGTS · 31 MIN / Réglette minimale (Hörst) 
+      (repère vendredi non trouvé dans le texte brut)
+      mention « sautée » dans la vue Semaine : non
+      « Les séances se lancent depuis ton téléphone » : oui
+ok    ordinateur : Plan, vue Semaine du 7 décembre (séance déplacée au vendredi, samedi sauté)
+      bilans : Bilans / Tes séances enregistrées, de la plus récente à la plus ancienne. / SEMAINE DU 7 DÉC. · CHARGE 0 / Bloc limite + tractions lestées / ven. 11 déc. · en groupe / charge 0 / Séance libre en group
+ok    ordinateur : Bibliothèque et Bilans s’ouvrent (régression phase 3)
+      profil créé le 2026-12-01T08:00:00.000Z → 
+      base : [{"id":"reprise-profil-coude","date":"2026-12-01","resolueLe":null,"modifieLe":"2026-12-14T07:05:00.000Z"}]
+ok    téléphone (ancien profil avec « coude ») : la reprise crée une douleur datée de la création du profil
+      base : [{"id":"reprise-profil-coude","date":"2026-12-01","resolueLe":"2026-12-14","modifieLe":"2026-12-14T09:00:00.000Z"}]
+ok    téléphone, 10 h : « Marquer comme résolue », puis profil modifié (niveau 7B) et sauvegarde
+      avant import : [{"id":"reprise-profil-coude","date":"2026-12-01","resolueLe":null,"modifieLe":"2026-12-14T17:00:30.000Z"}]
+      message : Sauvegarde rechargée : 0 séance et 42 autres éléments.
+      après import : [{"id":"reprise-profil-coude","date":"2026-12-01","resolueLe":null,"modifieLe":"2026-12-14T17:00:30.000Z"}] ; niveauBloc = 7A
+      écran : 
+ÉCHEC ordinateur, 18 h (même ancien profil, ouvert pour la première fois depuis la mise à jour) : recharge le fichier du téléphone — Error: la résolution faite sur le téléphone n’est pas arrivée sur l’ordinateur
+      message : Sauvegarde rechargée : 0 séance et 42 autres éléments.
+      téléphone après import : [{"id":"reprise-profil-coude","date":"2026-12-01","resolueLe":null,"modifieLe":"2026-12-14T17:00:30.000Z"}] ; niveauBloc = 7A ; Aujourd’hui : Douleur déclarée : coude. / Ménage cette zone et arrête-toi dès que ça fait mal. / Voir les mises en garde / Ta douleur (coude) dure depuis 14 jours. / Consulte
+ÉCHEC ordinateur : sauvegarde, rechargée sur le téléphone le lendemain — Error: douleur résolue rouverte sur le téléphone
+      premier écran : GET ME TO 9A / Cette app guide tes séances d’escalade, seul ou en groupe, et garde la trace de ta progression. Tes réponses restent sur cet appareil. Tu pourras
+      mises en garde : LES DOULEURS À REPÉRER / Mises en garde / Ces repères aident à décider quoi faire. Ils ne remplacent pas l’avis d’un pro
+ok    téléphone neuf : « J’ai une sauvegarde » (fichier version 1) depuis l’écran de bienvenue
+       LUNDI 14 DÉCEMBRE / Douleur déclarée : genou. / Ménage cette zone et arrête-toi dès que ça fait mal. / Voir les mises en garde / Ta douleur (genou) dure depuis 74 jours. / Consulte un médecin ou un kiné qui connaît l'escalade. / Pourquoi ? / Voir les mises en garde / Pas encore de plan / Prépare ton cycle sur ordinateur. En attendant, fais une séance libre. / Faire une séance libre / En groupe : tu notes tes blocs / 
+      rôles alert : 2
+ok    Aujourd’hui : « Douleur déclarée : genou. » et J-05 (« consulte ») en signal d’arrêt
+       
+ok    Profil : « Genou · depuis le 1 octobre » et la mention de reprise ; pas de question du profil
+      douleurs : [{"id":"reprise-profil-genou","date":"2026-10-01","modifieLe":"2026-12-14T08:00:00.000Z"}] ; champ dans le profil : false
+      séances réalisées : solo-1
+ok    trois ouvertures de plus : toujours une seule douleur, champ retiré du profil
+boutons de moins de 48 px : aucun
+bilan A : 4 ok, 0 échec(s) [] ; erreurs de page : aucune
+bilan B-telephone : 2 ok, 0 échec(s) [] ; erreurs de page : aucune
+bilan B-ordinateur : 0 ok, 2 échec(s) ["ordinateur, 18 h (même ancien profil, ouvert pour la première fois depuis la mise à jour) : recharge le fichier du téléphone","ordinateur : sauvegarde, rechargée sur le téléphone le lendemain"] ; erreurs de page : aucune
+bilan C : 4 ok, 0 échec(s) [] ; erreurs de page : aucune
