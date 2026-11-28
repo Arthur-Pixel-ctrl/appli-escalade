@@ -1,0 +1,62 @@
+// Parcours 0 (ordinateur, 1280 × 800) : premier lancement avec une douleur cochée, plan proposé puis validé.
+// L'état de l'appareil (IndexedDB compris) est gardé dans etat-p0.json pour les parcours suivants.
+// Lancer : node /home/claude/audits/phase-4/p0-premier-lancement-coude.mjs (serveur : npx vite preview --port 4193)
+import { ouvrir, etapes, texte, lireTable, URL_APP, DOSSIER, petitsBoutons } from './lib.mjs'
+
+const { navigateur, contexte, page: p, erreurs } = await ouvrir()
+const { etape, bilan } = etapes(p, 'p1')
+await p.clock.setFixedTime(new Date('2026-12-01T09:00:00'))
+await p.goto(URL_APP)
+
+await etape('premier lancement : question « Une douleur en ce moment ? » présente avec son aide', async () => {
+  await p.getByText('Une douleur en ce moment ?').waitFor()
+  await p.getByText('Ne touche rien si tout va bien. Une zone cochée devient une douleur déclarée aujourd’hui', { exact: false }).waitFor()
+})
+await etape('premier lancement : Coude coché, Continuer, mises en garde', async () => {
+  await p.getByLabel('Prénom').fill('Arthur')
+  await p.getByRole('button', { name: 'Coude', exact: true }).click()
+  await p.getByRole('button', { name: 'Continuer' }).click()
+  await p.getByRole('button', { name: 'J’ai compris' }).click()
+})
+await etape('ordinateur : Profil (Réglages) sans la question, section Douleurs avec « Coude · depuis le 1 décembre »', async () => {
+  await p.getByRole('navigation').getByRole('button', { name: 'Profil' }).first().click()
+  await p.getByText('Douleurs déclarées').first().waitFor()
+  const t = await texte(p)
+  if (t.includes('Une douleur en ce moment')) throw new Error('question encore présente')
+  if (!/Coude · depuis le 1 décembre/.test(t)) throw new Error('ligne absente : ' + t.slice(0, 400))
+  console.log('      sommaire :', (await p.locator('nav').allInnerTexts()).join(' | ').replace(/\n/g, ' ').slice(0, 300))
+  const douleurs = await lireTable(p, 'douleurs')
+  console.log('      base : ', JSON.stringify(douleurs.map((d) => ({ date: d.date, zone: d.zone, niveau: d.niveau, signes: d.signes }))))
+  const profil = (await lireTable(p, 'reglages')).find((r) => r.id === 'profil')
+  console.log('      profil a douleursEnCours :', 'douleursEnCours' in profil)
+})
+await etape('plan proposé (« Proposer un plan »), niveau détaillé par défaut', async () => {
+  await p.getByRole('navigation').getByRole('button', { name: 'Plan' }).first().click()
+  await p.getByRole('button', { name: 'Crée ton premier cycle' }).click()
+  await p.getByLabel('Nom du cycle').fill('Hiver')
+  console.log('      début proposé :', await p.getByLabel('Début (un lundi)').inputValue())
+  await p.getByRole('button', { name: 'Proposer un plan' }).click()
+  await p.getByText(/^Plan proposé/).first().waitFor()
+})
+await etape('valider le cycle', async () => {
+  await p.getByRole('button', { name: '12 semaines' }).click().catch(() => {})
+  await p.getByRole('button', { name: 'Valider le cycle' }).click()
+  await p.waitForTimeout(400)
+  const c = p.getByRole('dialog').getByRole('button', { name: /Valider/ })
+  if (await c.count()) await c.first().click()
+  await p.waitForTimeout(600)
+  const cycles = await lireTable(p, 'cycles')
+  console.log('      cycles :', JSON.stringify(cycles.map((c) => ({ nom: c.nom, debut: c.debut, etat: c.etat, niveau: c.niveauDetail }))))
+})
+await etape('boutons de moins de 48 px (ordinateur, Plan)', async () => { console.log('      ', JSON.stringify(await petitsBoutons(p))) })
+
+const seances = await lireTable(p, 'seancesPlanifiees')
+const sem1 = seances.filter((s) => s.date < '2026-12-21').sort((a, b) => a.date.localeCompare(b.date))
+for (const s of sem1) {
+  const refs = s.solo.etapes.map((e) => e.origine?.refId).filter(Boolean)
+  console.log(`   ${s.date} ${s.solo.nom} [${s.solo.durete}] st=${s.seanceTypeId ?? '-'} groupe=${s.groupe ? s.groupe.nom + (s.groupe.miniBloc ? ' miniBloc ' + s.groupe.miniBloc.moment + ' ' + s.groupe.miniBloc.etapes.map((e) => e.origine?.refId).join(',') : '') + ' obj ' + s.groupe.objectifs.map((o) => o.ficheReference).join(',') : 'non'} solo=${refs.join(',')}`)
+}
+await contexte.storageState({ path: DOSSIER + 'etat-p0.json', indexedDB: true })
+console.log('erreurs de page :', erreurs.length ? erreurs : 'aucune')
+console.log('bilan :', bilan.ok, 'ok,', bilan.echecs.length, 'échec(s)', bilan.echecs)
+await navigateur.close()

@@ -1,0 +1,234 @@
+// Parcours 4, sans compte (comme Arthur aujourd'hui) : le transfert entre appareils se fait par fichier de sauvegarde.
+// A. L'ordinateur (état de p1) recharge la sauvegarde du téléphone (fin de p2) : séance déplacée, séance sautée,
+//    séances faites ; aucune régression de la phase 3 (Plan, Tableau de bord, Bibliothèque, Bilans).
+// B. Deux appareils qui avaient l'ancien profil (zone « coude » dans douleursEnCours) : le téléphone reprend la zone,
+//    la marque résolue, sauvegarde ; l'ordinateur, ouvert plus tard, recharge ce fichier ; puis retour vers le téléphone.
+// C. Téléphone neuf : sauvegarde ancienne (version 1) avec une zone « genou », rechargée depuis l'écran de bienvenue.
+// Lancer : node /home/claude/audits/phase-4/p4-sauvegardes.mjs (serveur : npx vite preview --port 4193 ; après p1 et p2)
+import { writeFileSync } from 'node:fs'
+import { ouvrir, etapes, texte, lireTable, ecrireDoc, URL_APP, DOSSIER, TELEPHONE, BUREAU, petitsBoutons } from './lib.mjs'
+
+const contient = (t, a) => t.toLowerCase().includes(a.toLowerCase())
+const exiger = (t, liste) => { for (const a of liste) if (!contient(t, a)) throw new Error('absent : ' + a) }
+const bilans = []
+const petits = []
+
+async function appareil(nom, { etat, viewport }) {
+  const o = await ouvrir({ etat, viewport })
+  const { etape, bilan } = etapes(o.page, 'p4' + nom)
+  bilans.push({ nom, bilan, erreurs: o.erreurs })
+  const p = o.page
+  const aller = async (moment) => { await p.clock.setFixedTime(new Date(moment)); await p.goto(URL_APP); await p.waitForTimeout(1200) }
+  const nav = async (n) => { await p.getByRole('navigation').getByRole('button', { name: n }).first().click(); await p.waitForTimeout(700) }
+  const noterPetits = async (ecran) => { const l = await petitsBoutons(p); if (l.length) petits.push({ ecran, l }) }
+  return { ...o, p, etape, aller, nav, noterPetits }
+}
+
+// Écrit l'ancien profil (avec le champ des zones) comme l'aurait laissé une version d'avant G2, puis recharge.
+async function poserAncienProfil(p, zones, modifieLe) {
+  const [profil] = (await lireTable(p, 'reglages')).filter((d) => d.id === 'profil')
+  await ecrireDoc(p, 'reglages', { ...profil, douleursEnCours: zones, modifieLe, aEnvoyer: 0 })
+  return profil.creeLe
+}
+const douleursEnBase = async (p) => (await lireTable(p, 'douleurs')).map((d) => ({ id: d.id, date: d.date, resolueLe: d.resolueLe ?? null, modifieLe: d.modifieLe }))
+async function exporter(p, fichier) {
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: /Sauvegarder mes données/ }).click()])
+  await dl.saveAs(fichier)
+}
+async function recharger(p, fichier) {
+  await p.getByLabel('Fichier de sauvegarde').setInputFiles(fichier)
+  await p.getByText(/Sauvegarde rechargée|Import impossible/).first().waitFor()
+  const m = await p.getByText(/Sauvegarde rechargée|Import impossible/).first().innerText()
+  await p.waitForTimeout(800)
+  return m
+}
+
+// ——————————————————— A. Ordinateur, après la semaine 1 du téléphone ———————————————————
+{
+  const o = await appareil('A', { etat: DOSSIER + 'etat-p1.json', viewport: BUREAU })
+  const { p, etape, aller, nav } = o
+  await aller('2026-12-14T19:00:00')
+  await etape('ordinateur : Profil → « Recharger une sauvegarde » avec le fichier du téléphone', async () => {
+    await nav('Profil')
+    const m = await recharger(p, DOSSIER + 'sauvegarde-telephone.json')
+    console.log('      message :', m)
+    if (!m.startsWith('Sauvegarde rechargée : 3 séances')) throw new Error('message inattendu')
+    const planif = await lireTable(p, 'seancesPlanifiees')
+    const s = planif.filter((x) => x.date >= '2026-12-07' && x.date <= '2026-12-13').map((x) => `${x.date} ${x.solo.nom}${x.sauteeLe ? ' (sautée)' : ''}`)
+    console.log('      base, semaine 1 :', s.join(' | '))
+    if (!s.some((x) => x.startsWith('2026-12-11 Bloc limite'))) throw new Error('déplacement non reçu')
+    if (!s.some((x) => x.startsWith('2026-12-12') && x.endsWith('(sautée)'))) throw new Error('saut non reçu')
+    console.log('      séances réalisées :', (await lireTable(p, 'seancesRealisees')).length)
+  })
+  await etape('ordinateur : Tableau de bord, semaine passée (faite, sautée)', async () => {
+    await p.clock.setFixedTime(new Date('2026-12-13T19:00:00')); await p.goto(URL_APP); await p.waitForTimeout(1200)
+    await nav('Tableau de bord')
+    const t = await texte(p)
+    console.log('      ', t.slice(0, 700))
+    exiger(t, ['Sautée'])
+    await p.screenshot({ path: DOSSIER + 'p4-1-tableau-de-bord.png', fullPage: true })
+  })
+  await etape('ordinateur : Plan, vue Semaine du 7 décembre (séance déplacée au vendredi, samedi sauté)', async () => {
+    await nav('Plan')
+    await p.getByRole('button', { name: /^Semaine$/ }).first().click().catch(() => {})
+    await p.waitForTimeout(600)
+    const t = await texte(p)
+    const i = t.toLowerCase().indexOf('lundi')
+    console.log('      ', t.slice(Math.max(0, i - 80), i + 900))
+    if (!/vendredi[^/]*\/[^]*?Bloc limite/i.test(t)) console.log('      (repère vendredi non trouvé dans le texte brut)')
+    console.log('      mention « sautée » dans la vue Semaine :', /saut[ée]e/i.test(t) ? 'oui' : 'non')
+    console.log('      « Les séances se lancent depuis ton téléphone » :', contient(t, 'Les séances se lancent depuis ton téléphone') ? 'oui' : 'non')
+    for (const b of ['Faire la séance ici', 'Démarrer', 'Je grimpe seul']) if (await p.getByRole('button', { name: b }).count()) throw new Error('bouton de lancement sur ordinateur : ' + b)
+    await p.screenshot({ path: DOSSIER + 'p4-2-semaine.png', fullPage: true })
+    await o.noterPetits('ordinateur, vue Semaine')
+  })
+  await etape('ordinateur : Bibliothèque et Bilans s’ouvrent (régression phase 3)', async () => {
+    await nav('Bibliothèque'); exiger(await texte(p), ['Bloc limite'])
+    await nav('Bilans'); console.log('      bilans :', (await texte(p)).slice(0, 200))
+    await o.noterPetits('ordinateur, Bilans')
+  })
+  await o.navigateur.close()
+}
+
+// ——————————————————— B. Deux appareils de l'ancienne version, transfert par fichier ———————————————————
+{
+  const tel = await appareil('B-telephone', { etat: DOSSIER + 'etat-p1.json', viewport: TELEPHONE })
+  const ord = await appareil('B-ordinateur', { etat: DOSSIER + 'etat-p1.json', viewport: BUREAU })
+  const ANCIEN = '2026-12-02T09:00:00.000Z' // dernière modification du profil par l'ancienne version
+  const fTel = DOSSIER + 'p4-b-telephone.json'
+  const fOrd = DOSSIER + 'p4-b-ordinateur.json'
+
+  await tel.aller('2026-12-14T08:00:00')
+  await tel.etape('téléphone (ancien profil avec « coude ») : la reprise crée une douleur datée de la création du profil', async () => {
+    const creeLe = await poserAncienProfil(tel.p, ['coude'], ANCIEN)
+    await tel.aller('2026-12-14T08:05:00')
+    await tel.p.getByRole('navigation').waitFor()
+    const t = await texte(tel.p)
+    exiger(t, ['Douleur déclarée : coude.'])
+    await tel.nav('Profil')
+    const t2 = await texte(tel.p)
+    const i = t2.indexOf('Douleurs déclarées')
+    console.log('      profil créé le', creeLe, '→', t2.slice(i, i + 330))
+    exiger(t2, ['Coude · depuis le 1 décembre', 'Reprise de ton ancien profil'])
+    if (/Une douleur en ce moment/.test(t2)) throw new Error('la question du profil est encore là')
+    console.log('      base :', JSON.stringify(await douleursEnBase(tel.p)))
+  })
+  await tel.etape('téléphone, 10 h : « Marquer comme résolue », puis profil modifié (niveau 7B) et sauvegarde', async () => {
+    await tel.p.clock.setFixedTime(new Date('2026-12-14T10:00:00'))
+    await tel.p.getByRole('button', { name: 'Marquer comme résolue' }).first().click()
+    await tel.p.getByRole('dialog').getByRole('button', { name: 'Marquer comme résolue' }).click()
+    await tel.p.getByText('Aucune douleur déclarée.').waitFor()
+    await tel.p.clock.setFixedTime(new Date('2026-12-14T10:05:00'))
+    await tel.p.getByLabel('Niveau max en bloc').selectOption('7B')
+    await tel.p.getByRole('button', { name: 'Enregistrer le profil' }).click()
+    await tel.p.waitForTimeout(600)
+    console.log('      base :', JSON.stringify(await douleursEnBase(tel.p)))
+    await exporter(tel.p, fTel)
+  })
+
+  await ord.aller('2026-12-14T18:00:00')
+  await ord.etape('ordinateur, 18 h (même ancien profil, ouvert pour la première fois depuis la mise à jour) : recharge le fichier du téléphone', async () => {
+    await poserAncienProfil(ord.p, ['coude'], ANCIEN)
+    await ord.aller('2026-12-14T18:00:30')
+    await ord.nav('Profil')
+    console.log('      avant import :', JSON.stringify(await douleursEnBase(ord.p)))
+    const m = await recharger(ord.p, fTel)
+    console.log('      message :', m)
+    const d = await douleursEnBase(ord.p)
+    const profil = (await lireTable(ord.p, 'reglages')).find((x) => x.id === 'profil')
+    const t = await texte(ord.p)
+    const i = t.indexOf('Douleurs déclarées')
+    console.log('      après import :', JSON.stringify(d), '; niveauBloc =', profil.niveauBloc)
+    console.log('      écran :', t.slice(i, i + 200))
+    const resolue = d.find((x) => x.id === 'reprise-profil-coude')?.resolueLe
+    writeFileSync(DOSSIER + 'p4-b-resultat.txt', [
+      `Ordinateur après import du fichier du téléphone : reprise-profil-coude resolueLe = ${resolue ?? '(aucun : douleur encore ouverte)'}`,
+      `Ordinateur après import : niveauBloc = ${profil.niveauBloc} (7B sur le téléphone)`,
+    ].join('\n') + '\n')
+    if (!resolue) throw new Error('la résolution faite sur le téléphone n’est pas arrivée sur l’ordinateur')
+    if (profil.niveauBloc !== '7B') throw new Error('la modification du profil faite sur le téléphone n’est pas arrivée')
+  })
+  await ord.etape('ordinateur : sauvegarde, rechargée sur le téléphone le lendemain', async () => {
+    await exporter(ord.p, fOrd)
+    await tel.aller('2026-12-15T08:00:00')
+    await tel.nav('Profil')
+    const m = await recharger(tel.p, fOrd)
+    console.log('      message :', m)
+    const d = await douleursEnBase(tel.p)
+    const profil = (await lireTable(tel.p, 'reglages')).find((x) => x.id === 'profil')
+    await tel.nav('Aujourd’hui')
+    const t = await texte(tel.p)
+    console.log('      téléphone après import :', JSON.stringify(d), '; niveauBloc =', profil.niveauBloc, '; Aujourd’hui :', t.slice(0, 160))
+    const resolue = d.find((x) => x.id === 'reprise-profil-coude')?.resolueLe
+    writeFileSync(DOSSIER + 'p4-b-resultat.txt', [
+      `Téléphone après import du fichier de l’ordinateur : reprise-profil-coude resolueLe = ${resolue ?? '(aucun : douleur rouverte)'} ; niveauBloc = ${profil.niveauBloc} ; signal « Douleur déclarée : coude. » sur Aujourd’hui : ${contient(t, 'Douleur déclarée : coude.') ? 'oui' : 'non'}`,
+    ].join('\n') + '\n', { flag: 'a' })
+    await tel.p.screenshot({ path: DOSSIER + 'p4-3-telephone-rouverte.png', fullPage: true })
+    if (!resolue) throw new Error('douleur résolue rouverte sur le téléphone')
+  })
+  await tel.navigateur.close()
+  await ord.navigateur.close()
+}
+
+// ——————————————————— C. Téléphone neuf, sauvegarde ancienne (version 1) ———————————————————
+{
+  const fichier = DOSSIER + 'p4-c-sauvegarde-v1.json'
+  writeFileSync(fichier, JSON.stringify({
+    version: 1, exporteLe: '2026-11-15T10:00:00.000Z',
+    tables: {
+      seancesRealisees: [{
+        id: 'solo-1', versionFormat: 1, creeLe: '2026-11-10T17:00:00.000Z', modifieLe: '2026-11-10T18:30:00.000Z',
+        date: '2026-11-10', mode: 'solo', nom: 'Doigts : suspensions', durete: 'dure', dureeMin: 55, effortPercu: 7, peau: 2, douleur: false,
+        etapes: [{ titre: 'Échauffement', statut: 'faite' }, { titre: 'Suspensions', statut: 'passee' }], objectifs: [], blocs: [],
+      }],
+      reglages: [{
+        id: 'profil', versionFormat: 1, creeLe: '2026-10-01T08:00:00.000Z', modifieLe: '2026-11-05T09:00:00.000Z',
+        prenom: 'Arthur', disciplinePrincipale: 'bloc', niveauBloc: '7A', niveauVoie: '6c', objectif: 'Passer le 7B',
+        anneesPratique: 6, experiencePoutre: 'occasionnelle', poidsCorpsKg: 72, pointsFaibles: 'Doigts',
+        douleursEnCours: ['genou'], seancesParSemaine: 4, grimpeSouventEnGroupe: true, salleHabituelleId: 'salle-mroc',
+      }],
+    },
+  }, null, 2))
+  const c = await appareil('C', { viewport: TELEPHONE })
+  const { p, etape, aller, nav } = c
+  await aller('2026-12-14T09:00:00')
+  await etape('téléphone neuf : « J’ai une sauvegarde » (fichier version 1) depuis l’écran de bienvenue', async () => {
+    console.log('      premier écran :', (await texte(p)).slice(0, 160))
+    await p.getByLabel('Fichier de sauvegarde').setInputFiles(fichier)
+    await p.getByRole('button', { name: 'J’ai compris' }).waitFor()
+    console.log('      mises en garde :', (await texte(p)).slice(0, 120))
+    await p.getByRole('button', { name: 'J’ai compris' }).click()
+    await p.getByRole('navigation').waitFor()
+    await p.waitForTimeout(900)
+  })
+  await etape('Aujourd’hui : « Douleur déclarée : genou. » et J-05 (« consulte ») en signal d’arrêt', async () => {
+    const t = await texte(p)
+    console.log('      ', t.slice(0, 420))
+    exiger(t, ['Douleur déclarée : genou.', 'Ta douleur (genou) dure depuis 74 jours.', 'Consulte un médecin ou un kiné qui connaît l\'escalade.'])
+    console.log('      rôles alert :', await p.getByRole('alert').count())
+    await p.screenshot({ path: DOSSIER + 'p4-4-neuf-aujourdhui.png', fullPage: true })
+    await c.noterPetits('téléphone neuf, Aujourd’hui')
+  })
+  await etape('Profil : « Genou · depuis le 1 octobre » et la mention de reprise ; pas de question du profil', async () => {
+    await nav('Profil')
+    const t = await texte(p)
+    const i = t.indexOf('Douleurs déclarées')
+    console.log('      ', t.slice(i, i + 330))
+    exiger(t, ['Genou · depuis le 1 octobre', 'Reprise de ton ancien profil'])
+    if (/Une douleur en ce moment/.test(t)) throw new Error('la question du profil est encore là')
+    await c.noterPetits('téléphone neuf, Profil')
+  })
+  await etape('trois ouvertures de plus : toujours une seule douleur, champ retiré du profil', async () => {
+    for (const h of ['10', '11', '12']) await aller(`2026-12-14T${h}:00:00`)
+    const d = await lireTable(p, 'douleurs')
+    const profil = (await lireTable(p, 'reglages')).find((x) => x.id === 'profil')
+    console.log('      douleurs :', JSON.stringify(d.map((x) => ({ id: x.id, date: x.date, modifieLe: x.modifieLe }))), '; champ dans le profil :', 'douleursEnCours' in profil)
+    console.log('      séances réalisées :', (await lireTable(p, 'seancesRealisees')).map((s) => s.id).join(', '))
+    if (d.length !== 1 || d[0].date !== '2026-10-01') throw new Error('reprise incorrecte')
+    if ('douleursEnCours' in profil) throw new Error('champ encore présent')
+  })
+  await c.navigateur.close()
+}
+
+console.log(petits.length ? 'boutons de moins de 48 px : ' + JSON.stringify(petits) : 'boutons de moins de 48 px : aucun')
+for (const { nom, bilan, erreurs } of bilans) console.log(`bilan ${nom} :`, bilan.ok, 'ok,', bilan.echecs.length, 'échec(s)', JSON.stringify(bilan.echecs), '; erreurs de page :', erreurs.length ? erreurs.slice(0, 3) : 'aucune')

@@ -1,0 +1,29 @@
+IDENTIQUE J-01  niveau information (spec information)  forme information (attendu information)  source « Synthèse de l'entraînement » (spec [SYN], [MOD])
+          « Deux voyants sont au rouge ce matin. Fais plutôt la version légère, ou une séance technique. »  [forme 2 rouges, séance dure]
+IDENTIQUE J-02  niveau information (spec information)  forme information (attendu information)  source « Walsh et al. » (spec [SYN] (Walsh et al.))
+          « Moins de 7 h de sommeil en moyenne sur 3 nuits : transforme la séance maximale en séance technique ou de volume. »  [3 nuits de 5 h, séance maximale]
+IDENTIQUE J-03  niveau information (spec information)  forme information (attendu information)  source « Synthèse de l'entraînement » (spec [SYN])
+          « Tu signales une douleur ce matin. Allège la séance, et arrête si elle dépasse 2 sur 10 pendant l'effort. »  [douleur 1 ce matin, séance dure]
+IDENTIQUE J-04  niveau fort (spec fort)  forme avertissement (attendu avertissement)  source « Synthèse de l'entraînement » (spec [SYN], [MOD] ; fonction existante `prochaineSeanceDurePossible`)
+          « Ta dernière séance maximale date de 12 h. Attends encore 36 h, ou fais la version légère. »  [maximale il y a 12 h, séance maximale]
+IDENTIQUE J-05  niveau fort (spec fort)  forme arret (attendu arret)  source « Synthèse de l'entraînement » (spec [SYN])
+          « Ta douleur (coude) dure depuis 14 jours. Consulte un médecin ou un kiné qui connaît l'escalade. »  [douleur réduction de 14 j, jour sans séance]
+IDENTIQUE J-05  niveau fort (spec fort)  forme arret (attendu arret)  source « Synthèse de l'entraînement » (spec [SYN])
+          « Ta douleur (poignet) dure depuis 20 jours. Consulte un médecin ou un kiné qui connaît l'escalade. »  [douleur réduction de 20 j, séance légère]
+IDENTIQUE J-06  niveau information (spec information)  forme information (attendu information)  source « Synthèse de l'entraînement » (spec [SYN])
+          « Ton test « Suspension 7 s » baisse et tu es fatigué : prends une semaine allégée avant de continuer. »  [test en baisse + 2 formes fatiguées (moteur direct, jour sans séance)]
+IDENTIQUE J-07  niveau information (spec information)  forme information (attendu information)  source « Pratique de grimpeurs » (spec [SYN] (pratique de grimpeurs))
+          « Ta peau était abîmée à la dernière séance. Si tes pulpes sont roses et brillantes, prends un jour de repos. »  [peau 1 hier, séance dure]
+IDENTIQUE S-04  niveau fort (spec fort)  forme arret (attendu arret)  source « Modèle de données, Synthèse (réduction ciblée) » (spec [MOD], [SYN] (réduction ciblée))
+          « Tu as signalé une douleur (coude). « Tractions 4 × 5 » la sollicite : remplace-la par un exercice qui ne fait pas mal, ou retire-la. »  [douleur coude 20 j, traction-simple-4x5]
+IDENTIQUE S-05  niveau fort (spec fort)  forme arret (attendu arret)  source « Synthèse (arrêt immédiat et consultation) » (spec [SYN] (arrêt immédiat et consultation))
+          « Tu as signalé un signe d'alerte (Claquement ou « pop » dans un doigt, Gonflement ou bleu). Pas de séance dure avant d'avoir consulté un médecin ou un kiné qui connaît l'escalade. »  [signe d’alerte, séance dure]
+IDENTIQUE S-06  niveau fort (spec fort)  forme arret (attendu arret)  source « Synthèse » (spec [SYN])
+          « Tu as une douleur en cours. Pendant 1 à 2 semaines, retire « Bloc limite » : pas d'arqué, de pan, de trous ni d'effort maximal. Garde de la grimpe facile qui ne fait pas mal. »  [douleur dos 3 j, bloc limite]
+
+Jour sans séance, tous les signaux réunis : J-05/arret
+Ordre, séance maximale + douleur du jour + forme rouge + maximale à 12 h : S-04/arret, S-06/arret, J-04/avertissement, J-01/information
+Douleur résolue aujourd'hui, séance maximale : (rien)
+Douleur supprimée, séance maximale : (rien)
+
+Écarts : 0

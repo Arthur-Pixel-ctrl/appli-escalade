@@ -1,0 +1,34 @@
+       MARDI 8 DÉCEMBRE / PHASE 1 · DOIGTS · SEMAINE 1 SUR 4 / Suspensions max (réglette minimale) + bloc limite / SÉANCE DURE / 1 h 50 / 1 / Échauffement complet / 35 min / 2 / Échauffement des doigts / 8 min / 3 / Suspensions max lestées (López) / 7 min / 4 / Bloc limite / 40 min / 5 / Antagonistes, 3 séries / 20 min / Je grimpe en groupe / 1 objectif / Je grimpe seul / Séance guidée, chrono intégré / Forme du jour / À re
+ok    Aujourd’hui : séance du jour, mention de phase, ligne Forme du jour, deux modes
+      focus à l’ouverture : Forme du jour
+ok    Forme du jour : 5 questions, « 30 secondes », Enregistrer désactivé tant qu’il manque une note
+      base : [{"id":"2026-12-08","date":"2026-12-08","sommeil":2,"heures":5.5,"aEnvoyer":1}]
+      boutons désactivés sur Aujourd’hui : 0
+ok    Forme du jour : heures hors bornes refusées, puis sommeil 2, fatigue 2 → « 2 voyants au rouge » et J-01 en information
+       Stop, ça fait mal / Quitter / 0 MIN · ÉTAPE 1 SUR 2 / Suspensions max (réglette minimale) + bloc limite · avant le groupe / 1 / EN COURS / AVIS DE COACH / Échauffement des doigts / Juste avant une séance de poutre, si possible après 15 à 30 min de grimpe facile. La dernière suspension te dit la char
+      Stop : y = 20 h = 48 ; rappel bloc sur le mini-bloc : false
+ok    Groupe (mode habituel) : mini-bloc d’abord, « Stop » en haut, « Passer au groupe »
+       Quitter / 0 MIN · 0 BLOC NOTÉ / Stop, ça fait mal / RAPPEL DE SÉCURITÉ DU BLOC / Zone de chute dégagée : ni sac, ni bouteille, ni personne ; pas de tapis écartés / Ne grimpe pas au-dessus ni en dessous de quelqu’un / Désescalade plutôt que saut, dès que tu peux / Si tu tombes : regarde en bas, expire, retombe sur les deux pieds, jambes fléchies, puis roule en arrière, bras rentrés / Jamais de réception bras tendus ni en torsion sur un pied planté / Renonce à un passage dont la chute est délicate
+ok    Groupe : rappel de sécurité du bloc en tête, objectifs, « Stop » visible
+       MARDI 8 DÉCEMBRE · EN GROUPE · 0 MIN / Débrief / 0 objectif atteint sur 1. / Séance prévue : mardi, Suspensions max (réglette minimale) + bloc limite · faite / ENREGISTRÉE SUR CE TÉLÉPHONE / 1/1 / blocs enchaînés / 1 / essais / 7/10 / effort / 1/2 / étapes faites / OBJECTIFS / 3 blocs à ta limite, 4 essais max chacun / 1 sur 3 / ÉTAPES / Échauffement des doigts / Faite / Suspensions max lestées (López) / Non faite / BLOCS PAR COULEUR / COULEUR	TENTÉS	FLASH	ENCHAÎNÉS / Jaune	1	1	1 / TA SEMAINE / 
+      réalisée : {"mode":"groupe","seancePlanifieeId":true,"qualite":"doigts","marqueurs":["poutre","maximale","poutre_intensive","bloc_limite"],"etapes":["Échauffement des doigts:faite","Suspensions max lestées (López):a_faire"],"blocs":1}
+ok    Groupe : un bloc noté, Terminer, trois questions, débrief (étapes du mini-bloc, séance prévue, mention d’envoi)
+ok    Repos : « Repos », ligne Forme du jour présente, « Voir la semaine »
+       ← Retour à la semaine / JEUDI 10 · PRÉVUE / Bloc limite + tractions lestées / SÉANCE DURE / 1 h 53 / 1 / Échauffement complet / 35 min / 2 / Bloc limite / 40 min / 3 / Tractions lestées, force max / 18 min / 4 / Antagonistes, 3 séries / 20 min / VERSION EN GROUPE / 3 blocs à ta limite, 4 essais max chacun / Faire cette séance maintenant / En groupe : 1 objectif / La faire seul / Seul : séance guidée, chrono intégré / Déplacer / Sauter cette séance
+      jours proposés : mercredi 9 | vendredi 11 | samedi 12 | dimanche 13 | Annuler
+      base : date 2026-12-11 aEnvoyer 1 semaine 1
+ok    Programme : aperçu de jeudi 10 (à venir) → avertissements, Déplacer, Sauter ; jours proposés
+      fenêtre : Sauter cette séance ? / Elle ne sera pas rattrapée : on continue le plan. Tu pourras annuler jusqu’à la fin de son jour. / Garder la séance / Sauter la séance
+ok    Programme : samedi 12 → Sauter (confirmation) → « Séance sautée. » et « Annuler »
+       Lundi, repos | Mardi, Suspensions max (réglette minimale) + bloc limite, fait | Mercredi, aujourd’hui | Jeudi, repos | Vendredi, Bloc limite + tractions lestées | Samedi, 1 min / 1 min et continuité, sautée | Dimanche, repos
+ok    Aujourd’hui : la semaine montre vendredi (déplacée) et samedi sauté
+ok    Séance libre un jour de repos (régression) : groupe libre, Terminer, questions, débrief
+      groupe : Quitter / 0 MIN · 0 BLOC NOTÉ / Stop, ça fait mal / RAPPEL DE SÉCURITÉ DU BLOC / Zone de chute dégagée : ni sac, ni bouteille, ni personne ; pas de tapis écartés / Ne grimpe pas au-dessus ni en dessou
+      mini-bloc après : Stop, ça fait mal / Quitter / 0 MIN · ÉTAPE 1 SUR 1 / Bloc limite + tractions lestées · après le groupe / 1 / EN COURS / AVIS DE COACH / Tractions lestées, force max / 3 à 4 tractions par série, effor
+      réalisée : {"mode":"groupe","etapes":["Tractions lestées, force max:a_faire"],"marqueurs":["maximale","bloc_limite"]}
+ok    Vendredi : la séance déplacée est celle du jour ; groupe d’abord, puis mini-bloc après
+      fichier : appli-escalade-2026-12-14.json
+ok    Profil : « Sauvegarder mes données » produit un fichier
+boutons de moins de 48 px : aucun
+erreurs de page : aucune
+bilan : 13 ok, 0 échec(s) []

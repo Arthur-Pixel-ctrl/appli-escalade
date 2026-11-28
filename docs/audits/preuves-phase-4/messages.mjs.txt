@@ -1,0 +1,97 @@
+// Audit phase 4 : J-01 à J-07 et S-04 à S-06, déclenchés par le chemin du téléphone
+// (controlesDuJour, comme Aujourd'hui), comparés par script au texte de moteur-verification.md.
+// Lancer : node /home/claude/audits/phase-4/messages.mjs
+// Une séance réalisée finit à son creeLe (realiseeVerif, passerelles.ts) : le champ finLe des fixtures sert à le poser.
+import { lireSpec, comparer } from './spec.mjs'
+
+const S = '/home/claude/wt/AUDIT-4/src/'
+const { controlesDuJour } = await import(S + 'ecrans/controlesDuJour.ts')
+const R = await import(S + 'regles/index.ts')
+const { EXEMPLE_CYCLE, EXEMPLE_SEANCE_PLANIFIEE } = await import(S + 'donnees/exemplesV2.ts')
+const { protocoleParId } = await import(S + 'donnees/bibliotheque/index.ts')
+const { PROFIL_VIDE } = await import(S + 'donnees/profil.ts')
+
+const spec = lireSpec()
+const AUJ = '2026-11-17'
+const MAINTENANT = '2026-11-17T08:00:00.000Z'
+const profil = { ...PROFIL_VIDE, anneesPratique: 6, experiencePoutre: 'reguliere', tractionsStrictes: 15, tient15sSur25mm: true, majeur: true, grimpeEnTete: true, niveauBloc: '7A' }
+const e = (x = {}) => ({ profil, exercicesPerso: [], douleurs: [], formes: [], objectifs: [], aujourdhui: AUJ, maintenant: MAINTENANT, ...x })
+const forme = (date, x = {}) => ({ id: date, versionFormat: 1, creeLe: 'x', modifieLe: 'x', date, sommeil: 4, fatigue: 4, courbatures: 4, douleur: 4, peau: 4, ...x })
+const douleur = (date, zone, niveau = 'reduction', signes = []) => ({ id: 'd-' + zone + date, versionFormat: 1, creeLe: 'x', modifieLe: 'x', date, zone, niveau, signes })
+const realisee = (x) => ({ id: 'r-' + Math.random(), versionFormat: 1, creeLe: x.finLe, modifieLe: x.finLe, mode: 'solo', nom: 'Séance d’hier', durete: 'dure', dureeMin: 60, effortPercu: 8, peau: 3, douleur: false, etapes: [], objectifs: [], blocs: [], ...x })
+const seanceAvec = (ids, durete = 'dure') => ({
+  ...EXEMPLE_SEANCE_PLANIFIEE, groupe: null,
+  solo: { nom: 'Séance du jour', durete, etapes: ids.map((id, i) => R.etapeDepuisProtocole(protocoleParId(id), 'e' + i)) },
+})
+const duJour = (s) => ({ seance: s, cycle: EXEMPLE_CYCLE })
+
+const lignes = []
+let ecarts = 0
+function verifier(titre, resultat, code, attenduForme) {
+  const c = resultat.find((x) => x.avertissement.code === code)
+  if (!c) { lignes.push(`ABSENT    ${code}  (${titre})`); ecarts++; return }
+  const a = c.avertissement
+  const r = spec[code]
+  const niveauSpec = r.niveau.startsWith('fort') ? 'fort' : r.niveau.startsWith('information') ? 'information' : r.niveau
+  const cmp = comparer(r, a.message)
+  const okNiveau = a.niveau === niveauSpec
+  const okForme = c.forme === attenduForme
+  if (cmp !== 'identique' || !okNiveau || !okForme) ecarts++
+  lignes.push(`${cmp.toUpperCase().padEnd(9)} ${code}  niveau ${a.niveau} (spec ${niveauSpec})${okNiveau ? '' : ' ÉCART'}  forme ${c.forme} (attendu ${attenduForme})${okForme ? '' : ' ÉCART'}  source « ${a.source} » (spec ${r.source})`)
+  lignes.push(`          « ${a.message} »  [${titre}]`)
+}
+
+const dure = EXEMPLE_SEANCE_PLANIFIEE // solo et groupe dures
+const max = seanceAvec(['puissance-bloc-limite'])
+
+// J-01
+verifier('forme 2 rouges, séance dure', controlesDuJour(e({ formes: [forme(AUJ, { sommeil: 2, fatigue: 2 })] }), [], duJour(dure)), 'J-01', 'information')
+// J-02 : trois nuits de 5 h, séance maximale
+verifier('3 nuits de 5 h, séance maximale', controlesDuJour(e({ formes: ['2026-11-15', '2026-11-16', AUJ].map((d) => forme(d, { heuresSommeil: 5 })) }), [], duJour(max)), 'J-02', 'information')
+// J-03
+verifier('douleur 1 ce matin, séance dure', controlesDuJour(e({ formes: [forme(AUJ, { douleur: 1 })] }), [], duJour(dure)), 'J-03', 'information')
+// J-04 : séance maximale finie il y a 12 h
+verifier('maximale il y a 12 h, séance maximale', controlesDuJour(e(), [realisee({ date: '2026-11-16', marqueurs: ['maximale'], finLe: '2026-11-16T20:00:00.000Z' })], duJour(max)), 'J-04', 'avertissement')
+// J-05 : avec et sans séance
+verifier('douleur réduction de 14 j, jour sans séance', controlesDuJour(e({ douleurs: [douleur('2026-11-03', 'coude')] }), []), 'J-05', 'arret')
+verifier('douleur réduction de 20 j, séance légère', controlesDuJour(e({ douleurs: [douleur('2026-10-28', 'poignet')] }), [], duJour(seanceAvec(['traction-simple-4x5'], 'legere'))), 'J-05', 'arret')
+// J-06 : pas joignable par le téléphone (résultats de tests en phase 6) : appel direct du moteur
+{
+  const ctx = R.contexteVerif(e({ formes: [forme(AUJ, { fatigue: 2 }), forme('2026-11-15', { fatigue: 1 })] }))
+  ctx.resultatsTests = [
+    { testId: 't', testNom: 'Suspension 7 s', date: '2026-10-01', valeur: 30, sensProgres: 'hausse' },
+    { testId: 't', testNom: 'Suspension 7 s', date: '2026-11-10', valeur: 25, sensProgres: 'hausse' },
+  ]
+  const r = R.verifierJourSansSeance(ctx).map((a) => ({ avertissement: a, forme: R.formeAffichage(a) }))
+  verifier('test en baisse + 2 formes fatiguées (moteur direct, jour sans séance)', r, 'J-06', 'information')
+}
+// J-07 : peau 1 hier, séance dure
+verifier('peau 1 hier, séance dure', controlesDuJour(e(), [realisee({ date: '2026-11-16', peau: 1, finLe: '2026-11-16T19:00:00.000Z', marqueurs: [] })], duJour(dure)), 'J-07', 'information')
+// S-04 : douleur au coude (déclarée il y a 20 jours, pour ne pas avoir S-06), fiche qui la sollicite
+verifier('douleur coude 20 j, traction-simple-4x5', controlesDuJour(e({ douleurs: [douleur('2026-10-28', 'coude')] }), [], duJour(seanceAvec(['traction-simple-4x5']))), 'S-04', 'arret')
+// S-05 : signe d'alerte, séance dure
+verifier('signe d’alerte, séance dure', controlesDuJour(e({ douleurs: [douleur('2026-11-15', 'doigts', 'alerte', ['Claquement ou « pop » dans un doigt', 'Gonflement ou bleu'])] }), [], duJour(dure)), 'S-05', 'arret')
+// S-06 : douleur réduction au dos (non contre-indiqué) 3 jours, effort maximal
+verifier('douleur dos 3 j, bloc limite', controlesDuJour(e({ douleurs: [douleur('2026-11-14', 'dos')] }), [], duJour(max)), 'S-06', 'arret')
+
+// Jour sans séance : seuls J-05 et J-06 peuvent sortir, même avec tout le reste réuni.
+const tout = e({
+  formes: ['2026-11-15', '2026-11-16', AUJ].map((d) => forme(d, { sommeil: 1, fatigue: 1, douleur: 1, heuresSommeil: 4 })),
+  douleurs: [douleur('2026-11-01', 'coude'), douleur('2026-11-15', 'doigts', 'alerte', ['Engourdissements']), douleur('2026-11-16', 'dos')],
+})
+const sansSeance = controlesDuJour(tout, [realisee({ date: '2026-11-16', peau: 1, marqueurs: ['maximale'], finLe: '2026-11-17T06:00:00.000Z' })])
+lignes.push('', `Jour sans séance, tous les signaux réunis : ${sansSeance.map((c) => c.avertissement.code + '/' + c.forme).join(', ')}`)
+
+// Ordre de la pile (arrêts, avertissements, informations)
+const ordre = controlesDuJour(e({ douleurs: [douleur(AUJ, 'coude')], formes: [forme(AUJ, { sommeil: 2, fatigue: 2 })] }),
+  [realisee({ date: '2026-11-16', marqueurs: ['maximale'], finLe: '2026-11-16T20:00:00.000Z' })], duJour(max))
+lignes.push(`Ordre, séance maximale + douleur du jour + forme rouge + maximale à 12 h : ${ordre.map((c) => c.avertissement.code + '/' + c.forme).join(', ')}`)
+
+// Douleur résolue aujourd'hui : plus rien
+const resolue = { ...douleur('2026-11-14', 'dos'), resolueLe: AUJ }
+lignes.push(`Douleur résolue aujourd'hui, séance maximale : ${controlesDuJour(e({ douleurs: [resolue] }), [], duJour(max)).map((c) => c.avertissement.code).join(', ') || '(rien)'}`)
+// Douleur supprimée : plus rien
+lignes.push(`Douleur supprimée, séance maximale : ${controlesDuJour(e({ douleurs: [{ ...douleur('2026-11-14', 'dos'), supprimeLe: 'x' }] }), [], duJour(max)).map((c) => c.avertissement.code).join(', ') || '(rien)'}`)
+
+lignes.push('', `Écarts : ${ecarts}`)
+console.log(lignes.join('\n'))

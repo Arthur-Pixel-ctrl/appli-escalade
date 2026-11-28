@@ -1,0 +1,17 @@
+       {"s04":0,"s06":0}
+ok    ordinateur : avant toute douleur, ni S-04 ni S-06 dans la semaine du 14
+       {"s04":10,"s06":10} … Semaine 2 · 14 déc. au 20 déc. / 3 séances · 2 dures / Ajouter une séance / Semaine précédente / Semaine suivante / 12 SIGNAUX D’ARRÊT / Suspensions max (réglette minimale) + bloc limite : Tu as signalé une douleur (doigts). / Voir la séance / Suspensions max (réglette minimale) + bloc limite : Tu as signalé une douleur (doigts). / Voir la séance / Suspensions max (réglette minimale) + bloc limite
+ok    ordinateur : Profil → « Déclarer une douleur » (doigts, aucun signe) → S-04 et S-06 dans la vue Semaine
+       {"s04":0,"s06":0}
+ok    ordinateur : « Marquer comme résolue » → plus de S-04 ni de S-06
+      boutons < 48 px : []
+bilan D : 3 ok, 0 échec(s) [] ; erreurs : aucune
+       LUNDI 15 MARS / Pas encore de plan / Prépare ton cycle sur ordinateur. En attendant, fais une séance libre. / Faire une séance libre / En groupe : tu notes tes blocs / Séance libre, seul / Seul : échauffement, puis essais / Pour créer ton cycle, ouvre http://l
+       Stop, ça fait mal / Quitter / 0 MIN · ÉTAPE 1 SUR 2 / Séance libre / 1 / EN COURS / Échauffement / Monte en intensité petit à petit. Tu dois finir chaud, pas fatigué. / 5 min pour faire monter le card
+      réalisée : {"mode":"libre","seancePlanifieeId":null,"marqueurs":null}
+ok    téléphone, après la fin du cycle : Aujourd’hui sans plan, séance libre en solo
+bilan E : 1 ok, 0 échec(s) [] ; erreurs : aucune
+
+Ordinateur, douleur aux doigts déclarée : S-04 affiché 10 fois, S-06 10 fois dans la vue Semaine
+Ordinateur, même douleur résolue : S-04 0, S-06 0
+Téléphone, séance libre solo après le cycle : mode libre, sans seancePlanifieeId : true

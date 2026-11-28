@@ -1,0 +1,16 @@
+ok    premier lancement : question « Une douleur en ce moment ? » présente avec son aide
+ok    premier lancement : Coude coché, Continuer, mises en garde
+      sommaire : Tableau de bord Plan Bibliothèque Bilans Profil | Toi Prérequis Douleurs Règles Assistant Données
+      base :  [{"date":"2026-12-01","zone":"coude","niveau":"reduction","signes":[]}]
+      profil a douleursEnCours : false
+ok    ordinateur : Profil (Réglages) sans la question, section Douleurs avec « Coude · depuis le 1 décembre »
+      début proposé : 2026-12-07
+ok    plan proposé (« Proposer un plan »), niveau détaillé par défaut
+      cycles : [{"nom":"Hiver","debut":"2026-12-07","etat":"valide","niveau":"detaille"}]
+ok    valider le cycle
+       []
+ok    boutons de moins de 48 px (ordinateur, Plan)
+   2026-12-12 Continuité et technique [legere] st=ST-END-01 groupe=Continuité et technique obj groupe-contacts-a-deux,endurance-continuite-fin-de-seance solo=echauffement-dynamique-vagy,technique-pieds-silencieux,technique-grimpe-au-ralenti,endurance-arc,mobilite-etirements-du-soir
+   2026-12-19 Continuité et technique [legere] st=ST-END-01 groupe=Continuité et technique obj groupe-contacts-a-deux,endurance-continuite-fin-de-seance solo=echauffement-dynamique-vagy,technique-pieds-silencieux,technique-grimpe-au-ralenti,endurance-arc,mobilite-etirements-du-soir
+erreurs de page : aucune
+bilan : 6 ok, 0 échec(s) []

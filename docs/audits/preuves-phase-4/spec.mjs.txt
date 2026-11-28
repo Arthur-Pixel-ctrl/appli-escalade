@@ -1,0 +1,100 @@
+// Lit les tableaux S, W, P, J de moteur-verification.md et en tire, pour chaque code :
+// niveau attendu, gabarits de message (en expressions régulières) et source.
+import { readFileSync } from 'node:fs'
+
+const SPEC = '/home/claude/wt/AUDIT-4/docs/specs/entrainement/moteur-verification.md'
+
+const echapper = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Gabarit « … {x} … » en expression régulière ; {a \| b} devient une alternative. */
+export function gabaritVersRegex(gabarit) {
+  let res = ''
+  let i = 0
+  while (i < gabarit.length) {
+    const c = gabarit[i]
+    if (c === '{') {
+      // accolade fermante correspondante (une seule profondeur suffit sauf P-12, traité à part)
+      let prof = 1
+      let j = i + 1
+      while (j < gabarit.length && prof > 0) {
+        if (gabarit[j] === '{') prof++
+        if (gabarit[j] === '}') prof--
+        j++
+      }
+      const dedans = gabarit.slice(i + 1, j - 1)
+      if (dedans.includes('\u0001')) {
+        const alternatives = dedans.split('\u0001').map((a) => echapper(a.trim() === '' ? a : a.replace(/^ /, '').replace(/ $/, (m) => m)))
+        // on garde l'espace final éventuel (« les ») : on ne retire que l'espace de séparation autour de \|
+        const brutes = dedans.split('\u0001').map((a, k, arr) => {
+          let x = a
+          if (k > 0) x = x.replace(/^ /, '')
+          if (k < arr.length - 1) x = x.replace(/ $/, '')
+          return echapper(x)
+        })
+        void alternatives
+        res += '(?:' + brutes.join('|') + ')'
+      } else if (dedans === 's') {
+        res += 's?'
+      } else {
+        res += '(.+?)'
+      }
+      i = j
+    } else {
+      res += echapper(c)
+      i++
+    }
+  }
+  return new RegExp('^' + res + '$')
+}
+
+const PREFIXES = [
+  'Assistant : ', 'Utilisateur : ', 'Fort : ', 'Information : ', '1 : ', '2 : ', 'cap = 0 : ', 'Sinon : ',
+  'Profil bloc : ', 'Profil voie : ',
+]
+
+export function lireSpec() {
+  const texte = readFileSync(SPEC, 'utf8')
+  const regles = {}
+  for (const ligneBrute of texte.split('\n')) {
+    const m = ligneBrute.match(/^\| \*\*([SWPJ]-\d\d)\*\*/)
+    if (!m) continue
+    const ligne = ligneBrute.replace(/\\\|/g, '\u0001')
+    const cellules = ligne.split('|').slice(1, -1).map((c) => c.trim())
+    if (cellules.length < 5) continue // tableau « séance dure sans exercice connu » de B.2
+    const [, , niveau, message, source] = cellules
+    regles[m[1]] = { code: m[1], niveau, messageBrut: message.replace(/\u0001/g, '|'), source, gabarits: gabarits(m[1], message) }
+  }
+  return regles
+}
+
+function gabarits(code, message) {
+  // Notes de consolidation à retirer du texte du message
+  let t = message
+    .replace(/ \(consolidation 17\/11\)/g, '')
+    .replace(/ \(consolidation 23\/11 : élision\)/g, '')
+  // Cas particuliers
+  if (code === 'S-03') {
+    t = t.split(' — Manques')[0]
+  }
+  if (code === 'P-12') {
+    const base = "L'objectif « {nom} » ne te convient pas aujourd'hui : {raison}."
+    return [gabaritVersRegex(base), gabaritVersRegex(base + ' Essaie plutôt « {remplacementNom} ».')]
+  }
+  if (code === 'P-15') {
+    const suite = " d'étapes détaillées : l'app vérifie la récupération, les quotas et tes douleurs, mais pas l'ordre des exercices ni les repos. Ton téléphone te rappellera ces règles pendant la séance."
+    return [gabaritVersRegex('{n} séances n\'ont pas' + suite), gabaritVersRegex('1 séance n\'a pas' + suite)]
+  }
+  const variantes = t.split(' — ').map((v) => {
+    for (const p of PREFIXES) if (v.startsWith(p)) return v.slice(p.length)
+    return v
+  })
+  return variantes.map(gabaritVersRegex)
+}
+
+/** Vrai si le message suit un des gabarits ; « apostrophe » si seule l'apostrophe typographique diffère. */
+export function comparer(regle, message) {
+  if (regle.gabarits.some((g) => g.test(message))) return 'identique'
+  const normal = message.replace(/’/g, "'")
+  if (regle.gabarits.some((g) => g.test(normal))) return 'apostrophe'
+  return 'different'
+}
